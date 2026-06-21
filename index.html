@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Go Homecare</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111827;
+    }
+
+    .card {
+      width: 92%;
+      max-width: 420px;
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.18);
+      text-align: center;
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      background: #ccfbf1;
+      border-radius: 22px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #0f766e;
+    }
+
+    p {
+      color: #6b7280;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .btn-google {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      background: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-google:hover {
+      background: #f9fafb;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .user-box {
+      margin-top: 20px;
+      background: #f0fdfa;
+      padding: 16px;
+      border-radius: 16px;
+      text-align: left;
+    }
+
+    .btn-logout {
+      margin-top: 14px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: #ef4444;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <div class="logo">🏥</div>
+
+    <h1>Go Homecare</h1>
+    <p>
+      Layanan homecare terpercaya.  
+      Mempertemukan pasien dengan perawat homecare secara mudah dan transparan.
+    </p>
+
+    <div id="loginBox">
+      <button class="btn-google" onclick="loginGoogle()">
+        Masuk / Daftar dengan Google
+      </button>
+    </div>
+
+    <div id="userBox" class="user-box hidden">
+      <strong id="userName"></strong><br>
+      <small id="userEmail"></small>
+
+      <button class="btn-logout" onclick="logout()">
+        Keluar
+      </button>
+    </div>
+
+    <div class="footer">
+      © 2026 Go Homecare
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
+      authDomain: "gocare-c94bc.firebaseapp.com",
+      projectId: "gocare-c94bc",
+      storageBucket: "gocare-c94bc.firebasestorage.app",
+      messagingSenderId: "123940961680",
+      appId: "1:123940961680:web:bb842fd8925e2432230715"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    window.loginGoogle = async function () {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    console.log("Login berhasil:", user);
+
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      nama: user.displayName || "",
+      email: user.email || "",
+      foto: user.photoURL || "",
+      role: "pasien",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    alert("Login berhasil");
+
+  } catch (error) {
+    console.error("Kode error:", error.code);
+    console.error("Pesan error:", error.message);
+    alert("Login gagal: " + error.code + "\n" + error.message);
+  }
+};
+
+    window.logout = async function () {
+      await signOut(auth);
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      const loginBox = document.getElementById("loginBox");
+      const userBox = document.getElementById("userBox");
+
+      if (user) {
+        loginBox.classList.add("hidden");
+        userBox.classList.remove("hidden");
+
+        document.getElementById("userName").textContent = user.displayName;
+        document.getElementById("userEmail").textContent = user.email;
+
+        // Nanti bisa diarahkan ke halaman utama
+        // window.location.href = "home.html";
+      } else {
+        loginBox.classList.remove("hidden");
+        userBox.classList.add("hidden");
+      }
+    });
+  </script>
+
+</body>
+</html>
