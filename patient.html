@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dashboard Pasien - Go Homecare</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --primary-light: #ccfbf1;
+      --bg-color: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --white: #ffffff;
+      --border: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 12px 32px rgba(13, 148, 136, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      color: var(--text-main);
+      padding-bottom: 80px; /* Space for bottom nav */
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      background-color: var(--bg-color);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Section */
+    .header {
+      background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 100%);
+      padding: 40px 24px 60px;
+      color: var(--white);
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+      position: relative;
+      animation: slideDown 0.6s ease-out;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-greeting {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 2px;
+    }
+
+    .user-name {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-location {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .notif-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .notif-btn:active { transform: scale(0.9); }
+
+    .notif-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      border: 2px solid var(--primary-dark);
+    }
+
+    /* Wallet Card */
+    .wallet-card {
+      background: var(--white);
+      margin: -40px 20px 0;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+      animation: fadeInUp 0.6s ease-out 0.2s backwards;
+    }
+
+    .wallet-left p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .wallet-amount {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .wallet-right {
+      display: flex;
+      gap: 12px;
+    }
+
+    .wallet-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .wallet-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-dark);
+      transition: transform 0.2s;
+    }
+
+    .wallet-action:active .wallet-icon { transform: scale(0.9); }
+
+    .wallet-action span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 24px 20px 0;
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title small {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Services Grid */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+      animation: fadeInUp 0.6s ease-out 0.4s backwards;
+    }
+
+    .service-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .service-item:active { transform: scale(0.95); }
+
+    .service-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--white);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      transition: all 0.3s ease;
+    }
+
+    .service-item:hover .service-icon {
+      background: var(--primary-light);
+      border-color: var(--primary-light);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .service-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    /* Health Diary / Tools */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+      animation: fadeInUp 0.6s ease-out 0.5s backwards;
+    }
+
+    .tool-card {
+      background: var(--white);
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tool-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .tool-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .tool-icon.blue { background: #dbeafe; color: #2563eb; }
+    .tool-icon.orange { background: #ffedd5; color: #ea580c; }
+
+    .tool-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .tool-card p {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 430px;
+      margin: 0 auto;
+      background: var(--white);
+      height: 70px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+      z-index: 100;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .nav-item.active svg {
+      transform: translateY(-2px);
+    }
+
+    .nav-item span {
+      font-size: 11px;
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    
+    <!-- Header -->
+    <div class="header">
+      <div class="header-top">
+        <div class="user-info">
+          <span class="user-greeting">Halo, Selamat Datang</span>
+          <div class="user-name" id="userName">Muhammad Khairul</div>
+          <div class="user-location">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+            Jakarta Selatan
+          </div>
+        </div>
+        <button class="notif-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <div class="notif-badge"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Wallet Card -->
+    <div class="wallet-card">
+      <div class="wallet-left">
+        <p>Saldo GoPay</p>
+        <div class="wallet-amount">Rp 0</div>
+      </div>
+      <div class="wallet-right">
+        <div class="wallet-action">
+          <div class="wallet-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+          </div>
+          <span>Top Up</span>
+        </div>
+        <div class="wallet-action">
+          <div class="wallet-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6v8h2V6h-2zm-4 0v8h2V6h-2zm-4 0v8h2V6H8zm-2 8H4V6h2v8zm1-10H3v14h4v3l3-3h6.43L20 15V4H7z"/></svg>
+          </div>
+          <span>Riwayat</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      
+      <!-- Services Grid -->
+      <div class="section-title">
+        Layanan Homecare
+        <small>Lihat Semua</small>
+      </div>
+      
+      <div class="services-grid">
+        <!-- Rawat Luka -->
+        <div class="service-item" onclick="handleServiceClick('Rawat Luka')">
+          <div class="service-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M19 8h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v5H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zm-9-3h4v3h-4V5zm6 14H8v-2h8v2zm0-4H8v-2h8v2z"/></svg>
+          </div>
+          <span class="service-name">Rawat Luka</span>
+        </div>
+
+        <!-- Pasang Infus -->
+        <div class="service-item" onclick="handleServiceClick('Pasang Infus')">
+          <div class="service-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2s2-.9 2-2V4c0-1.1-.9-2-2-2zm5 11c0-1.66-1.34-3-3-3v2c.55 0 1 .45 1 1s-.45 1-1 1v2c1.66 0 3-1.34 3-3zm-8 0c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1v-2c-1.66 0-3 1.34-3 3s1.34 3 3 3v-2c-.55 0-1-.45-1-1z"/></svg>
+          </div>
+          <span class="service-name">Pasang Infus</span>
+        </div>
+
+        <!-- NGT (Sonde) -->
+        <div class="service-item" onclick="handleServiceClick('Pasang NGT')">
+          <div class="service-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M2 12C2 6.48 6.48 2 12 2s10 4.48 10 10-4.48 10-10 10S2 17.52 2 12zm10-6c-3.31 0-6 2.69-6 6h2c0-2.21 1.79-4 4-4V6z"/></svg>
+          </div>
+          <span class="service-name">Pasang NGT</span>
+        </div>
+
+        <!-- DC (Kateter) -->
+        <div class="service-item" onclick="handleServiceClick('Pasang DC')">
+          <div class="service-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          </div>
+          <span class="service-name">Pasang DC</span>
+        </div>
+
+        <!-- Perawatan Lansia -->
+        <div class="service-item" onclick="handleServiceClick('Perawatan Lansia')">
+          <div class="service-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+          </div>
+          <span class="service-name">Perawatan Lansia</span>
+        </div>
+
+        <!-- Lainnya -->
+        <div class="service-item" onclick="handleServiceClick('Lainnya')">
+          <div class="service-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+          </div>
+          <span class="service-name">Lainnya</span>
+        </div>
+      </div>
+
+      <!-- Health Diary / Tools -->
+      <div class="section-title">Alat Kesehatan</div>
+      
+      <div class="tools-grid">
+        <div class="tool-card" onclick="alert('Membuka Kalkulator BMI')">
+          <div class="tool-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm10 2h6v2h-6V7zm0 4h6v2h-6v-2zm0 4h6v2h-6v-2zM7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2z"/></svg>
+          </div>
+          <h4>Hitung BMI</h4>
+          <p>Pantau indeks massa tubuh Anda</p>
+        </div>
+
+        <div class="tool-card" onclick="alert('Membuat Alarm Obat')">
+          <div class="tool-icon orange">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 5.72l-4.6-3.86-1.29 1.53 4.6 3.86L22 5.72zM7.88 3.39L6.6 1.86 2 5.71l1.29 1.53 4.59-3.85zM12.5 8H11v6l4.75 2.85.75-1.23-4-2.37V8zM12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+          </div>
+          <h4>Alarm Obat</h4>
+          <p>Pengingat jadwal minum obat</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" onclick="switchNav(this)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Beranda</span>
+      </div>
+      <div class="nav-item" onclick="switchNav(this)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        <span>Riwayat</span>
+      </div>
+      <div class="nav-item" onclick="switchNav(this)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+        <span>Chat</span>
+      </div>
+      <div class="nav-item" onclick="switchNav(this)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Profil</span>
+      </div>
+    </nav>
+
+  </div>
+
+  <script>
+    // Handle Service Click
+    window.handleServiceClick = function(serviceName) {
+      // Redirect atau tampilkan modal pemilihan perawat
+      alert(`Anda memilih layanan: ${serviceName}\nMengarahkan ke pemilihan perawat...`);
+      // window.location.href = `select-nurse.html?service=${serviceName}`;
+    };
+
+    // Handle Bottom Nav Active State
+    window.switchNav = function(element) {
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      element.classList.add('active');
+    };
+
+    // Simulasi mengambil data user dari Firebase (Anda bisa ganti ini nanti)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Contoh: document.getElementById("userName").innerText = user.displayName;
+    });
+  </script>
+
+</body>
+</html>
