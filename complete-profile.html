@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Lengkapi Data Diri - Go Homecare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --primary-light: #ccfbf1;
+      --bg-color: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --white: #ffffff;
+      --border: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Inter', sans-serif; background-color: #e2e8f0; min-height: 100vh; display: flex; justify-content: center; color: var(--text-main); }
+    
+    .app-container { width: 100%; max-width: 430px; background-color: var(--bg-color); min-height: 100vh; position: relative; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    
+    /* Header */
+    .header { background: var(--white); padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; }
+    .back-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
+    .back-btn:hover { background: #f1f5f9; }
+    .header-title { font-size: 18px; font-weight: 700; }
+
+    /* Form Content */
+    .form-content { padding: 24px 20px 40px; flex: 1; overflow-y: auto; animation: fadeInUp 0.5s ease-out; }
+    .intro-text { margin-bottom: 24px; }
+    .intro-text h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .intro-text p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+    .form-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: 'Inter', sans-serif; background: var(--white); transition: all 0.2s ease; }
+    .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    .form-input::placeholder { color: #94a3b8; }
+    textarea.form-input { resize: vertical; min-height: 80px; }
+
+    .btn-submit { width: 100%; padding: 16px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--white); font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25); margin-top: 10px; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(13, 148, 136, 0.3); }
+    .btn-submit:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .loader { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid var(--white); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <div class="header">
+      <button class="back-btn" onclick="history.back()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <div class="header-title" id="headerTitle">Lengkapi Profil</div>
+    </div>
+
+    <div class="form-content">
+      <div class="intro-text">
+        <h2 id="formTitle">Selamat Datang! 👋</h2>
+        <p id="formDesc">Silakan lengkapi data diri Anda agar layanan dapat berjalan dengan baik.</p>
+      </div>
+
+      <form id="profileForm">
+        
+        <div class="form-group">
+          <label class="form-label" for="fullName">Nama Lengkap (Sesuai KTP)</label>
+          <input type="text" id="fullName" class="form-input" placeholder="Masukkan nama lengkap" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Nomor WhatsApp Aktif</label>
+          <input type="tel" id="phone" class="form-input" placeholder="Contoh: 08123456789" required />
+        </div>
+
+        <!-- Khusus Pasien -->
+        <div id="pasienFields">
+          <div class="form-group">
+            <label class="form-label" for="birthDate">Tanggal Lahir</label>
+            <input type="date" id="birthDate" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="gender">Jenis Kelamin</label>
+            <select id="gender" class="form-input" required>
+              <option value="" disabled selected>Pilih jenis kelamin</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="address">Alamat Domisili Lengkap</label>
+            <textarea id="address" class="form-input" placeholder="Jl. Contoh No. 123, RT/RW, Kelurahan, Kecamatan, Kota" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="emergencyContact">Kontak Darurat (Keluarga)</label>
+            <input type="tel" id="emergencyContact" class="form-input" placeholder="Nomor WA keluarga terdekat" required />
+          </div>
+        </div>
+
+        <!-- Khusus Praktisi -->
+        <div id="praktisiFields" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="strNumber">Nomor STR (Surat Tanda Registrasi)</label>
+            <input type="text" id="strNumber" class="form-input" placeholder="Masukkan nomor STR perawat" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="experience">Pengalaman Kerja (Tahun)</label>
+            <input type="number" id="experience" class="form-input" placeholder="Contoh: 3" min="0" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="specialization">Spesialisasi / Keahlian</label>
+            <input type="text" id="specialization" class="form-input" placeholder="Contoh: Perawat Luka, Perawat ICU" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="bio">Deskripsi Diri Singkat</label>
+            <textarea id="bio" class="form-input" placeholder="Ceritakan sedikit tentang pengalaman dan dedikasi Anda" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="tarif">Tarif Dasar per Kunjungan (Rp)</label>
+            <input type="number" id="tarif" class="form-input" placeholder="Contoh: 150000" min="0" required />
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-submit">
+          <span id="btnText">Simpan & Lanjutkan</span>
+        </button>
+
+      </form>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
+      authDomain: "gocare-c94bc.firebaseapp.com",
+      projectId: "gocare-c94bc",
+      storageBucket: "gocare-c94bc.firebasestorage.app",
+      messagingSenderId: "123940961680",
+      appId: "1:123940961680:web:bb842fd8925e2432230715"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 1. Ambil parameter role dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role') || 'pasien'; // default pasien jika tidak ada
+
+    // 2. Ubah UI berdasarkan role
+    const pasienFields = document.getElementById("pasienFields");
+    const praktisiFields = document.getElementById("praktisiFields");
+    const headerTitle = document.getElementById("headerTitle");
+    const formTitle = document.getElementById("formTitle");
+    const formDesc = document.getElementById("formDesc");
+
+    if (role === 'praktisi') {
+      pasienFields.style.display = 'none';
+      praktisiFields.style.display = 'block';
+      headerTitle.innerText = "Data Praktisi";
+      formTitle.innerText = "Selamat Datang, Perawat! 🩺";
+      formDesc.innerText = "Lengkapi data profesional Anda untuk mulai menerima pasien.";
+    } else {
+      pasienFields.style.display = 'block';
+      praktisiFields.style.display = 'none';
+      headerTitle.innerText = "Data Pasien";
+      formTitle.innerText = "Selamat Datang! 👋";
+      formDesc.innerText = "Silakan lengkapi data diri Anda agar perawat dapat memberikan pelayanan terbaik.";
+    }
+
+    // 3. Handle Form Submit
+    const profileForm = document.getElementById("profileForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const btnText = document.getElementById("btnText");
+
+    profileForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Sesi berakhir, silakan login kembali.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      btnText.innerHTML = `<div class="loader"></div>`;
+
+      let dataToSave = {
+        nama: document.getElementById("fullName").value,
+        phone: document.getElementById("phone").value,
+        isProfileComplete: true, // Tandai bahwa profil sudah selesai diisi
+        role: role, // Pastikan role tersimpan
+        updatedAt: new Date()
+      };
+
+      // Tambahkan field spesifik berdasarkan role
+      if (role === 'praktisi') {
+        dataToSave.strNumber = document.getElementById("strNumber").value;
+        dataToSave.experience = document.getElementById("experience").value;
+        dataToSave.specialization = document.getElementById("specialization").value;
+        dataToSave.bio = document.getElementById("bio").value;
+        dataToSave.tarif = document.getElementById("tarif").value;
+        dataToSave.isVerified = false; // Praktisi butuh verifikasi admin sebelum bisa menerima order
+      } else {
+        dataToSave.birthDate = document.getElementById("birthDate").value;
+        dataToSave.gender = document.getElementById("gender").value;
+        dataToSave.address = document.getElementById("address").value;
+        dataToSave.emergencyContact = document.getElementById("emergencyContact").value;
+      }
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, dataToSave);
+
+        // 4. Arahkan ke dashboard masing-masing
+        if (role === 'praktisi') {
+          window.location.href = "nurse.html";
+        } else {
+          window.location.href = "patient.html";
+        }
+
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        alert("Gagal menyimpan data: " + error.message);
+        
+        submitBtn.disabled = false;
+        btnText.innerText = "Simpan & Lanjutkan";
+      }
+    });
+  </script>
+
+</body>
+</html>
