@@ -26,13 +26,11 @@
     
     .app-container { width: 100%; max-width: 430px; background-color: var(--bg-color); min-height: 100vh; position: relative; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
     
-    /* Header */
     .header { background: var(--white); padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; }
     .back-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
     .back-btn:hover { background: #f1f5f9; }
     .header-title { font-size: 18px; font-weight: 700; }
 
-    /* Form Content */
     .form-content { padding: 24px 20px 40px; flex: 1; overflow-y: auto; animation: fadeInUp 0.5s ease-out; }
     .intro-text { margin-bottom: 24px; }
     .intro-text h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
@@ -83,7 +81,6 @@
           <input type="tel" id="phone" class="form-input" placeholder="Contoh: 08123456789" required />
         </div>
 
-        <!-- Khusus Pasien -->
         <div id="pasienFields">
           <div class="form-group">
             <label class="form-label" for="birthDate">Tanggal Lahir</label>
@@ -110,7 +107,6 @@
           </div>
         </div>
 
-        <!-- Khusus Praktisi -->
         <div id="praktisiFields" style="display: none;">
           <div class="form-group">
             <label class="form-label" for="strNumber">Nomor STR (Surat Tanda Registrasi)</label>
@@ -147,12 +143,16 @@
 
   </div>
 
+  <!-- ============================================
+       SEMUA IMPORT DI SATU TEMPAT, DI PALING ATAS
+       ============================================ -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
     import {
       getFirestore,
       doc,
+      getDoc,
       updateDoc
     } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
@@ -165,69 +165,39 @@
       appId: "1:123940961680:web:bb842fd8925e2432230715"
     };
 
-    const app = initializeApp(firebaseConfig);
+    const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db   = getFirestore(app);
 
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-// ... inisialisasi firebase ...
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  // Cek apakah profil sudah lengkap — kalau sudah, lewatkan
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (userDoc.exists() && userDoc.data().profileComplete === true) {
-    if (role === 'praktisi') {
-      window.location.href = "nurse.html";
-    } else {
-      window.location.href = "patien.html";
-    }
-    return;
-  }
-
-  // Kalau belum lengkap, biarkan form tampil (sudah default)
-});
-
-    // 1. Ambil parameter role dari URL
+    // 1. Ambil parameter role dari URL (dideklarasikan di luar onAuthStateChanged supaya bisa diakses di mana saja)
     const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get('role') || 'pasien'; // default pasien jika tidak ada
+    const role = urlParams.get('role') || 'pasien';
 
     // 2. Ubah UI berdasarkan role
-    const pasienFields = document.getElementById("pasienFields");
+    const pasienFields   = document.getElementById("pasienFields");
     const praktisiFields = document.getElementById("praktisiFields");
-    const headerTitle = document.getElementById("headerTitle");
-    const formTitle = document.getElementById("formTitle");
-    const formDesc = document.getElementById("formDesc");
+    const headerTitle    = document.getElementById("headerTitle");
+    const formTitle      = document.getElementById("formTitle");
+    const formDesc       = document.getElementById("formDesc");
 
     if (role === 'praktisi') {
-      pasienFields.style.display = 'none';
+      pasienFields.style.display   = 'none';
       praktisiFields.style.display = 'block';
       headerTitle.innerText = "Data Praktisi";
-      formTitle.innerText = "Selamat Datang, Perawat! 🩺";
-      formDesc.innerText = "Lengkapi data profesional Anda untuk mulai menerima pasien.";
+      formTitle.innerText   = "Selamat Datang, Perawat! 🩺";
+      formDesc.innerText    = "Lengkapi data profesional Anda untuk mulai menerima pasien.";
     } else {
-      pasienFields.style.display = 'block';
+      pasienFields.style.display   = 'block';
       praktisiFields.style.display = 'none';
       headerTitle.innerText = "Data Pasien";
-      formTitle.innerText = "Selamat Datang! 👋";
-      formDesc.innerText = "Silakan lengkapi data diri Anda agar perawat dapat memberikan pelayanan terbaik.";
+      formTitle.innerText   = "Selamat Datang! 👋";
+      formDesc.innerText    = "Silakan lengkapi data diri Anda agar perawat dapat memberikan pelayanan terbaik.";
     }
 
     // 3. Handle Form Submit
     const profileForm = document.getElementById("profileForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const btnText = document.getElementById("btnText");
+    const submitBtn   = document.getElementById("submitBtn");
+    const btnText     = document.getElementById("btnText");
 
     profileForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -240,28 +210,27 @@ onAuthStateChanged(auth, async (user) => {
       }
 
       submitBtn.disabled = true;
-      btnText.innerHTML = `<div class="loader"></div>`;
+      btnText.innerHTML  = '<div class="loader"></div>';
 
       let dataToSave = {
-        nama: document.getElementById("fullName").value,
-        phone: document.getElementById("phone").value,
-        profileComplete: true, // Tandai bahwa profil sudah selesai diisi
-        role: role, // Pastikan role tersimpan
-        updatedAt: new Date()
+        nama:            document.getElementById("fullName").value,
+        phone:           document.getElementById("phone").value,
+        profileComplete: true,
+        role:            role,
+        updatedAt:       new Date()
       };
 
-      // Tambahkan field spesifik berdasarkan role
       if (role === 'praktisi') {
-        dataToSave.strNumber = document.getElementById("strNumber").value;
-        dataToSave.experience = document.getElementById("experience").value;
+        dataToSave.strNumber      = document.getElementById("strNumber").value;
+        dataToSave.experience     = document.getElementById("experience").value;
         dataToSave.specialization = document.getElementById("specialization").value;
-        dataToSave.bio = document.getElementById("bio").value;
-        dataToSave.tarif = document.getElementById("tarif").value;
-        dataToSave.isVerified = false; // Praktisi butuh verifikasi admin sebelum bisa menerima order
+        dataToSave.bio            = document.getElementById("bio").value;
+        dataToSave.tarif          = document.getElementById("tarif").value;
+        dataToSave.isVerified     = false;
       } else {
-        dataToSave.birthDate = document.getElementById("birthDate").value;
-        dataToSave.gender = document.getElementById("gender").value;
-        dataToSave.address = document.getElementById("address").value;
+        dataToSave.birthDate       = document.getElementById("birthDate").value;
+        dataToSave.gender          = document.getElementById("gender").value;
+        dataToSave.address         = document.getElementById("address").value;
         dataToSave.emergencyContact = document.getElementById("emergencyContact").value;
       }
 
@@ -269,20 +238,37 @@ onAuthStateChanged(auth, async (user) => {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, dataToSave);
 
-        // 4. Arahkan ke dashboard masing-masing
         if (role === 'praktisi') {
           window.location.href = "nurse.html";
         } else {
-          window.location.href = "patient.html";
+          window.location.href = "patien.html";  // ← sudah diperbaiki
         }
 
       } catch (error) {
         console.error("Error saving profile:", error);
         alert("Gagal menyimpan data: " + error.message);
-        
         submitBtn.disabled = false;
-        btnText.innerText = "Simpan & Lanjutkan";
+        btnText.innerText  = "Simpan & Lanjutkan";
       }
+    });
+
+    // 4. Guard: cek apakah user sudah login & profil sudah lengkap
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().profileComplete === true) {
+        if (role === 'praktisi') {
+          window.location.href = "nurse.html";
+        } else {
+          window.location.href = "patien.html";
+        }
+        return;
+      }
+      // Kalau belum lengkap → form sudah tampil, tidak perlu doing anything
     });
   </script>
 
