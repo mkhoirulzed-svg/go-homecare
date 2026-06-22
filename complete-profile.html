@@ -36,6 +36,9 @@
     .intro-text h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
     .intro-text p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
 
+    /* fieldset reset — dipakai supaya bisa di-disable sebagai satu blok, tanpa border/padding bawaan browser */
+    fieldset { border: none; padding: 0; margin: 0; }
+
     .form-group { margin-bottom: 20px; }
     .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
     .form-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: 'Inter', sans-serif; background: var(--white); transition: all 0.2s ease; }
@@ -81,7 +84,10 @@
           <input type="tel" id="phone" class="form-input" placeholder="Contoh: 08123456789" required />
         </div>
 
-        <div id="pasienFields">
+        <!-- FIX: div → fieldset, supaya bisa di-disable sebagai satu blok saat disembunyikan.
+             Field yang "disabled" otomatis dikeluarkan dari validasi & tidak ikut submit,
+             jadi tidak akan ada lagi required field tersembunyi yang memblokir form. -->
+        <fieldset id="pasienFields">
           <div class="form-group">
             <label class="form-label" for="birthDate">Tanggal Lahir</label>
             <input type="date" id="birthDate" class="form-input" required />
@@ -105,9 +111,9 @@
             <label class="form-label" for="emergencyContact">Kontak Darurat (Keluarga)</label>
             <input type="tel" id="emergencyContact" class="form-input" placeholder="Nomor WA keluarga terdekat" required />
           </div>
-        </div>
+        </fieldset>
 
-        <div id="praktisiFields" style="display: none;">
+        <fieldset id="praktisiFields" style="display: none;">
           <div class="form-group">
             <label class="form-label" for="strNumber">Nomor STR (Surat Tanda Registrasi)</label>
             <input type="text" id="strNumber" class="form-input" placeholder="Masukkan nomor STR perawat" required />
@@ -132,7 +138,7 @@
             <label class="form-label" for="tarif">Tarif Dasar per Kunjungan (Rp)</label>
             <input type="number" id="tarif" class="form-input" placeholder="Contoh: 150000" min="0" required />
           </div>
-        </div>
+        </fieldset>
 
         <button type="submit" id="submitBtn" class="btn-submit">
           <span id="btnText">Simpan & Lanjutkan</span>
@@ -182,13 +188,17 @@
 
     if (role === 'praktisi') {
       pasienFields.style.display   = 'none';
+      pasienFields.disabled        = true;   // FIX: keluarkan dari validasi form
       praktisiFields.style.display = 'block';
+      praktisiFields.disabled      = false;
       headerTitle.innerText = "Data Praktisi";
       formTitle.innerText   = "Selamat Datang, Perawat! 🩺";
       formDesc.innerText    = "Lengkapi data profesional Anda untuk mulai menerima pasien.";
     } else {
       pasienFields.style.display   = 'block';
+      pasienFields.disabled        = false;
       praktisiFields.style.display = 'none';
+      praktisiFields.disabled      = true;   // FIX: keluarkan dari validasi form
       headerTitle.innerText = "Data Pasien";
       formTitle.innerText   = "Selamat Datang! 👋";
       formDesc.innerText    = "Silakan lengkapi data diri Anda agar perawat dapat memberikan pelayanan terbaik.";
@@ -241,7 +251,7 @@
         if (role === 'praktisi') {
           window.location.href = "nurse.html";
         } else {
-          window.location.href = "patient.html";  // ← sudah diperbaiki
+          window.location.href = "patient.html";
         }
 
       } catch (error) {
@@ -264,7 +274,7 @@
         if (role === 'praktisi') {
           window.location.href = "nurse.html";
         } else {
-          window.location.href = "patien.html";
+          window.location.href = "patient.html"; // FIX: typo "patien.html" → "patient.html"
         }
         return;
       }
