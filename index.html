@@ -2,135 +2,438 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Go Homecare</title>
 
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --primary-light: #ccfbf1;
+      --bg-color: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --white: #ffffff;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
+      --shadow-lg: 0 12px 32px rgba(13, 148, 136, 0.25);
+    }
+
     * {
       box-sizing: border-box;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #e2e8f0;
       min-height: 100vh;
-      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-main);
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      background-color: var(--bg-color);
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-banner {
+      background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 100%);
+      padding: 60px 32px 80px;
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+      animation: slideDown 0.8s ease-out;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      bottom: 20px;
+      left: -30px;
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+
+    .app-logo {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #111827;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-lg);
     }
 
-    .card {
-      width: 92%;
-      max-width: 420px;
-      background: white;
+    .app-logo svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--white);
+    }
+
+    .hero-title {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+      opacity: 0.9;
+      font-weight: 400;
+      line-height: 1.5;
+      max-width: 90%;
+    }
+
+    .content-card {
+      flex: 1;
+      background: var(--white);
+      margin: -40px 20px 20px;
       border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.18);
+      padding: 32px 24px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      z-index: 10;
+      animation: fadeInUp 0.8s ease-out 0.3s backwards;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .illustration-box {
+      width: 100%;
+      height: 160px;
+      background: var(--primary-light);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .illustration-box svg {
+      width: 80%;
+      height: 80%;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
       text-align: center;
     }
 
-    .logo {
-      width: 72px;
-      height: 72px;
-      background: #ccfbf1;
-      border-radius: 22px;
-      margin: 0 auto 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 26px;
-      color: #0f766e;
-    }
-
-    p {
-      color: #6b7280;
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 24px;
       line-height: 1.5;
-      font-size: 15px;
+    }
+
+    .role-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .role-option {
+      flex: 1;
+      padding: 14px 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      background: var(--white);
+    }
+
+    .role-option.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .role-option svg {
+      width: 28px;
+      height: 28px;
+      margin-bottom: 6px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .role-title {
+      font-weight: 600;
+      font-size: 14px;
     }
 
     .btn-google {
       width: 100%;
-      margin-top: 20px;
-      padding: 14px;
-      border: 1px solid #d1d5db;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
       border-radius: 14px;
-      background: white;
-      font-size: 16px;
-      font-weight: bold;
+      background: var(--white);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
     }
 
     .btn-google:hover {
-      background: #f9fafb;
+      background: #f8fafc;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
 
-    .footer {
-      margin-top: 20px;
-      font-size: 12px;
-      color: #9ca3af;
+    .btn-google:active {
+      transform: translateY(0);
     }
 
-    .hidden {
-      display: none;
+    .btn-google svg {
+      width: 20px;
+      height: 20px;
     }
 
     .user-box {
-      margin-top: 20px;
-      background: #f0fdfa;
+      text-align: center;
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      border: 4px solid var(--primary-light);
+      object-fit: cover;
+      box-shadow: var(--shadow-md);
+    }
+
+    .user-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .user-email {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .user-role-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-transform: capitalize;
+    }
+
+    .btn-primary {
+      width: 100%;
       padding: 16px;
-      border-radius: 16px;
-      text-align: left;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--white);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 12px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(13, 148, 136, 0.35);
     }
 
     .btn-logout {
-      margin-top: 14px;
       width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      background: #ef4444;
-      color: white;
-      font-weight: bold;
+      padding: 14px;
+      border: 1px solid #fecaca;
+      border-radius: 14px;
+      background: #fff;
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      background: #fef2f2;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loader {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 50px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="card">
-    <div class="logo">🏥</div>
-
-    <h1>Go Homecare</h1>
-    <p>
-      Layanan homecare terpercaya.  
-      Mempertemukan pasien dengan perawat homecare secara mudah dan transparan.
-    </p>
-
-    <div id="loginBox">
-      <button class="btn-google" onclick="loginGoogle()">
-        Masuk / Daftar dengan Google
-      </button>
+  <div class="app-container">
+    
+    <div class="hero-banner">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 8h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v5H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zm-9-3h4v3h-4V5zm6 14H8v-2h8v2zm0-4H8v-2h8v2z"/>
+        </svg>
+      </div>
+      <h1 class="hero-title">Go Homecare</h1>
+      <p class="hero-subtitle">
+        Layanan kesehatan rumah terpercaya. Mempertemukan pasien dengan perawat profesional secara mudah dan transparan.
+      </p>
     </div>
 
-    <div id="userBox" class="user-box hidden">
-      <strong id="userName"></strong><br>
-      <small id="userEmail"></small>
+    <div class="content-card" id="cardContent">
+      
+      <div id="loaderBox" class="loader"></div>
 
-      <button class="btn-logout" onclick="logout()">
-        Keluar
-      </button>
+      <div id="loginBox" class="hidden">
+        <div class="illustration-box">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="80" fill="#5eead4" opacity="0.3"/>
+            <path d="M80,50 L120,50 L120,80 L150,80 L150,120 L120,120 L120,150 L80,150 L80,120 L50,120 L50,80 L80,80 Z" fill="#0d9488"/>
+            <circle cx="100" cy="100" r="15" fill="#fff"/>
+            <path d="M100,90 L100,110 M90,100 L110,100" stroke="#0d9488" stroke-width="4"/>
+          </svg>
+        </div>
+        <h2 class="section-title">Selamat Datang</h2>
+        <p class="section-desc">Masuk atau buat akun untuk mulai menggunakan layanan Go Homecare.</p>
+        
+        <div class="role-selector">
+          <div class="role-option active" data-role="pasien" onclick="selectRole('pasien')">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+            <div class="role-title">Pasien</div>
+          </div>
+          <div class="role-option" data-role="praktisi" onclick="selectRole('praktisi')">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 14c-1.86 0-3.41-1.28-3.86-3h7.72c-.45 1.72-2 3-3.86 3z"/>
+            </svg>
+            <div class="role-title">Praktisi</div>
+          </div>
+        </div>
+
+        <button class="btn-google" onclick="loginGoogle()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
+            <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+            <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+            <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+            <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+          </svg>
+          Masuk dengan Google
+        </button>
+      </div>
+
+      <div id="userBox" class="user-box hidden">
+        <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+        <h2 class="user-name" id="userName"></h2>
+        <small class="user-email" id="userEmail"></small>
+        <div id="userRoleBadge" class="user-role-badge">Pasien</div>
+        
+        <button class="btn-primary" onclick="enterApp()">
+          Mulai Konsultasi
+        </button>
+        
+        <button class="btn-logout" onclick="logout()">
+          Keluar
+        </button>
+      </div>
+
     </div>
 
     <div class="footer">
-      © 2026 Go Homecare
+      © 2026 Go Homecare. All rights reserved.
     </div>
   </div>
 
@@ -166,49 +469,68 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    const loaderBox = document.getElementById("loaderBox");
+    const loginBox = document.getElementById("loginBox");
+    const userBox = document.getElementById("userBox");
+
+    let selectedRole = "pasien";
+
+    window.selectRole = function(role) {
+      selectedRole = role;
+      document.querySelectorAll('.role-option').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelector(`.role-option[data-role="${role}"]`).classList.add('active');
+    };
+
     window.loginGoogle = async function () {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
 
-    console.log("Login berhasil:", user);
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          nama: user.displayName || "",
+          email: user.email || "",
+          foto: user.photoURL || "",
+          role: selectedRole,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
 
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
-      nama: user.displayName || "",
-      email: user.email || "",
-      foto: user.photoURL || "",
-      role: "pasien",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    alert("Login berhasil");
-
-  } catch (error) {
-    console.error("Kode error:", error.code);
-    console.error("Pesan error:", error.message);
-    alert("Login gagal: " + error.code + "\n" + error.message);
-  }
-};
+      } catch (error) {
+        console.error("Kode error:", error.code);
+        console.error("Pesan error:", error.message);
+        
+        if (error.code !== 'auth/popup-closed-by-user') {
+          alert("Login gagal: " + error.message);
+        }
+      }
+    };
 
     window.logout = async function () {
       await signOut(auth);
     };
 
-    onAuthStateChanged(auth, (user) => {
-      const loginBox = document.getElementById("loginBox");
-      const userBox = document.getElementById("userBox");
+    window.enterApp = function() {
+      alert("Mengarahkan ke halaman utama...");
+      // window.location.href = "home.html";
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      loaderBox.classList.add("hidden");
 
       if (user) {
         loginBox.classList.add("hidden");
         userBox.classList.remove("hidden");
 
-        document.getElementById("userName").textContent = user.displayName;
+        document.getElementById("userName").textContent = user.displayName || "Pengguna";
         document.getElementById("userEmail").textContent = user.email;
+        
+        const avatarSrc = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=0d9488&color=fff&size=128`;
+        document.getElementById("userAvatar").src = avatarSrc;
 
-        // Nanti bisa diarahkan ke halaman utama
-        // window.location.href = "home.html";
       } else {
         loginBox.classList.remove("hidden");
         userBox.classList.add("hidden");
