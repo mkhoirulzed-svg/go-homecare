@@ -2,496 +2,164 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Go Homecare</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Lengkapi Data Diri - Go Homecare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --teal-900: #0b2e2b;
-      --teal-800: #0f766e;
-      --teal-700: #115e59;
-      --teal-300: #2dd4bf;
-      --teal-50: #eafbf7;
-      --rose-400: #fb7185;
-      --rose-50: #fff1f3;
-      --ink: #0b2e2b;
-      --body-text: #5b6b69;
-      --sheet: #ffffff;
-      --line: #e7eeec;
-      --danger: #e23b46;
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --primary-light: #ccfbf1;
+      --bg-color: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --white: #ffffff;
+      --border: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Inter', sans-serif; background-color: #e2e8f0; min-height: 100vh; display: flex; justify-content: center; color: var(--text-main); }
+    
+    .app-container { width: 100%; max-width: 430px; background-color: var(--bg-color); min-height: 100vh; position: relative; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    
+    .header { background: var(--white); padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100; }
+    .back-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
+    .back-btn:hover { background: #f1f5f9; }
+    .header-title { font-size: 18px; font-weight: 700; }
 
-    html, body {
-      margin: 0;
-      min-height: 100vh;
-    }
+    .form-content { padding: 24px 20px 40px; flex: 1; overflow-y: auto; animation: fadeInUp 0.5s ease-out; }
+    .intro-text { margin-bottom: 24px; }
+    .intro-text h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .intro-text p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
 
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #e9efed;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      color: var(--ink);
-    }
+    /* fieldset reset — dipakai supaya bisa di-disable sebagai satu blok, tanpa border/padding bawaan browser */
+    fieldset { border: none; padding: 0; margin: 0; }
 
-    /* ===== App shell ===== */
-    .app-shell {
-      width: 100%;
-      max-width: 430px;
-      min-height: 100vh;
-      background: var(--sheet);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+    .form-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-family: 'Inter', sans-serif; background: var(--white); transition: all 0.2s ease; }
+    .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    .form-input::placeholder { color: #94a3b8; }
+    textarea.form-input { resize: vertical; min-height: 80px; }
 
-    @media (min-width: 481px) {
-      body { align-items: center; padding: 32px 0; }
-      .app-shell {
-        min-height: unset;
-        max-height: 860px;
-        border-radius: 32px;
-        box-shadow: 0 30px 60px -10px rgba(11, 46, 43, 0.25);
-      }
-    }
+    .btn-submit { width: 100%; padding: 16px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--white); font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25); margin-top: 10px; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(13, 148, 136, 0.3); }
+    .btn-submit:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; transform: none; }
 
-    /* ===== Hero banner ===== */
-    .hero {
-      position: relative;
-      flex-shrink: 0;
-      padding: 30px 28px 0;
-      background: linear-gradient(165deg, var(--teal-700) 0%, var(--teal-900) 100%);
-      overflow: hidden;
-    }
-
-    .hero-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .logo-mark {
-      width: 38px;
-      height: 38px;
-      flex-shrink: 0;
-    }
-
-    .wordmark {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-weight: 700;
-      font-size: 19px;
-      color: #ffffff;
-      letter-spacing: -0.2px;
-    }
-
-    .hero-tagline {
-      margin: 6px 0 0;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.72);
-      position: relative;
-      z-index: 2;
-      /* placeholder copy — swap for the real brand line when ready */
-    }
-
-    .pulse-wrap {
-      margin-top: 18px;
-      line-height: 0;
-    }
-
-    .pulse-line {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .pulse-path {
-      fill: none;
-      stroke: url(#pulseGrad);
-      stroke-width: 2.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 1;
-      stroke-dashoffset: 1;
-      pathLength: 1;
-      animation: drawPulse 1.6s 0.2s cubic-bezier(.4,0,.2,1) forwards;
-    }
-
-    .pulse-dot {
-      fill: var(--rose-400);
-      opacity: 0;
-      transform-origin: 270px 18px;
-      animation: dotIn 0.4s 1.8s ease forwards, dotGlow 2.2s 2.2s ease-in-out infinite;
-    }
-
-    @keyframes drawPulse { to { stroke-dashoffset: 0; } }
-    @keyframes dotIn { to { opacity: 1; } }
-    @keyframes dotGlow {
-      0%, 100% { r: 3.4; opacity: 1; }
-      50% { r: 5; opacity: 0.65; }
-    }
-
-    /* ===== Sheet ===== */
-    .sheet {
-      margin-top: -22px;
-      border-radius: 26px 26px 0 0;
-      background: var(--sheet);
-      box-shadow: 0 -10px 24px rgba(11, 46, 43, 0.06);
-      position: relative;
-      z-index: 2;
-      padding: 30px 28px 26px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(14px);
-      animation: riseIn 0.6s ease forwards;
-    }
-    @keyframes riseIn { to { opacity: 1; transform: translateY(0); } }
-
-    h1.headline {
-      font-family: 'Fraunces', serif;
-      font-weight: 600;
-      font-size: 26px;
-      line-height: 1.28;
-      letter-spacing: -0.2px;
-      margin: 0 0 10px;
-      color: var(--ink);
-      animation-delay: 0.05s;
-    }
-
-    p.subcopy {
-      margin: 0 0 20px;
-      font-size: 14.5px;
-      line-height: 1.55;
-      color: var(--body-text);
-      animation-delay: 0.12s;
-    }
-
-    /* ===== Trust chips ===== */
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 26px;
-      animation-delay: 0.18s;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: var(--teal-50);
-      color: var(--teal-800);
-      font-size: 12.5px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .chip svg { width: 13px; height: 13px; flex-shrink: 0; }
-
-    /* ===== Buttons ===== */
-    .btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 13px 16px;
-      border-radius: 14px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-    }
-
-    .btn-google {
-      background: #ffffff;
-      border: 1px solid #dadce0;
-      color: #3c4043;
-      animation-delay: 0.24s;
-    }
-    .btn-google:hover {
-      box-shadow: 0 6px 16px rgba(11, 46, 43, 0.12);
-      transform: translateY(-1px);
-    }
-    .btn-google:active { transform: translateY(0); }
-
-    .btn-ghost-danger {
-      margin-top: 16px;
-      background: transparent;
-      border: 1px solid #f3c6ca;
-      color: var(--danger);
-    }
-    .btn-ghost-danger:hover {
-      background: var(--rose-50);
-      transform: translateY(-1px);
-    }
-
-    .legal {
-      margin: 14px 0 0;
-      font-size: 11.5px;
-      line-height: 1.5;
-      color: #93a3a1;
-      text-align: center;
-      animation-delay: 0.3s;
-    }
-    .legal a { color: var(--teal-800); text-decoration: none; font-weight: 600; }
-    .legal a:hover { text-decoration: underline; }
-
-    .hidden { display: none !important; }
-
-    /* ===== Logged-in state ===== */
-    .user-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding-top: 6px;
-      animation-delay: 0.05s;
-    }
-
-    .avatar-wrap {
-      width: 76px;
-      height: 76px;
-      border-radius: 50%;
-      margin-bottom: 14px;
-      background: var(--teal-50);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      border: 3px solid var(--teal-50);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
-    }
-
-    .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
-
-    .avatar-initial {
-      font-family: 'Fraunces', serif;
-      font-weight: 600;
-      font-size: 28px;
-      color: var(--teal-800);
-    }
-
-    .user-name {
-      font-family: 'Fraunces', serif;
-      font-weight: 600;
-      font-size: 19px;
-      color: var(--ink);
-      margin: 0;
-    }
-
-    .user-email {
-      font-size: 13px;
-      color: var(--body-text);
-      margin: 4px 0 12px;
-    }
-
-    .role-badge {
-      display: inline-flex;
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: var(--teal-50);
-      color: var(--teal-800);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-    }
-
-    /* ===== Loading skeleton (avoids a flash of the login form) ===== */
-    .loading-box {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .spinner {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 3px solid var(--teal-50);
-      border-top-color: var(--teal-800);
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .footer-note {
-      margin: 22px 0 0;
-      text-align: center;
-      font-size: 11.5px;
-      color: #aab8b6;
-    }
-
-    /* ===== Toast ===== */
-    .toast {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 18px;
-      z-index: 10;
-      padding: 13px 16px;
-      border-radius: 14px;
-      font-size: 13.5px;
-      font-weight: 600;
-      color: #fff;
-      background: var(--teal-800);
-      box-shadow: 0 12px 24px rgba(11, 46, 43, 0.2);
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      pointer-events: none;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.error { background: var(--danger); }
-
-    /* ===== Motion preference ===== */
-    @media (prefers-reduced-motion: reduce) {
-      .reveal, .pulse-path, .pulse-dot, .spinner {
-        animation: none !important;
-      }
-      .reveal { opacity: 1; transform: none; }
-      .pulse-path { stroke-dashoffset: 0; }
-      .pulse-dot { opacity: 1; }
-    }
+    .loader { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid var(--white); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
-
 <body>
 
-  <div class="app-shell">
-
-    <!-- ===== Hero banner ===== -->
-    <div class="hero">
-      <div class="hero-top">
-        <svg class="logo-mark" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="19" cy="19" r="19" fill="rgba(255,255,255,0.14)"/>
-          <path d="M19 9 L29 17 V28 H22 V21 H16 V28 H9 V17 Z" fill="#ffffff"/>
-          <path d="M16.5 24 H21.5 M19 21.5 V26.5" stroke="var(--rose-400)" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        <span class="wordmark">Go Homecare</span>
-      </div>
-
-      <p class="hero-tagline">Layanan perawatan rumah tepercaya</p>
-
-      <div class="pulse-wrap">
-        <svg class="pulse-line" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="pulseGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.9"/>
-              <stop offset="55%" stop-color="#ffffff"/>
-              <stop offset="100%" stop-color="#ffffff"/>
-            </linearGradient>
-          </defs>
-          <path class="pulse-path" pathLength="1"
-            d="M0,70 L40,70 L55,70 L60,50 L65,85 L72,70 L95,70 L105,15 L115,95 L125,70 L150,70 L230,70 L270,18 L310,70 L400,70" />
-          <circle class="pulse-dot" cx="270" cy="18" r="3.4" />
-        </svg>
-      </div>
+  <div class="app-container">
+    
+    <div class="header">
+      <button class="back-btn" onclick="history.back()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <div class="header-title" id="headerTitle">Lengkapi Profil</div>
     </div>
 
-    <!-- ===== Sheet ===== -->
-    <div class="sheet">
-
-      <!-- Loading skeleton, shown only until the first auth check resolves -->
-      <div id="loadingBox" class="loading-box">
-        <div class="spinner"></div>
+    <div class="form-content">
+      <div class="intro-text">
+        <h2 id="formTitle">Selamat Datang!! 👋</h2>
+        <p id="formDesc">Silakan lengkapi data diri Anda agar layanan dapat berjalan dengan baik.</p>
       </div>
 
-      <!-- Logged-out state -->
-      <div id="loginBox" class="hidden">
-        <h1 class="headline reveal">
-          Perawat profesional,<br>datang ke rumah Anda.
-        </h1>
-        <p class="subcopy reveal">
-          Pesan layanan perawatan rumah tepercaya — dari konsultasi hingga perawatan harian.
-        </p>
-
-        <!-- Qualitative trust signals — swap copy once real metrics are ready -->
-        <div class="chips reveal">
-          <span class="chip">
-            <svg viewBox="0 0 16 16"><path d="M6.5 11 3 7.5l1.1-1.1L6.5 8.8l5.4-5.4L13 4.5z" fill="#0f766e"/></svg>
-            Perawat terverifikasi
-          </span>
-          <span class="chip">
-            <svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm.6 7.2 3 1.8-.6 1-3.6-2.1V4.4h1.2z" fill="#0f766e"/></svg>
-            Respons cepat
-          </span>
-          <span class="chip">
-            <svg viewBox="0 0 16 16"><path d="M8 1l5.5 2.2v3.9C13.5 11 11.2 13.8 8 15c-3.2-1.2-5.5-4-5.5-7.9V3.2z" fill="#0f766e"/></svg>
-            Aman &amp; nyaman
-          </span>
+      <form id="profileForm">
+        
+        <div class="form-group">
+          <label class="form-label" for="fullName">Nama Lengkap (Sesuai KTP)</label>
+          <input type="text" id="fullName" class="form-input" placeholder="Masukkan nama lengkap" required />
         </div>
 
-        <button class="btn btn-google reveal" onclick="loginGoogle()" aria-label="Masuk dengan Google">
-          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.039l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.581C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.668C4.672 4.541 6.656 3.58 9 3.58z"/>
-          </svg>
-          Masuk dengan Google
-        </button>
-
-        <p class="legal reveal">
-          Dengan masuk, kamu menyetujui <a href="#">Syarat &amp; Ketentuan</a> dan <a href="#">Kebijakan Privasi</a> kami.
-        </p>
-      </div>
-
-      <!-- Logged-in state -->
-      <div id="userBox" class="user-card hidden reveal">
-        <div class="avatar-wrap">
-          <img id="userPhoto" class="hidden" alt="Foto profil" />
-          <span id="userInitial" class="avatar-initial"></span>
+        <div class="form-group">
+          <label class="form-label" for="phone">Nomor WhatsApp Aktif</label>
+          <input type="tel" id="phone" class="form-input" placeholder="Contoh: 08123456789" required />
         </div>
-        <p class="user-name" id="userName"></p>
-        <p class="user-email" id="userEmail"></p>
-        <span class="role-badge">Pasien</span>
 
-        <button class="btn btn-ghost-danger" onclick="logout()" aria-label="Keluar">
-          Keluar
+        <!-- FIX: div → fieldset, supaya bisa di-disable sebagai satu blok saat disembunyikan.
+             Field yang "disabled" otomatis dikeluarkan dari validasi & tidak ikut submit,
+             jadi tidak akan ada lagi required field tersembunyi yang memblokir form. -->
+        <fieldset id="pasienFields">
+          <div class="form-group">
+            <label class="form-label" for="birthDate">Tanggal Lahir</label>
+            <input type="date" id="birthDate" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="gender">Jenis Kelamin</label>
+            <select id="gender" class="form-input" required>
+              <option value="" disabled selected>Pilih jenis kelamin</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="address">Alamat Domisili Lengkap</label>
+            <textarea id="address" class="form-input" placeholder="Jl. Contoh No. 123, RT/RW, Kelurahan, Kecamatan, Kota" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="emergencyContact">Kontak Darurat (Keluarga)</label>
+            <input type="tel" id="emergencyContact" class="form-input" placeholder="Nomor WA keluarga terdekat" required />
+          </div>
+        </fieldset>
+
+        <fieldset id="praktisiFields" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="strNumber">Nomor STR (Surat Tanda Registrasi)</label>
+            <input type="text" id="strNumber" class="form-input" placeholder="Masukkan nomor STR perawat" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="experience">Pengalaman Kerja (Tahun)</label>
+            <input type="number" id="experience" class="form-input" placeholder="Contoh: 3" min="0" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="specialization">Spesialisasi / Keahlian</label>
+            <input type="text" id="specialization" class="form-input" placeholder="Contoh: Perawat Luka, Perawat ICU" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="bio">Deskripsi Diri Singkat</label>
+            <textarea id="bio" class="form-input" placeholder="Ceritakan sedikit tentang pengalaman dan dedikasi Anda" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="tarif">Tarif Dasar per Kunjungan (Rp)</label>
+            <input type="number" id="tarif" class="form-input" placeholder="Contoh: 150000" min="0" required />
+          </div>
+        </fieldset>
+
+        <button type="submit" id="submitBtn" class="btn-submit">
+          <span id="btnText">Simpan & Lanjutkan</span>
         </button>
-      </div>
 
-      <p class="footer-note">© 2026 Go Homecare</p>
+      </form>
     </div>
-
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   </div>
 
+  <!-- ============================================
+       SEMUA IMPORT DI SATU TEMPAT, DI PALING ATAS
+       ============================================ -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
     import {
       getFirestore,
       doc,
-      setDoc,
-      serverTimestamp
+      getDoc,
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -503,90 +171,114 @@
       appId: "1:123940961680:web:bb842fd8925e2432230715"
     };
 
-    const app = initializeApp(firebaseConfig);
+    const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+    const db   = getFirestore(app);
 
-    // ----- small toast helper, replaces blocking alert() -----
-    let toastTimer = null;
-    function showToast(message, type = "success") {
-      const el = document.getElementById("toast");
-      el.textContent = message;
-      el.classList.remove("error");
-      if (type === "error") el.classList.add("error");
-      el.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove("show"), 3000);
+    // 1. Ambil parameter role dari URL (dideklarasikan di luar onAuthStateChanged supaya bisa diakses di mana saja)
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role') || 'pasien';
+
+    // 2. Ubah UI berdasarkan role
+    const pasienFields   = document.getElementById("pasienFields");
+    const praktisiFields = document.getElementById("praktisiFields");
+    const headerTitle    = document.getElementById("headerTitle");
+    const formTitle      = document.getElementById("formTitle");
+    const formDesc       = document.getElementById("formDesc");
+
+    if (role === 'praktisi') {
+      pasienFields.style.display   = 'none';
+      pasienFields.disabled        = true;   // FIX: keluarkan dari validasi form
+      praktisiFields.style.display = 'block';
+      praktisiFields.disabled      = false;
+      headerTitle.innerText = "Data Praktisi";
+      formTitle.innerText   = "Selamat Datang, Perawat! 🩺";
+      formDesc.innerText    = "Lengkapi data profesional Anda untuk mulai menerima pasien.";
+    } else {
+      pasienFields.style.display   = 'block';
+      pasienFields.disabled        = false;
+      praktisiFields.style.display = 'none';
+      praktisiFields.disabled      = true;   // FIX: keluarkan dari validasi form
+      headerTitle.innerText = "Data Pasien";
+      formTitle.innerText   = "Selamat Datang! 👋";
+      formDesc.innerText    = "Silakan lengkapi data diri Anda agar perawat dapat memberikan pelayanan terbaik.";
     }
 
-    window.loginGoogle = async function () {
+    // 3. Handle Form Submit
+    const profileForm = document.getElementById("profileForm");
+    const submitBtn   = document.getElementById("submitBtn");
+    const btnText     = document.getElementById("btnText");
+
+    profileForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Sesi berakhir, silakan login kembali.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      btnText.innerHTML  = '<div class="loader"></div>';
+
+      let dataToSave = {
+        nama:            document.getElementById("fullName").value,
+        phone:           document.getElementById("phone").value,
+        profileComplete: true,
+        role:            role,
+        updatedAt:       new Date()
+      };
+
+      if (role === 'praktisi') {
+        dataToSave.strNumber      = document.getElementById("strNumber").value;
+        dataToSave.experience     = document.getElementById("experience").value;
+        dataToSave.specialization = document.getElementById("specialization").value;
+        dataToSave.bio            = document.getElementById("bio").value;
+        dataToSave.tarif          = document.getElementById("tarif").value;
+        dataToSave.isVerified     = false;
+      } else {
+        dataToSave.birthDate       = document.getElementById("birthDate").value;
+        dataToSave.gender          = document.getElementById("gender").value;
+        dataToSave.address         = document.getElementById("address").value;
+        dataToSave.emergencyContact = document.getElementById("emergencyContact").value;
+      }
+
       try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, dataToSave);
 
-        console.log("Login berhasil:", user);
-
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          nama: user.displayName || "",
-          email: user.email || "",
-          foto: user.photoURL || "",
-          role: "pasien",
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-
-        showToast("Login berhasil. Selamat datang!");
-
-      } catch (error) {
-        console.error("Kode error:", error.code);
-        console.error("Pesan error:", error.message);
-        showToast("Login gagal: " + error.code, "error");
-      }
-    };
-
-    window.logout = async function () {
-      await signOut(auth);
-    };
-
-    let firstCheck = true;
-
-    onAuthStateChanged(auth, (user) => {
-      const loadingBox = document.getElementById("loadingBox");
-      const loginBox = document.getElementById("loginBox");
-      const userBox = document.getElementById("userBox");
-
-      if (firstCheck) {
-        loadingBox.classList.add("hidden");
-        firstCheck = false;
-      }
-
-      if (user) {
-        loginBox.classList.add("hidden");
-        userBox.classList.remove("hidden");
-
-        document.getElementById("userName").textContent = user.displayName || "Pengguna";
-        document.getElementById("userEmail").textContent = user.email || "";
-
-        const photoEl = document.getElementById("userPhoto");
-        const initialEl = document.getElementById("userInitial");
-        if (user.photoURL) {
-          photoEl.src = user.photoURL;
-          photoEl.classList.remove("hidden");
-          initialEl.classList.add("hidden");
+        if (role === 'praktisi') {
+          window.location.href = "nurse.html";
         } else {
-          photoEl.classList.add("hidden");
-          initialEl.classList.remove("hidden");
-          initialEl.textContent = (user.displayName || "P").charAt(0).toUpperCase();
+          window.location.href = "patient.html";
         }
 
-        // Nanti bisa diarahkan ke halaman utama
-        // window.location.href = "home.html";
-      } else {
-        loginBox.classList.remove("hidden");
-        userBox.classList.add("hidden");
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        alert("Gagal menyimpan data: " + error.message);
+        submitBtn.disabled = false;
+        btnText.innerText  = "Simpan & Lanjutkan";
       }
+    });
+
+    // 4. Guard: cek apakah user sudah login & profil sudah lengkap
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().profileComplete === true) {
+        if (role === 'praktisi') {
+          window.location.href = "nurse.html";
+        } else {
+          window.location.href = "patient.html"; // FIX: typo "patien.html" → "patient.html"
+        }
+        return;
+      }
+      // Kalau belum lengkap → form sudah tampil, tidak perlu doing anything
     });
   </script>
 
