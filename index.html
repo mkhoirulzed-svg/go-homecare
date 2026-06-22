@@ -515,14 +515,8 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
 
-        // Redirect berdasarkan role
-        if (selectedRole === "pasien") {
-          // Pasien baru → selalu ke complete-profile dulu
-          window.location.href = "complete-profile.html";
-        } else {
-          // Praktisi → tampilkan userBox (bisa diganti nanti)
-          showUserBox(user);
-        }
+              // Semua role baru → wajib isi complete-profile dulu
+        window.location.href = "complete-profile.html?role=" + selectedRole;
 
       } catch (error) {
         isLoggingIn = false;
@@ -591,21 +585,17 @@
           if (userDoc.exists()) {
             const data = userDoc.data();
 
-            if (data.role === "pasien") {
-              // ✅ Sudah isi profile → langsung ke halaman pasien
-              if (data.profileComplete === true) {
-                window.location.href = "patient.html";
+                       if (data.profileComplete === true) {
+              // Sudah lengkap → arahkan ke dashboard masing-masing
+              if (data.role === "praktisi") {
+                window.location.href = "nurse.html";
+              } else {
+                window.location.href = "patien.html";
               }
-              // ❌ Belum isi profile → arahkan ke complete-profile
-              else {
-                window.location.href = "complete-profile.html";
-              }
+            } else {
+              // Belum lengkap → ke complete-profile dengan parameter role
+              window.location.href = "complete-profile.html?role=" + data.role;
             }
-            // Role lain (praktisi, admin, dll) → tampilkan userBox
-            else {
-              showUserBox(user, data.role);
-            }
-
           } else {
             // Dokumen Firestore tidak ada (kasus anomali) → logout
             await signOut(auth);
