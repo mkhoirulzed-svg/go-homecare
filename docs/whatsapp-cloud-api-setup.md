@@ -38,21 +38,21 @@ npm install
 cd ..
 ```
 
-Set secrets using Firebase CLI prompts; do not commit secret values:
+Set the two secret values using Firebase CLI prompts. Never commit their values:
 
 ```bash
 firebase functions:secrets:set WA_ACCESS_TOKEN
 firebase functions:secrets:set WA_PHONE_NUMBER_ID
-firebase functions:secrets:set WA_GRAPH_API_VERSION
 ```
 
-Set the boolean parameter to enable notifications only after completing the setup:
+The Graph API version and enable/disable switch are non-secret function parameters. Firebase Functions v2 loads these from a project-specific environment file. Create `functions/.env.gocare-c94bc` locally (this file is ignored by Git) with values like:
 
-```bash
-firebase functions:params:set WA_NOTIFICATIONS_ENABLED
+```dotenv
+WA_GRAPH_API_VERSION=vXX.X
+WA_NOTIFICATIONS_ENABLED=false
 ```
 
-If the installed Firebase CLI does not support setting a parameter interactively, follow its current parameter configuration prompt during deployment. Keep the value `false` until the test phase is complete.
+Replace `vXX.X` with the currently supported Graph API version confirmed in Meta's documentation. Keep `WA_NOTIFICATIONS_ENABLED=false` until booking data, templates, recipient consent, and test numbers have been verified. Do not commit `functions/.env.gocare-c94bc` or any token file.
 
 Then deploy only functions:
 
