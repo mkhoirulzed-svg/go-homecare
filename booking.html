@@ -128,6 +128,7 @@
           <h2>Permintaan berhasil dicatat</h2>
           <p>Status saat ini <strong>Menunggu konfirmasi</strong>. Pengiriman formulir belum menjamin ketersediaan perawat. Simpan ID pemesanan berikut.</p>
           <div id="bookingId" class="booking-id"></div>
+          <a class="secondary" href="patient.html?bookingUpdated=1" style="display:block;padding:13px 16px;border-radius:12px;background:#0f766e;color:#fff;text-decoration:none;margin-top:14px">Lihat Riwayat Pemesanan</a>
           <a class="secondary" href="patient.html">Kembali ke beranda</a>
         </div>
       </section>
@@ -375,7 +376,7 @@
         if (editingBookingId) {
           window.setTimeout(() => {
             window.location.href = "patient.html?bookingUpdated=1";
-          }, 1800);
+          }, 2500);
         }
       } catch (error) {
         console.error("Gagal menyimpan permintaan homecare:", error);
