@@ -36,9 +36,19 @@
     .success h2{font-size:20px;margin:0 0 8px}.success p{font-size:13px;color:var(--muted);line-height:1.6}.booking-id{font-size:11px;background:#f1f5f9;border-radius:10px;padding:10px;overflow-wrap:anywhere;margin:14px 0 20px}
     .secondary{display:block;text-align:center;margin-top:12px;color:var(--dark);font-size:13px;font-weight:700;text-decoration:none}
     footer{text-align:center;color:#94a3b8;font-size:11px;padding:0 16px 22px}
+  
+    .app-toast {
+      position: fixed; z-index: 9999; top: 16px; left: 50%;
+      transform: translateX(-50%); width: calc(100% - 32px); max-width: 460px;
+      padding: 14px 16px; border-radius: 14px; background: #065f46; color: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2); font-size: 14px; line-height: 1.45;
+      font-weight: 700; display: none;
+    }
+    .app-toast.visible { display: block; animation: toastIn .2s ease-out; }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
   </style>
 </head>
-<body>
+<body>\n  <div id="appToast" class="app-toast" role="status" aria-live="polite"></div>
   <div class="app">
     <header>
       <a class="back" href="patient.html" aria-label="Kembali ke beranda">← Kembali ke beranda</a>
@@ -167,6 +177,12 @@
     function showFormError(message) {
       $("formStatus").textContent = message;
       $("formStatus").className = "status error";
+    }
+    function showSuccessToast(message) {
+      const toast = $("appToast");
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add("visible");
     }
     function localDateTimeMinimum() {
       const now = new Date();
@@ -345,6 +361,7 @@
           bookingId = editingBookingId;
           $("successCard h2").textContent = "Perubahan berhasil disimpan";
           $("successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
+          showSuccessToast("Berhasil! Perubahan pesanan sudah disimpan. Membuka Riwayat Pemesanan…");
         } else {
           const booking = await addDoc(collection(db, "bookingRequests"), {
             // patientUid dipertahankan sebagai pemilik akses pesanan agar riwayat lama tetap kompatibel.
@@ -417,7 +434,8 @@
           $("formCard").classList.add("hidden");
           $("bookingId").textContent = editingBookingId;
           $("successCard").classList.remove("hidden");
-        if (editingBookingId) {
+          showSuccessToast("Berhasil! Perubahan pesanan sudah disimpan. Membuka Riwayat Pemesanan…");
+          if (editingBookingId) {
           window.setTimeout(() => {
             window.location.href = "patient.html?bookingUpdated=1";
           }, 1800);
