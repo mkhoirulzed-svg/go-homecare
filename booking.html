@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f766e">
+  <title>Pemesanan Homecare | Go Homecare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--primary:#0d9488;--dark:#0f766e;--light:#ccfbf1;--bg:#f8fafc;--ink:#0f172a;--muted:#64748b;--border:#e2e8f0;--white:#fff;--danger:#b91c1c}
+    *{box-sizing:border-box}body{margin:0;background:#e2e8f0;color:var(--ink);font-family:Inter,Arial,sans-serif}
+    .app{max-width:520px;min-height:100vh;margin:0 auto;background:var(--bg);box-shadow:0 0 32px #00000012}
+    header{background:linear-gradient(145deg,var(--dark),var(--primary));color:#fff;padding:24px 22px 30px;border-radius:0 0 26px 26px}
+    .back{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:22px}
+    h1{font-size:24px;line-height:1.25;margin:0 0 8px}header p{font-size:13px;line-height:1.55;margin:0;opacity:.92}
+    main{padding:20px 16px 36px}.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:0 8px 24px #0f172a0a}
+    .section-title{font-size:16px;font-weight:800;margin:0 0 4px}.section-sub{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 20px}
+    .field{margin-bottom:16px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+    input,select,textarea{width:100%;font:inherit;font-size:14px;color:var(--ink);padding:12px 13px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #0d94881a}
+    input[readonly]{background:#f1f5f9;color:#475569}textarea{min-height:90px;resize:vertical}
+    .hint{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}
+    .notice{padding:12px;border-radius:12px;background:#fef3c7;color:#92400e;font-size:12px;line-height:1.55;margin:4px 0 16px}
+    .consent{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.5;color:#475569;margin:8px 0 18px}.consent input{width:17px;height:17px;margin-top:1px;flex-shrink:0;accent-color:var(--primary)}
+    button{width:100%;border:0;border-radius:13px;padding:14px 16px;background:linear-gradient(135deg,var(--primary),var(--dark));color:#fff;font-size:14px;font-weight:800;cursor:pointer}
+    button:disabled{opacity:.6;cursor:wait}.status{padding:13px;border-radius:12px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none}
+    .status.error{display:block;background:#fee2e2;color:var(--danger)}.status.info{display:block;background:#e0f2fe;color:#075985}
+    .loading{padding:30px;text-align:center;color:var(--muted);font-size:13px}.hidden{display:none!important}
+    .success{text-align:center;padding:14px 4px}.success-icon{width:58px;height:58px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:var(--light);color:var(--dark);font-size:28px;font-weight:800}
+    .success h2{font-size:20px;margin:0 0 8px}.success p{font-size:13px;color:var(--muted);line-height:1.6}.booking-id{font-size:11px;background:#f1f5f9;border-radius:10px;padding:10px;overflow-wrap:anywhere;margin:14px 0 20px}
+    .secondary{display:block;text-align:center;margin-top:12px;color:var(--dark);font-size:13px;font-weight:700;text-decoration:none}
+    footer{text-align:center;color:#94a3b8;font-size:11px;padding:0 16px 22px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <a class="back" href="patient.html" aria-label="Kembali ke beranda">← Kembali ke beranda</a>
+      <h1>Buat Permintaan Homecare</h1>
+      <p>Isi detail layanan yang kamu butuhkan. Permintaan akan tercatat dengan status menunggu konfirmasi.</p>
+    </header>
+    <main>
+      <div id="loading" class="card loading">Memeriksa sesi dan profil akun…</div>
+      <div id="pageError" class="card status error hidden" role="alert"></div>
+      <section id="formCard" class="card hidden">
+        <h2 class="section-title">Detail pemesanan</h2>
+        <p class="section-sub">Pastikan nomor kontak dan alamat dapat dihubungi oleh tim Go Homecare.</p>
+        <div id="formStatus" class="status" role="alert"></div>
+        <form id="bookingForm">
+          <div class="field">
+            <label for="serviceName">Jenis layanan *</label>
+            <select id="serviceName" required>
+              <option value="">Pilih layanan</option>
+              <option>Rawat Luka</option>
+              <option>Pasang Infus</option>
+              <option>Pasang NGT</option>
+              <option>Pasang DC</option>
+              <option>Perawatan Lansia</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="patientName">Nama pasien *</label>
+            <input id="patientName" type="text" readonly required>
+          </div>
+          <div class="field">
+            <label for="patientPhone">Nomor WhatsApp aktif *</label>
+            <input id="patientPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Contoh: 08123456789" required maxlength="20">
+            <div class="hint">Gunakan nomor yang aktif dan bisa dihubungi.</div>
+          </div>
+          <div class="field">
+            <label for="patientAddress">Alamat kunjungan *</label>
+            <textarea id="patientAddress" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, patokan lokasi" required maxlength="500"></textarea>
+          </div>
+          <div class="field">
+            <label for="area">Kelurahan, kecamatan, atau kota *</label>
+            <input id="area" type="text" placeholder="Contoh: Jekan Raya, Palangka Raya" required maxlength="120">
+          </div>
+          <div class="field">
+            <label for="scheduledAt">Waktu kunjungan yang diinginkan *</label>
+            <input id="scheduledAt" type="datetime-local" required>
+            <div class="hint">Jadwal ini merupakan permintaan dan belum berarti perawat sudah tersedia atau pesanan terkonfirmasi.</div>
+          </div>
+          <div class="field">
+            <label for="notes">Catatan tambahan (opsional)</label>
+            <textarea id="notes" placeholder="Informasi singkat yang perlu diketahui saat menghubungi kamu" maxlength="300"></textarea>
+            <div class="hint">Hindari menuliskan data medis yang sangat sensitif. Informasi ini bukan pengganti pemeriksaan tenaga kesehatan.</div>
+          </div>
+          <div class="notice"><strong>Bukan untuk kondisi gawat darurat.</strong> Jika pasien mengalami sesak berat, penurunan kesadaran, nyeri dada, atau keadaan yang mengancam nyawa, segera hubungi layanan gawat darurat atau pergi ke IGD terdekat.</div>
+          <label class="consent"><input id="consent" type="checkbox" required><span>Saya menyetujui data pemesanan ini digunakan untuk menindaklanjuti permintaan layanan homecare.</span></label>
+          <button id="submitButton" type="submit">Kirim Permintaan</button>
+        </form>
+      </section>
+      <section id="successCard" class="card hidden">
+        <div class="success">
+          <div class="success-icon">✓</div>
+          <h2>Permintaan berhasil dicatat</h2>
+          <p>Status saat ini <strong>Menunggu konfirmasi</strong>. Pengiriman formulir belum menjamin ketersediaan perawat. Simpan ID pemesanan berikut.</p>
+          <div id="bookingId" class="booking-id"></div>
+          <a class="secondary" href="patient.html">Kembali ke beranda</a>
+        </div>
+      </section>
+    </main>
+    <footer>© 2026 Go Homecare · Jaga kerahasiaan informasi akunmu.</footer>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
+      authDomain: "gocare-c94bc.firebaseapp.com",
+      projectId: "gocare-c94bc",
+      storageBucket: "gocare-c94bc.firebasestorage.app",
+      messagingSenderId: "123940961680",
+      appId: "1:123940961680:web:bb842fd8925e2432230715"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const $ = (id) => document.getElementById(id);
+    let currentUser = null;
+    let submitting = false;
+
+    function showError(message) {
+      $("loading").classList.add("hidden");
+      $("formCard").classList.add("hidden");
+      $("pageError").textContent = message;
+      $("pageError").classList.remove("hidden");
+    }
+    function showFormError(message) {
+      $("formStatus").textContent = message;
+      $("formStatus").className = "status error";
+    }
+    function localDateTimeMinimum() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 15);
+      now.setSeconds(0, 0);
+      const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+      return local.toISOString().slice(0, 16);
+    }
+    function normalizeIndonesianPhone(value) {
+      const digits = String(value || "").replace(/\D/g, "");
+      if (digits.startsWith("0")) return "62" + digits.slice(1);
+      if (digits.startsWith("62")) return digits;
+      return digits;
+    }
+
+    $("scheduledAt").min = localDateTimeMinimum();
+    const params = new URLSearchParams(window.location.search);
+    const requestedService = params.get("service");
+    const allowedServices = ["Rawat Luka", "Pasang Infus", "Pasang NGT", "Pasang DC", "Perawatan Lansia", "Lainnya"];
+    if (allowedServices.includes(requestedService)) $("serviceName").value = requestedService;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      currentUser = user;
+      try {
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        if (!profileSnap.exists()) {
+          showError("Profil akun tidak ditemukan. Silakan masuk kembali dan lengkapi profil.");
+          return;
+        }
+        const profile = profileSnap.data();
+        if (profile.role !== "pasien") {
+          window.location.href = profile.role === "praktisi" ? "nurse.html" : "index.html";
+          return;
+        }
+        if (profile.profileComplete !== true) {
+          window.location.href = "complete-profile.html?role=pasien";
+          return;
+        }
+        $("patientName").value = profile.nama || user.displayName || "";
+        $("patientPhone").value = profile.phone || "";
+        $("patientAddress").value = profile.address || "";
+        $("loading").classList.add("hidden");
+        $("formCard").classList.remove("hidden");
+      } catch (error) {
+        console.error("Gagal memuat profil pemesanan:", error);
+        showError("Profil belum bisa dimuat. Periksa koneksi internet, lalu coba buka halaman ini kembali.");
+      }
+    });
+
+    $("bookingForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (submitting) return;
+      if (!currentUser) {
+        showFormError("Sesi login tidak ditemukan. Silakan login kembali.");
+        return;
+      }
+
+      const serviceName = $("serviceName").value;
+      const patientName = $("patientName").value.trim();
+      const rawPhone = $("patientPhone").value.trim();
+      const patientPhone = normalizeIndonesianPhone(rawPhone);
+      const patientAddress = $("patientAddress").value.trim();
+      const area = $("area").value.trim();
+      const scheduledDate = new Date($("scheduledAt").value);
+      const notes = $("notes").value.trim();
+
+      if (!serviceName || !patientName || !rawPhone || !patientAddress || !area || !$("consent").checked) {
+        showFormError("Lengkapi semua kolom wajib dan persetujuan sebelum mengirim.");
+        return;
+      }
+      if (!Number.isFinite(scheduledDate.getTime()) || scheduledDate.getTime() < Date.now() + 10 * 60 * 1000) {
+        showFormError("Pilih jadwal minimal 10 menit dari waktu sekarang.");
+        return;
+      }
+      if (patientPhone.length < 8 || patientPhone.length > 15) {
+        showFormError("Nomor WhatsApp tampaknya belum valid. Gunakan nomor Indonesia seperti 08123456789 atau +628123456789.");
+        return;
+      }
+
+      submitting = true;
+      $("submitButton").disabled = true;
+      $("submitButton").textContent = "Menyimpan permintaan…";
+      $("formStatus").className = "status";
+      $("formStatus").textContent = "";
+
+      try {
+        const booking = await addDoc(collection(db, "bookingRequests"), {
+          patientUid: currentUser.uid,
+          patientName,
+          patientPhone,
+          patientAddress,
+          serviceName,
+          scheduledAt: Timestamp.fromDate(scheduledDate),
+          area,
+          notes,
+          nurseUid: null,
+          nurseName: null,
+          nursePhone: null,
+          status: "pending",
+          bookingSource: "github-pages",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        $("formCard").classList.add("hidden");
+        $("bookingId").textContent = booking.id;
+        $("successCard").classList.remove("hidden");
+      } catch (error) {
+        console.error("Gagal menyimpan permintaan homecare:", error);
+        if (error.code === "permission-denied") {
+          showFormError("Database menolak permintaan ini. Aturan keamanan Firestore perlu diperiksa sebelum pemesanan bisa digunakan.");
+        } else {
+          showFormError("Permintaan belum berhasil disimpan. Periksa koneksi internet dan coba lagi.");
+        }
+      } finally {
+        submitting = false;
+        $("submitButton").disabled = false;
+        $("submitButton").textContent = "Kirim Permintaan";
+      }
+    });
+  </script>
+</body>
+</html>

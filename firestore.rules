@@ -1,0 +1,71 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Preserve the currently published users rule for compatibility in this
+    // booking-focused draft. It is broad (owners can change their own role and
+    // verification fields), so tighten it separately after reviewing all flows.
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    function isCompletePatient() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'pasien'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true;
+    }
+
+    match /bookingRequests/{requestId} {
+      // Patient reads must be constrained by patientUid in their Firestore query.
+      // Assigned nurses may read only requests assigned to their UID.
+      allow get, list: if request.auth != null
+        && (
+          resource.data.patientUid == request.auth.uid
+          || resource.data.nurseUid == request.auth.uid
+        );
+
+      allow create: if isCompletePatient()
+        && request.resource.data.keys().hasAll([
+          'patientUid', 'patientName', 'patientPhone', 'patientAddress',
+          'serviceName', 'scheduledAt', 'area', 'notes',
+          'nurseUid', 'nurseName', 'nursePhone', 'status',
+          'bookingSource', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'patientUid', 'patientName', 'patientPhone', 'patientAddress',
+          'serviceName', 'scheduledAt', 'area', 'notes',
+          'nurseUid', 'nurseName', 'nursePhone', 'status',
+          'bookingSource', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.patientUid == request.auth.uid
+        && request.resource.data.patientName is string
+        && request.resource.data.patientName.size() > 0
+        && request.resource.data.patientPhone is string
+        && request.resource.data.patientAddress is string
+        && request.resource.data.patientAddress.size() > 0
+        && request.resource.data.serviceName in [
+          'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
+          'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+        ]
+        && request.resource.data.scheduledAt is timestamp
+        && request.resource.data.area is string
+        && request.resource.data.area.size() > 0
+        && request.resource.data.notes is string
+        && request.resource.data.nurseUid == null
+        && request.resource.data.nurseName == null
+        && request.resource.data.nursePhone == null
+        && request.resource.data.status == 'pending'
+        && request.resource.data.bookingSource == 'github-pages'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // Client-side status changes and nurse assignment are deliberately denied
+      // until a trusted nurse/admin workflow is implemented.
+      allow update, delete: if false;
+    }
+
+    // All other collections remain denied unless explicitly matched.
+  }
+}

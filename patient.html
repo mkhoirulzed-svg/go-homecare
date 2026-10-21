@@ -514,11 +514,9 @@
   </div>
 
   <script>
-    // Handle Service Click
+    // Handle Service Click: buka form pemesanan dengan layanan yang dipilih.
     window.handleServiceClick = function(serviceName) {
-      // Redirect atau tampilkan modal pemilihan perawat
-      alert(`Anda memilih layanan: ${serviceName}\nMengarahkan ke pemilihan perawat...`);
-      // window.location.href = `select-nurse.html?service=${serviceName}`;
+      window.location.href = "booking.html?service=" + encodeURIComponent(serviceName);
     };
 
     // Handle Bottom Nav Active State
