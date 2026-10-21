@@ -1,27 +1,32 @@
 # Firestore rules draft — review before use
 
-This repository did not contain a checked-in Firestore rules file when reviewed. GitHub cannot tell us which rules are currently published in the Firebase Console. Therefore this file is a **draft only** and has not been published to Firebase.
+The currently published rules shared for review are:
 
-## What this draft aims to protect
-- A signed-in user can read their own `users/{uid}` profile.
-- A user can create their own initial profile; subsequent profile updates cannot change their UID, role, or verification flag.
-- A patient can create a booking only for their own UID, with an allowlisted service, pending status, null nurse assignment, and the expected field set.
-- A patient can read their own booking; an assigned nurse can read a booking assigned to their UID.
-- Clients cannot update/delete bookings or write WhatsApp notification state.
+```rules
+match /users/{userId} {
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+}
+```
 
-## Important compatibility warning
-The app's other pages and future workflows may use additional collections not represented here. Because unmatched collections are denied, publishing these rules without checking the live database could break existing features. In particular, inspect the current Firebase Console rules and all reads/writes used by existing pages before publishing anything.
+This branch preserves that existing `users` rule to reduce compatibility risk and adds a restricted `bookingRequests` rule. The current user rule is still broad: a user can edit their own role and verification-related fields. Review and tighten that separately after the full patient/nurse onboarding flow is designed.
 
-The existing profile page currently writes fields including `nama`, `phone`, `profileComplete`, `role`, `updatedAt`, patient profile fields, and practitioner profile fields. This draft permits owner updates to those fields as long as the UID, role, and existing verification flag stay unchanged. Role selection is still client-driven in the existing application; a production onboarding flow should review this separately.
+**This file is not published to Firebase.** GitHub cannot change the live Firestore rules unless the user explicitly publishes them in Firebase Console or deploys with Firebase CLI.
 
-## How to validate safely
-1. In Firebase Console, open Firestore Database → Rules and copy/export the **currently published** rules to a safe backup.
-2. Do not replace the live rules directly with this draft.
-3. Test the draft in the Firebase Emulator Suite or Rules Playground against profile completion, patient booking creation, patient booking reads, cross-user reads, fake nurse assignment, status tampering, and access to existing collections.
-4. Confirm every existing collection and user role workflow is covered.
-5. Only publish after tests pass and a rollback copy is available.
+## What the booking rule aims to enforce
+- Only an authenticated user can create a booking for their own UID.
+- Only known service names and a fixed set of fields are accepted.
+- New bookings must start with `status: "pending"` and no nurse assigned.
+- Clients cannot update/delete bookings; nurse assignment and status transitions need a trusted workflow.
+- A patient or assigned nurse can read their own booking. Patient history queries must filter by `patientUid == request.auth.uid`; Firestore rules are not filters.
 
-## Booking contract
-The booking form writes a document to `bookingRequests` with `patientUid`, `patientName`, `patientPhone`, `patientAddress`, `serviceName`, `scheduledAt`, `area`, `notes`, null nurse fields, `status: "pending"`, `bookingSource: "github-pages"`, `createdAt`, and `updatedAt`.
+## Before publishing
+1. Keep a copy of the currently published rules for rollback.
+2. Test in Firebase Emulator Suite or Rules Playground, including patient create, missing fields, other user's UID, unexpected fields, fake nurse assignment, status tampering, cross-user reads, and profile completion.
+3. Check all existing app pages and all Firestore collections. Unmatched collections are denied by default and may affect features not yet reviewed.
+4. Confirm that profile creation and completion continue to work with the preserved `users` rule.
+5. Publish only after tests pass and a rollback path is available.
 
-Cloud Functions/WhatsApp notifications are not deployed or enabled by this rules draft.
+## Booking document schema
+`bookingRequests/{requestId}` receives `patientUid`, `patientName`, `patientPhone`, `patientAddress`, `serviceName`, `scheduledAt` (timestamp), `area`, `notes`, null nurse fields, `status: "pending"`, `bookingSource: "github-pages"`, `createdAt`, and `updatedAt`.
+
+WhatsApp Cloud API and Cloud Functions are not deployed or enabled by this rules draft.
