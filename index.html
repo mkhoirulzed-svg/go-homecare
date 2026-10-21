@@ -503,20 +503,47 @@
 
       try {
         const result = await signInWithPopup(auth, provider);
-        const user   = result.user;
+        const user = result.user;
+        const userRef = doc(db, "users", user.uid);
+        const existingSnap = await getDoc(userRef);
 
-        // Simpan data dasar ke Firestore
-        await setDoc(doc(db, "users", user.uid), {
-          uid:       user.uid,
-          nama:      user.displayName || "",
-          email:     user.email || "",
-          foto:      user.photoURL || "",
-          role:      selectedRole,
+        if (existingSnap.exists()) {
+          // Akun lama: role dari Firestore adalah sumber kebenaran.
+          // Jangan pernah menimpa role hanya karena pilihan di halaman login.
+          const existing = existingSnap.data();
+          const storedRole = existing.role;
+
+          if (storedRole !== "pasien" && storedRole !== "praktisi") {
+            throw new Error("Role akun tidak valid. Hubungi admin Go-Homecare.");
+          }
+
+          if (existing.profileComplete === true) {
+            window.location.replace(storedRole === "praktisi" ? "nurse.html" : "patient.html");
+          } else {
+            window.location.replace("complete-profile.html?role=" + encodeURIComponent(storedRole));
+          }
+          return;
+        }
+
+        // Pendaftaran mandiri praktisi belum aman sebelum ada proses persetujuan admin.
+        if (selectedRole === "praktisi") {
+          await signOut(auth);
+          alert("Pendaftaran praktisi belum dibuka. Silakan masuk sebagai pasien atau hubungi admin Go-Homecare untuk proses verifikasi praktisi.");
+          return;
+        }
+
+        // Akun baru hanya boleh dibuat sebagai pasien melalui halaman publik.
+        await setDoc(userRef, {
+          uid: user.uid,
+          nama: user.displayName || "",
+          email: user.email || "",
+          foto: user.photoURL || "",
+          role: "pasien",
+          profileComplete: false,
           updatedAt: serverTimestamp()
-        }, { merge: true });
+        });
 
-              // Semua role baru → wajib isi complete-profile dulu
-        window.location.href = "complete-profile.html?role=" + selectedRole;
+        window.location.href = "complete-profile.html?role=pasien";
 
       } catch (error) {
         isLoggingIn = false;
