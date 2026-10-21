@@ -525,7 +525,11 @@
           // Jika pengguna memilih masuk sebagai praktisi dengan akun pasien,
           // arahkan ke formulir pengajuan tanpa mengubah role akun secara mandiri.
           if (selectedRole === "praktisi" && storedRole === "pasien") {
-            window.location.replace("apply-practitioner.html");
+            if (existing.profileComplete === true) {
+              window.location.replace("apply-practitioner.html");
+            } else {
+              window.location.replace("complete-profile.html?role=pasien&next=praktisi");
+            }
             return;
           }
           if (existing.profileComplete === true) {
@@ -549,7 +553,7 @@
         });
 
         if (selectedRole === "praktisi") {
-          window.location.replace("apply-practitioner.html");
+          window.location.replace("complete-profile.html?role=pasien&next=praktisi");
         } else {
           window.location.replace("complete-profile.html?role=pasien");
         }
