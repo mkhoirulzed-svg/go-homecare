@@ -651,7 +651,8 @@
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (!snap.exists()) { alert("Profil akun tidak ditemukan."); await signOut(auth); window.location.replace("index.html"); return; }
-        currentPatientUid = user.uid;\n        const profile = snap.data();
+        currentPatientUid = user.uid;
+        const profile = snap.data();
         if (profile.role !== "pasien") { window.location.replace(profile.role === "praktisi" && profile.isVerified === true ? "nurse.html" : "index.html"); return; }
         if (profile.profileComplete !== true) { window.location.replace("complete-profile.html?role=pasien"); return; }
         document.getElementById("userName").textContent = profile.nama || user.displayName || "Pasien";
