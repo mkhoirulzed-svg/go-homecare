@@ -10,6 +10,10 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(uid));
     }
 
+    function isAdmin() {
+      return signedIn() && request.auth.uid == 'Vsl0uEluR5TCOdqVY7UPX2wfw6y1';
+    }
+
     function isCompletePatient() {
       return signedIn()
         && userDocExists(request.auth.uid)
@@ -27,18 +31,32 @@ service cloud.firestore {
           'uid', 'nama', 'email', 'foto', 'role', 'profileComplete', 'updatedAt'
         ]);
 
-      allow get: if signedIn() && request.auth.uid == userId;
-      allow list: if false;
+      allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
 
-      // User cannot grant themselves practitioner access or mark themselves verified.
-      allow update: if signedIn()
+      // Admin can approve/reject a practitioner; ordinary users cannot change role or verification.
+      allow update: if isAdmin()
+        || (signedIn()
         && request.auth.uid == userId
         && request.resource.data.role == resource.data.role
         && request.resource.data.get('isVerified', false) == resource.data.get('isVerified', false)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'nama', 'phone', 'profileComplete', 'updatedAt',
           'birthDate', 'gender', 'address', 'emergencyContact'
-        ]);
+        ]));
+      allow delete: if false;
+    }
+
+    match /practitionerApplications/{applicationId} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly(['uid','nama','email','phone','strNumber','experience','specialization','bio','tarif','status','createdAt','updatedAt']);
+      allow get: if signedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow list: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','reviewedBy','reviewedAt','updatedAt'])
+        && request.resource.data.status in ['approved','rejected'];
       allow delete: if false;
     }
 
