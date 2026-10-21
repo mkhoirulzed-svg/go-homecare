@@ -334,6 +334,32 @@
     }
 
 
+    .progress-card {
+      background: var(--white);
+      margin: 18px 20px 0;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .progress-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .progress-heading h3 { font-size: 14px; font-weight: 800; }
+    .progress-heading button {
+      border: 0; background: transparent; color: var(--primary-dark);
+      font: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .progress-service { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .progress-meta { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .progress-status { display: inline-block; margin: 8px 0; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: #fef3c7; color: #92400e; }
+    .progress-status.approved, .progress-status.accepted, .progress-status.completed { background: #d1fae5; color: #065f46; }
+    .progress-status.rejected, .progress-status.cancelled { background: #fee2e2; color: #991b1b; }
+    .progress-empty { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
     .history-panel {
       display: none;
       padding: 24px 20px 100px;
@@ -456,6 +482,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Ringkasan progres layanan terbaru -->
+    <section class="progress-card" id="latestProgress" aria-live="polite">
+      <div class="progress-heading">
+        <h3>Progres Layanan Terbaru</h3>
+        <button type="button" id="viewAllHistoryBtn">Lihat riwayat</button>
+      </div>
+      <div id="latestProgressContent" class="progress-empty">Memuat progres layanan…</div>
+    </section>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -620,6 +655,51 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     })[ch]);
 
+    const statusText = status => ({
+      pending: "Menunggu konfirmasi",
+      approved: "Layanan disetujui",
+      accepted: "Perawat menerima pesanan",
+      rejected: "Pemesanan ditolak",
+      cancelled: "Pemesanan dibatalkan",
+      completed: "Layanan selesai"
+    })[String(status || "pending").toLowerCase()] || String(status || "Dalam proses");
+
+    window.loadLatestServiceProgress = async function() {
+      const target = document.getElementById("latestProgressContent");
+      if (!currentPatientUid || !target) return;
+      try {
+        const q = query(collection(db, "bookingRequests"), where("patientUid", "==", currentPatientUid));
+        const result = await getDocs(q);
+        if (result.empty) {
+          target.innerHTML = '<div class="progress-empty">Belum ada pemesanan. Pilih layanan homecare untuk mulai memesan.</div>';
+          return;
+        }
+        const rows = result.docs.map(item => ({ id: item.id, ...item.data() }));
+        const time = value => value?.toDate ? value.toDate().getTime() : (value ? new Date(value).getTime() : 0);
+        rows.sort((a, b) => time(b.createdAt) - time(a.createdAt));
+        const item = rows[0];
+        const status = String(item.status || "pending").toLowerCase();
+        const dateValue = item.scheduledAt?.toDate ? item.scheduledAt.toDate() : (item.scheduledAt ? new Date(item.scheduledAt) : null);
+        const dateLabel = dateValue && !Number.isNaN(dateValue.getTime())
+          ? dateValue.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })
+          : "Jadwal belum tersedia";
+        target.innerHTML =
+          '<div class="progress-service">' + escapeHtml(item.serviceName || "Layanan homecare") + '</div>' +
+          '<span class="progress-status ' + escapeHtml(status) + '">' + escapeHtml(statusText(status)) + '</span>' +
+          '<div class="progress-meta">Jadwal: ' + escapeHtml(dateLabel) + '</div>' +
+          (item.nurseName ? '<div class="progress-meta">Perawat: ' + escapeHtml(item.nurseName) + '</div>' : '') +
+          '<div class="progress-meta">Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</div>';
+      } catch (error) {
+        console.error("Gagal memuat progres layanan terbaru:", error);
+        target.innerHTML = '<div class="progress-empty">Progres layanan belum dapat dimuat. (' + escapeHtml(error.code || "kesalahan") + ')</div>';
+      }
+    };
+
+    document.getElementById("viewAllHistoryBtn")?.addEventListener("click", () => {
+      const historyNav = Array.from(document.querySelectorAll(".nav-item")).find(item => item.querySelector("span")?.textContent?.trim() === "Riwayat");
+      if (historyNav) window.switchNav(historyNav);
+    });
+
     window.loadBookingHistory = async function() {
       if (!currentPatientUid || !historyList) return;
       historyList.innerHTML = '<div class="empty-state">Memuat riwayat pemesanan…</div>';
@@ -663,6 +743,7 @@
         if (profile.profileComplete !== true) { window.location.replace("complete-profile.html?role=pasien"); return; }
         document.getElementById("userName").textContent = profile.nama || user.displayName || "Pasien";
         document.getElementById("userLocation").textContent = profile.address || "Alamat belum diisi";
+        window.loadLatestServiceProgress?.();
       } catch (error) {
         console.error("Gagal memuat profil pasien:", error);
         alert("Profil pasien gagal dimuat. Periksa koneksi dan izin Firestore.");
