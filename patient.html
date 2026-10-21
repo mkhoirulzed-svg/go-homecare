@@ -116,6 +116,31 @@
 
     .notif-btn:active { transform: scale(0.9); }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 12px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .logout-btn:disabled { opacity: .65; cursor: wait; }
+
     .notif-badge {
       position: absolute;
       top: 8px;
@@ -380,10 +405,15 @@
             Jakarta Selatan
           </div>
         </div>
-        <button class="notif-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-          <div class="notif-badge"></div>
-        </button>
+        <div class="header-actions">
+          <button class="notif-btn" type="button" aria-label="Notifikasi">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            <div class="notif-badge"></div>
+          </button>
+          <button class="logout-btn" id="logoutBtn" type="button" aria-label="Keluar dari akun">
+            Keluar
+          </button>
+        </div>
       </div>
     </div>
 
@@ -530,6 +560,41 @@
     // Simulasi mengambil data user dari Firebase (Anda bisa ganti ini nanti)
     document.addEventListener('DOMContentLoaded', () => {
       // Contoh: document.getElementById("userName").innerText = user.displayName;
+    });
+  </script>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
+      authDomain: "gocare-c94bc.firebaseapp.com",
+      projectId: "gocare-c94bc",
+      storageBucket: "gocare-c94bc.firebasestorage.app",
+      messagingSenderId: "123940961680",
+      appId: "1:123940961680:web:bb842fd8925e2432230715"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    logoutBtn?.addEventListener("click", async () => {
+      const confirmed = window.confirm("Yakin ingin keluar dari akun Go-Homecare?");
+      if (!confirmed) return;
+
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = "Keluar...";
+      try {
+        await signOut(auth);
+        window.location.replace("index.html");
+      } catch (error) {
+        console.error("Gagal keluar:", error);
+        alert("Tidak berhasil keluar. Periksa koneksi internet lalu coba lagi.");
+        logoutBtn.disabled = false;
+        logoutBtn.textContent = "Keluar";
+      }
     });
   </script>
 
