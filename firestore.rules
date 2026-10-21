@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Existing profile flow stores users/{uid}. This is a conservative draft:
+    // review fields against the live app before publishing these rules.
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role in ['pasien', 'praktisi'];
+
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.role == resource.data.role
+        && (
+          !('isVerified' in resource.data)
+          || request.resource.data.isVerified == resource.data.isVerified
+        );
+
+      allow delete: if false;
+    }
+
+    match /bookingRequests/{requestId} {
+      // Patients may read their own bookings. A nurse may read a booking only
+      // after a trusted server/admin has assigned nurseUid to that nurse.
+      allow get, list: if signedIn()
+        && (
+          resource.data.patientUid == request.auth.uid
+          || resource.data.nurseUid == request.auth.uid
+        );
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll([
+          'patientUid', 'patientName', 'patientPhone', 'patientAddress',
+          'serviceName', 'scheduledAt', 'area', 'notes',
+          'nurseUid', 'nurseName', 'nursePhone', 'status',
+          'bookingSource', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'patientUid', 'patientName', 'patientPhone', 'patientAddress',
+          'serviceName', 'scheduledAt', 'area', 'notes',
+          'nurseUid', 'nurseName', 'nursePhone', 'status',
+          'bookingSource', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.patientUid == request.auth.uid
+        && request.resource.data.patientName is string
+        && request.resource.data.patientName.size() > 0
+        && request.resource.data.patientPhone is string
+        && request.resource.data.patientAddress is string
+        && request.resource.data.patientAddress.size() > 0
+        && request.resource.data.serviceName in [
+          'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
+          'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+        ]
+        && request.resource.data.scheduledAt is timestamp
+        && request.resource.data.area is string
+        && request.resource.data.area.size() > 0
+        && request.resource.data.notes is string
+        && request.resource.data.nurseUid == null
+        && request.resource.data.nurseName == null
+        && request.resource.data.nursePhone == null
+        && request.resource.data.status == 'pending'
+        && request.resource.data.bookingSource == 'github-pages'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // No client can assign a nurse, change booking status, or edit notification
+      // markers directly. Add narrowly-scoped transitions only after workflows
+      // and actor permissions have been implemented.
+      allow update, delete: if false;
+    }
+
+    // Unmatched collections are denied by default.
+  }
+}
