@@ -333,6 +333,29 @@
       line-height: 1.4;
     }
 
+
+    .history-panel {
+      display: none;
+      padding: 24px 20px 100px;
+      flex: 1;
+    }
+    .history-panel.visible { display: block; }
+    .history-item {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .history-item-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .history-item h4 { font-size:14px; margin-bottom:6px; }
+    .history-item p { font-size:12px; color:var(--text-muted); margin-top:5px; line-height:1.4; }
+    .status-pill { display:inline-block; padding:5px 8px; border-radius:999px; font-size:10px; font-weight:700; background:#fef3c7; color:#92400e; white-space:nowrap; }
+    .status-pill.approved, .status-pill.accepted, .status-pill.completed { background:#d1fae5; color:#065f46; }
+    .status-pill.rejected, .status-pill.cancelled { background:#fee2e2; color:#991b1b; }
+    .empty-state { background:#fff; border:1px dashed var(--border); border-radius:14px; padding:22px 16px; text-align:center; color:var(--text-muted); font-size:13px; line-height:1.5; }
+
     /* Bottom Navigation */
     .bottom-nav {
       position: fixed;
@@ -549,26 +572,32 @@
       window.location.href = "booking.html?service=" + encodeURIComponent(serviceName);
     };
 
-    // Handle Bottom Nav Active State
+    // Navigasi halaman dashboard pasien.
     window.switchNav = function(element) {
+      const label = element.querySelector('span')?.textContent?.trim();
       document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       element.classList.add('active');
-      const label = element.querySelector('span')?.textContent?.trim();
-      if (label === 'Riwayat') window.location.href = 'booking.html';
-      else if (label === 'Profil') window.location.href = 'complete-profile.html?role=pasien';
-      else if (label === 'Chat') alert('Fitur chat belum tersedia.');
+      const main = document.querySelector('.main-content');
+      const history = document.getElementById('historyPanel');
+      if (label === 'Riwayat') {
+        main.style.display = 'none';
+        history.classList.add('visible');
+        window.loadBookingHistory?.();
+      } else if (label === 'Beranda') {
+        main.style.display = '';
+        history.classList.remove('visible');
+      } else if (label === 'Profil') {
+        window.location.href = 'profile.html';
+      } else if (label === 'Chat') {
+        alert('Fitur chat belum tersedia.');
+      }
     };
-
-    // Simulasi mengambil data user dari Firebase (Anda bisa ganti ini nanti)
-    document.addEventListener('DOMContentLoaded', () => {
-      // Contoh: document.getElementById("userName").innerText = user.displayName;
-    });
   </script>
 
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -583,13 +612,51 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const logoutBtn = document.getElementById("logoutBtn");
+    let currentPatientUid = null;
+
+    const historyList = document.getElementById("historyList");
+    const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, ch => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[ch]);
+
+    window.loadBookingHistory = async function() {
+      if (!currentPatientUid || !historyList) return;
+      historyList.innerHTML = '<div class="empty-state">Memuat riwayat pemesanan…</div>';
+      try {
+        const q = query(collection(db, "bookingRequests"), where("patientUid", "==", currentPatientUid));
+        const result = await getDocs(q);
+        if (result.empty) {
+          historyList.innerHTML = '<div class="empty-state">Belum ada pemesanan layanan. Pilih layanan homecare untuk membuat pemesanan pertama Anda.</div>';
+          return;
+        }
+        const rows = result.docs.map(item => ({ id: item.id, ...item.data() }));
+        rows.sort((a, b) => {
+          const time = value => value?.toDate ? value.toDate().getTime() : (value ? new Date(value).getTime() : 0);
+          return time(b.createdAt) - time(a.createdAt);
+        });
+        historyList.innerHTML = rows.map(item => {
+          const status = String(item.status || "pending").toLowerCase();
+          const statusLabel = ({pending:"Menunggu konfirmasi", approved:"Disetujui", accepted:"Diterima", rejected:"Ditolak", cancelled:"Dibatalkan", completed:"Selesai"})[status] || status;
+          const dateValue = item.scheduledAt?.toDate ? item.scheduledAt.toDate() : (item.scheduledAt ? new Date(item.scheduledAt) : null);
+          const dateLabel = dateValue && !Number.isNaN(dateValue.getTime()) ? dateValue.toLocaleString("id-ID", {dateStyle:"medium", timeStyle:"short"}) : "Jadwal belum tersedia";
+          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.nurseName ? '<p>Perawat: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + '</article>';
+        }).join("");
+      } catch (error) {
+        console.error("Gagal memuat riwayat pemesanan:", error);
+        historyList.innerHTML = '<div class="empty-state">Riwayat belum dapat dimuat. Pastikan aturan Firestore mengizinkan pasien membaca pemesanannya.</div>';
+      }
+    };
+
+    document.getElementById("newBookingBtn")?.addEventListener("click", () => {
+      window.location.href = "booking.html";
+    });
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.replace("index.html"); return; }
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (!snap.exists()) { alert("Profil akun tidak ditemukan."); await signOut(auth); window.location.replace("index.html"); return; }
-        const profile = snap.data();
+        currentPatientUid = user.uid;\n        const profile = snap.data();
         if (profile.role !== "pasien") { window.location.replace(profile.role === "praktisi" && profile.isVerified === true ? "nurse.html" : "index.html"); return; }
         if (profile.profileComplete !== true) { window.location.replace("complete-profile.html?role=pasien"); return; }
         document.getElementById("userName").textContent = profile.nama || user.displayName || "Pasien";
