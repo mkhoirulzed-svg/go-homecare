@@ -372,6 +372,11 @@
         $("formCard").classList.add("hidden");
         $("bookingId").textContent = bookingId;
         $("successCard").classList.remove("hidden");
+        if (editingBookingId) {
+          window.setTimeout(() => {
+            window.location.href = "patient.html?bookingUpdated=1";
+          }, 1800);
+        }
       } catch (error) {
         console.error("Gagal menyimpan permintaan homecare:", error);
 
@@ -411,6 +416,11 @@
           $("formCard").classList.add("hidden");
           $("bookingId").textContent = editingBookingId;
           $("successCard").classList.remove("hidden");
+        if (editingBookingId) {
+          window.setTimeout(() => {
+            window.location.href = "patient.html?bookingUpdated=1";
+          }, 1800);
+        }
         } else if (error.code === "permission-denied") {
           showFormError("Database menolak permintaan ini. Aturan keamanan Firestore perlu diperiksa sebelum pemesanan bisa digunakan.");
         } else {

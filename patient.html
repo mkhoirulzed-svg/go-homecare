@@ -772,6 +772,19 @@
         document.getElementById("userName").textContent = profile.nama || user.displayName || "Pasien";
         document.getElementById("userLocation").textContent = profile.address || "Alamat belum diisi";
         window.loadLatestServiceProgress?.();
+
+        const pageParams = new URLSearchParams(window.location.search);
+        if (pageParams.get("bookingUpdated") === "1") {
+          const historyNav = Array.from(document.querySelectorAll(".nav-item"))
+            .find(item => item.querySelector("span")?.textContent?.trim() === "Riwayat");
+          if (historyNav) window.switchNav(historyNav);
+          const notice = document.createElement("div");
+          notice.setAttribute("role", "status");
+          notice.textContent = "Perubahan pesanan berhasil disimpan. Silakan tinjau kembali detailnya di Riwayat.";
+          notice.style.cssText = "padding:13px 14px;margin-bottom:14px;border-radius:12px;background:#d1fae5;color:#065f46;font-size:13px;line-height:1.5;font-weight:700;border:1px solid #a7f3d0";
+          document.getElementById("historyPanel")?.prepend(notice);
+          window.history.replaceState({}, "", "patient.html");
+        }
       } catch (error) {
         console.error("Gagal memuat profil pasien:", error);
         alert("Profil pasien gagal dimuat. Periksa koneksi dan izin Firestore.");
