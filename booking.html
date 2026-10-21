@@ -23,6 +23,10 @@
     input[readonly]{background:#f1f5f9;color:#475569}textarea{min-height:90px;resize:vertical}
     .hint{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}
     .notice{padding:12px;border-radius:12px;background:#fef3c7;color:#92400e;font-size:12px;line-height:1.55;margin:4px 0 16px}
+    .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 18px}
+    .choice{display:flex;align-items:flex-start;gap:8px;padding:12px;border:1px solid var(--border);border-radius:12px;font-size:12px;line-height:1.4;cursor:pointer}
+    .choice input{width:16px;height:16px;margin:1px 0 0;flex-shrink:0;accent-color:var(--primary)}
+    .field.hidden{display:none!important}
     .consent{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.5;color:#475569;margin:8px 0 18px}.consent input{width:17px;height:17px;margin-top:1px;flex-shrink:0;accent-color:var(--primary)}
     button{width:100%;border:0;border-radius:13px;padding:14px 16px;background:linear-gradient(135deg,var(--primary),var(--dark));color:#fff;font-size:14px;font-weight:800;cursor:pointer}
     button:disabled{opacity:.6;cursor:wait}.status{padding:13px;border-radius:12px;font-size:13px;line-height:1.5;margin-bottom:16px;display:none}
@@ -50,6 +54,30 @@
         <div id="formStatus" class="status" role="alert"></div>
         <form id="bookingForm">
           <div class="field">
+            <label>Pesanan ini untuk siapa? *</label>
+            <div class="choice-row">
+              <label class="choice"><input type="radio" name="bookingFor" value="self" checked><span>Untuk diri sendiri</span></label>
+              <label class="choice"><input type="radio" name="bookingFor" value="family"><span>Untuk anggota keluarga</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="bookerName">Nama pemesan</label>
+            <input id="bookerName" type="text" readonly>
+            <div class="hint">Diambil dari profil akun yang sedang login.</div>
+          </div>
+          <div class="field hidden" id="relationshipField">
+            <label for="relationship">Hubungan dengan pasien *</label>
+            <select id="relationship">
+              <option value="">Pilih hubungan</option>
+              <option value="Anak">Anak</option>
+              <option value="Pasangan">Pasangan</option>
+              <option value="Orang tua">Orang tua</option>
+              <option value="Saudara">Saudara</option>
+              <option value="Keluarga lain">Keluarga lain</option>
+              <option value="Wali/Pendamping">Wali/Pendamping</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="serviceName">Jenis layanan *</label>
             <select id="serviceName" required>
               <option value="">Pilih layanan</option>
@@ -62,8 +90,9 @@
             </select>
           </div>
           <div class="field">
-            <label for="patientName">Nama pasien *</label>
-            <input id="patientName" type="text" readonly required>
+            <label for="patientName">Nama pasien yang akan dilayani *</label>
+            <input id="patientName" type="text" required maxlength="120" autocomplete="name">
+            <div class="hint" id="patientNameHint">Nama diambil dari profil akun. Bisa disesuaikan bila diperlukan.</div>
           </div>
           <div class="field">
             <label for="patientPhone">Nomor WhatsApp aktif *</label>
@@ -123,6 +152,7 @@
     const db = getFirestore(app);
     const $ = (id) => document.getElementById(id);
     let currentUser = null;
+    let currentProfile = null;
     let submitting = false;
 
     function showError(message) {
@@ -149,6 +179,23 @@
       return digits;
     }
 
+    const bookingForInputs = document.querySelectorAll('input[name="bookingFor"]');
+    const relationshipField = $("relationshipField");
+    const relationshipInput = $("relationship");
+    const patientNameHint = $("patientNameHint");
+
+    function updateBookingFor() {
+      const isFamily = document.querySelector('input[name="bookingFor"]:checked')?.value === "family";
+      relationshipField.classList.toggle("hidden", !isFamily);
+      relationshipInput.required = isFamily;
+      if (!isFamily) relationshipInput.value = "";
+      $("patientName").value = isFamily ? "" : (currentProfile?.nama || currentUser?.displayName || "");
+      $("patientNameHint").textContent = isFamily
+        ? "Masukkan nama orang yang akan menerima layanan homecare."
+        : "Nama diambil dari profil akun. Pastikan sudah benar.";
+    }
+    bookingForInputs.forEach(input => input.addEventListener("change", updateBookingFor));
+
     $("scheduledAt").min = localDateTimeMinimum();
     const params = new URLSearchParams(window.location.search);
     const requestedService = params.get("service");
@@ -168,6 +215,7 @@
           return;
         }
         const profile = profileSnap.data();
+        currentProfile = profile;
         if (profile.role !== "pasien") {
           window.location.href = profile.role === "praktisi" ? "nurse.html" : "index.html";
           return;
@@ -176,8 +224,10 @@
           window.location.href = "complete-profile.html?role=pasien";
           return;
         }
+        $("bookerName").value = profile.nama || user.displayName || "";
         $("patientName").value = profile.nama || user.displayName || "";
         $("patientPhone").value = profile.phone || "";
+        updateBookingFor();
         $("patientAddress").value = profile.address || "";
         $("loading").classList.add("hidden");
         $("formCard").classList.remove("hidden");
@@ -195,6 +245,10 @@
         return;
       }
 
+      const bookingFor = document.querySelector('input[name="bookingFor"]:checked')?.value || "self";
+      const isFamilyBooking = bookingFor === "family";
+      const relationship = isFamilyBooking ? $("relationship").value : "Diri sendiri";
+      const bookerName = $("bookerName").value.trim();
       const serviceName = $("serviceName").value;
       const patientName = $("patientName").value.trim();
       const rawPhone = $("patientPhone").value.trim();
@@ -204,7 +258,7 @@
       const scheduledDate = new Date($("scheduledAt").value);
       const notes = $("notes").value.trim();
 
-      if (!serviceName || !patientName || !rawPhone || !patientAddress || !area || !$("consent").checked) {
+      if (!serviceName || !bookerName || !patientName || !rawPhone || !patientAddress || !area || !relationship || ! $("consent").checked) {
         showFormError("Lengkapi semua kolom wajib dan persetujuan sebelum mengirim.");
         return;
       }
@@ -225,7 +279,12 @@
 
       try {
         const booking = await addDoc(collection(db, "bookingRequests"), {
+          // patientUid dipertahankan sebagai pemilik akses pesanan agar riwayat lama tetap kompatibel.
           patientUid: currentUser.uid,
+          bookerUid: currentUser.uid,
+          bookerName,
+          bookingFor,
+          relationship,
           patientName,
           patientPhone,
           patientAddress,
