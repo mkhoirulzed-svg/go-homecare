@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil Pasien - Go Homecare</title>
+<style>
+:root{--primary:#0d9488;--dark:#0f766e;--bg:#f1f5f9;--text:#0f172a;--muted:#64748b;--border:#e2e8f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--text);padding:20px}
+main{max-width:520px;margin:0 auto;background:#fff;border-radius:20px;padding:24px;box-shadow:0 8px 28px #0f172a12}
+h1{font-size:22px;margin:0 0 6px} .muted{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 22px}
+label{display:block;font-size:13px;font-weight:700;margin:15px 0 7px}
+input,select,textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font:inherit;background:#fff;color:var(--text)}
+textarea{min-height:80px;resize:vertical}
+.actions{display:flex;gap:10px;margin-top:22px}.btn{border:0;border-radius:10px;padding:13px 16px;font-weight:700;font-size:14px;cursor:pointer;flex:1}.primary{background:var(--primary);color:#fff}.secondary{background:#e2e8f0;color:var(--text)}button:disabled{opacity:.6}
+#message{font-size:13px;margin-top:14px;line-height:1.5}.error{color:#b91c1c}.success{color:#047857}
+</style>
+</head>
+<body>
+<main>
+<h1>Profil Saya</h1>
+<p class="muted">Perbarui informasi kontak dan alamat agar perawat dapat menggunakan data yang benar saat menindaklanjuti pemesanan Anda.</p>
+<form id="profileForm">
+<label for="nama">Nama lengkap *</label><input id="nama" required maxlength="100" autocomplete="name">
+<label for="phone">Nomor telepon *</label><input id="phone" required maxlength="30" type="tel" autocomplete="tel">
+<label for="birthDate">Tanggal lahir</label><input id="birthDate" type="date">
+<label for="gender">Jenis kelamin</label><select id="gender"><option value="">Pilih (opsional)</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option><option value="Tidak ingin menyebutkan">Tidak ingin menyebutkan</option></select>
+<label for="address">Alamat lengkap *</label><textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
+<label for="emergencyContact">Kontak darurat</label><input id="emergencyContact" maxlength="100" placeholder="Nama dan nomor kontak">
+<div class="actions"><button type="button" class="btn secondary" id="backBtn">Kembali</button><button class="btn primary" id="saveBtn" type="submit">Simpan Profil</button></div>
+<div id="message" role="status" aria-live="polite"></div>
+</form>
+</main>
+<script type="module">
+import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,updateDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:123940961680:web:bb842fd8925e2432230715"};
+const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const form=document.getElementById("profileForm"),message=document.getElementById("message"),saveBtn=document.getElementById("saveBtn");
+let activeUser=null;
+const setMessage=(text,type="")=>{message.textContent=text;message.className=type;};
+onAuthStateChanged(auth,async user=>{
+ if(!user){location.replace("index.html");return;}
+ activeUser=user;
+ try{
+  const snap=await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()||snap.data().role!=="pasien"){setMessage("Akun ini tidak memiliki akses ke profil pasien.","error");form.hidden=true;return;}
+  const p=snap.data();
+  for(const key of ["nama","phone","birthDate","gender","address","emergencyContact"])document.getElementById(key).value=p[key]||"";
+ }catch(e){console.error(e);setMessage("Profil gagal dimuat. Periksa koneksi atau izin Firestore.","error");}
+});
+document.getElementById("backBtn").addEventListener("click",()=>location.href="patient.html");
+form.addEventListener("submit",async event=>{
+ event.preventDefault();if(!activeUser)return;
+ const data={nama:document.getElementById("nama").value.trim(),phone:document.getElementById("phone").value.trim(),birthDate:document.getElementById("birthDate").value,gender:document.getElementById("gender").value,address:document.getElementById("address").value.trim(),emergencyContact:document.getElementById("emergencyContact").value.trim()};
+ if(!data.nama||!data.phone||!data.address){setMessage("Nama, nomor telepon, dan alamat wajib diisi.","error");return;}
+ saveBtn.disabled=true;saveBtn.textContent="Menyimpan…";setMessage("");
+ try{await updateDoc(doc(db,"users",activeUser.uid),{...data,profileComplete:true,updatedAt:serverTimestamp()});setMessage("Profil berhasil disimpan.","success");setTimeout(()=>location.href="patient.html",700);}
+ catch(e){console.error(e);setMessage("Profil gagal disimpan. Periksa aturan Firestore dan koneksi internet.","error");}
+ finally{saveBtn.disabled=false;saveBtn.textContent="Simpan Profil";}
+});
+</script>
+</body>
+</html>
