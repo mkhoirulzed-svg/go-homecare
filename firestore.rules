@@ -69,7 +69,8 @@ service cloud.firestore {
 
       allow create: if isCompletePatient()
         && request.resource.data.keys().hasAll([
-          'patientUid', 'patientName', 'patientPhone', 'patientAddress',
+          'patientUid', 'bookerUid', 'bookerName', 'bookingFor', 'relationship',
+          'patientName', 'patientPhone', 'patientAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
           'bookingSource', 'createdAt', 'updatedAt'
@@ -81,6 +82,14 @@ service cloud.firestore {
           'bookingSource', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.patientUid == request.auth.uid
+        && request.resource.data.bookerUid == request.auth.uid
+        && request.resource.data.bookerName is string
+        && request.resource.data.bookerName.size() > 0
+        && request.resource.data.bookingFor in ['self', 'family']
+        && request.resource.data.relationship is string
+        && request.resource.data.relationship.size() > 0
+        && (request.resource.data.bookingFor == 'family'
+          || request.resource.data.relationship == 'Diri sendiri')
         && request.resource.data.patientName is string
         && request.resource.data.patientName.size() > 0
         && request.resource.data.patientPhone is string
