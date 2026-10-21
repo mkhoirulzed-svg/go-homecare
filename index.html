@@ -517,6 +517,11 @@
             throw new Error("Role akun tidak valid. Hubungi admin Go-Homecare.");
           }
 
+          if (storedRole === "praktisi" && existing.isVerified !== true) {
+            await signOut(auth);
+            alert("Akun praktisi Anda masih menunggu verifikasi admin. Silakan hubungi admin Go-Homecare.");
+            return;
+          }
           if (existing.profileComplete === true) {
             window.location.replace(storedRole === "praktisi" ? "nurse.html" : "patient.html");
           } else {
@@ -612,16 +617,20 @@
           if (userDoc.exists()) {
             const data = userDoc.data();
 
-                       if (data.profileComplete === true) {
-              // Sudah lengkap → arahkan ke dashboard masing-masing
-              if (data.role === "praktisi") {
-                window.location.href = "nurse.html";
-              } else {
-                window.location.href = "patient.html";
-              }
+            if (data.role !== "pasien" && data.role !== "praktisi") {
+              await signOut(auth);
+              alert("Role akun tidak valid. Hubungi admin Go-Homecare.");
+              return;
+            }
+            if (data.role === "praktisi" && data.isVerified !== true) {
+              await signOut(auth);
+              alert("Akun praktisi Anda masih menunggu verifikasi admin.");
+              return;
+            }
+            if (data.profileComplete === true) {
+              window.location.replace(data.role === "praktisi" ? "nurse.html" : "patient.html");
             } else {
-              // Belum lengkap → ke complete-profile dengan parameter role
-              window.location.href = "complete-profile.html?role=" + data.role;
+              window.location.replace("complete-profile.html?role=" + encodeURIComponent(data.role));
             }
           } else {
             // Dokumen Firestore tidak ada (kasus anomali) → logout
