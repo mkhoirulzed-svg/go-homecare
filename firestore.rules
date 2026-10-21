@@ -1,47 +1,25 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function signedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
-    }
-
-    // Existing profile flow stores users/{uid}. This is a conservative draft:
-    // review fields against the live app before publishing these rules.
+    // Preserve the currently published users rule for compatibility in this
+    // booking-focused draft. It is broad (owners can change their own role and
+    // verification fields), so tighten it separately after reviewing all flows.
     match /users/{userId} {
-      allow read: if isOwner(userId);
-
-      allow create: if isOwner(userId)
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.role in ['pasien', 'praktisi'];
-
-      allow update: if isOwner(userId)
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.role == resource.data.role
-        && (
-          ('isVerified' in resource.data
-            && request.resource.data.isVerified == resource.data.isVerified)
-          || (!('isVerified' in resource.data)
-            && !('isVerified' in request.resource.data))
-        );
-
-      allow delete: if false;
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
     }
 
     match /bookingRequests/{requestId} {
-      // Patients may read their own bookings. A nurse may read a booking only
-      // after a trusted server/admin has assigned nurseUid to that nurse.
-      allow get, list: if signedIn()
+      // Patient reads must be constrained by patientUid in their Firestore query.
+      // Assigned nurses may read only requests assigned to their UID.
+      allow get, list: if request.auth != null
         && (
           resource.data.patientUid == request.auth.uid
           || resource.data.nurseUid == request.auth.uid
         );
 
-      allow create: if signedIn()
+      allow create: if request.auth != null
         && request.resource.data.keys().hasAll([
           'patientUid', 'patientName', 'patientPhone', 'patientAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
@@ -76,12 +54,11 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      // No client can assign a nurse, change booking status, or edit notification
-      // markers directly. Add narrowly-scoped transitions only after workflows
-      // and actor permissions have been implemented.
+      // Client-side status changes and nurse assignment are deliberately denied
+      // until a trusted nurse/admin workflow is implemented.
       allow update, delete: if false;
     }
 
-    // Unmatched collections are denied by default.
+    // All other collections remain denied unless explicitly matched.
   }
 }
