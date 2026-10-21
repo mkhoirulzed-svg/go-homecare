@@ -251,8 +251,25 @@
         if (!currentSnap.exists()) throw new Error("Data akun tidak ditemukan. Silakan login kembali.");
         const currentProfile = currentSnap.data();
         if (role === "praktisi") {
+          // Akun praktisi lama yang sudah disetujui admin boleh melengkapi profil,
+          // tetapi tidak boleh mengubah role atau status verifikasinya sendiri.
+          if (currentProfile.role === "praktisi") {
+            if (currentProfile.isVerified !== true) {
+              alert("Akun praktisi belum diverifikasi admin. Hubungi admin Go-Homecare.");
+              window.location.replace("index.html");
+              return;
+            }
+            await updateDoc(userRef, {
+              nama: dataToSave.nama,
+              phone: dataToSave.phone,
+              profileComplete: true,
+              updatedAt: serverTimestamp()
+            });
+            window.location.replace("nurse.html");
+            return;
+          }
           if (currentProfile.role !== "pasien") {
-            throw new Error("Akun ini tidak dapat mengajukan perubahan role melalui formulir ini.");
+            throw new Error("Role akun tidak sesuai. Hubungi admin Go-Homecare.");
           }
           const existing = await getDoc(doc(db, "practitionerApplications", user.uid));
           if (existing.exists() && existing.data().status === "pending") {
@@ -309,7 +326,14 @@
         return;
       }
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
+      let userDoc;
+      try {
+        userDoc = await getDoc(doc(db, "users", user.uid));
+      } catch (error) {
+        console.error("Gagal membaca profil:", error);
+        alert("Profil gagal dimuat. Periksa koneksi internet lalu coba login kembali. " + error.message);
+        return;
+      }
       if (!userDoc.exists()) {
         alert("Data akun tidak ditemukan. Silakan login kembali.");
         window.location.replace("index.html");
