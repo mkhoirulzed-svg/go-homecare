@@ -360,8 +360,8 @@
             updatedAt: serverTimestamp()
           });
           bookingId = editingBookingId;
-          $("successCard h2").textContent = "Perubahan berhasil disimpan";
-          $("successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
+          document.querySelector("#successCard h2").textContent = "Perubahan berhasil disimpan";
+          document.querySelector("#successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
           showSuccessToast("Berhasil! Perubahan pesanan sudah disimpan. Membuka Riwayat Pemesanan…");
         } else {
           const booking = await addDoc(collection(db, "bookingRequests"), {
@@ -430,8 +430,8 @@
         }
 
         if (confirmedSaved) {
-          $("successCard h2").textContent = "Perubahan berhasil disimpan";
-          $("successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
+          document.querySelector("#successCard h2").textContent = "Perubahan berhasil disimpan";
+          document.querySelector("#successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
           $("formCard").classList.add("hidden");
           $("bookingId").textContent = editingBookingId;
           $("successCard").classList.remove("hidden");
