@@ -374,10 +374,47 @@
         $("successCard").classList.remove("hidden");
       } catch (error) {
         console.error("Gagal menyimpan permintaan homecare:", error);
-        if (error.code === "permission-denied") {
+
+        // Jika server sudah menyimpan perubahan tetapi respons jaringan gagal diterima,
+        // baca ulang dokumen untuk memastikan hasilnya sebelum menampilkan pesan gagal.
+        let confirmedSaved = false;
+        if (editingBookingId && error.code !== "permission-denied") {
+          try {
+            const verifySnap = await getDoc(doc(db, "bookingRequests", editingBookingId));
+            if (verifySnap.exists()) {
+              const saved = verifySnap.data();
+              const sameText = (a, b) => String(a ?? "") === String(b ?? "");
+              const savedDate = saved.scheduledAt?.toDate
+                ? saved.scheduledAt.toDate().getTime()
+                : new Date(saved.scheduledAt).getTime();
+              confirmedSaved =
+                saved.patientUid === currentUser.uid &&
+                sameText(saved.bookingFor, bookingFor) &&
+                sameText(saved.relationship, relationship) &&
+                sameText(saved.patientName, patientName) &&
+                sameText(saved.patientPhone, patientPhone) &&
+                sameText(saved.patientAddress, patientAddress) &&
+                sameText(saved.serviceName, serviceName) &&
+                sameText(saved.area, area) &&
+                sameText(saved.notes, notes) &&
+                Number.isFinite(savedDate) &&
+                Math.abs(savedDate - scheduledDate.getTime()) < 1000;
+            }
+          } catch (verifyError) {
+            console.error("Tidak dapat memverifikasi hasil penyimpanan:", verifyError);
+          }
+        }
+
+        if (confirmedSaved) {
+          $("successCard h2").textContent = "Perubahan berhasil disimpan";
+          $("successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
+          $("formCard").classList.add("hidden");
+          $("bookingId").textContent = editingBookingId;
+          $("successCard").classList.remove("hidden");
+        } else if (error.code === "permission-denied") {
           showFormError("Database menolak permintaan ini. Aturan keamanan Firestore perlu diperiksa sebelum pemesanan bisa digunakan.");
         } else {
-          showFormError("Permintaan belum berhasil disimpan. Periksa koneksi internet dan coba lagi.");
+          showFormError("Penyimpanan belum dapat dipastikan. Periksa halaman Riwayat sebelum mencoba menyimpan lagi.");
         }
       } finally {
         submitting = false;
