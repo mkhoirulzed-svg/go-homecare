@@ -76,7 +76,8 @@ service cloud.firestore {
           'bookingSource', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.keys().hasOnly([
-          'patientUid', 'patientName', 'patientPhone', 'patientAddress',
+          'patientUid', 'bookerUid', 'bookerName', 'bookingFor', 'relationship',
+          'patientName', 'patientPhone', 'patientAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
           'bookingSource', 'createdAt', 'updatedAt'
