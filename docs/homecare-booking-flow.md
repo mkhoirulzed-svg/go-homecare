@@ -27,3 +27,12 @@ This is aligned with the planned WhatsApp scaffold's `bookingRequests` collectio
 4. Confirm one `bookingRequests` document appears with status `pending` and the current user's UID.
 5. Test a signed-out session and a non-patient role; neither should be able to submit through the page.
 6. If Firestore returns `permission-denied`, inspect the project's active Firestore rules before changing them. No rules are deployed or modified by this branch.
+
+
+## Edit and cancellation flow
+- A patient can edit or cancel only their own booking while its status is `pending` (waiting for confirmation).
+- Editing preserves the request ID, owner, booker identity, nurse assignment fields, creation timestamp, source, and status.
+- Cancellation changes only `status` to `cancelled` and updates `updatedAt`; it does not delete the record.
+- Once a booking is approved, accepted, rejected, cancelled, or completed, the patient UI does not offer edit/cancel actions. Changes after confirmation should be handled by the service operator.
+- Deploy the updated `firestore.rules` to the Firebase project before testing these actions; repository changes alone do not publish rules.
+- Manual checks: edit a pending self-booking; edit a pending family booking; cancel a pending booking; confirm cancelled bookings cannot be edited/cancelled again; confirm a different signed-in account cannot read or modify the booking; confirm non-pending bookings have no edit/cancel controls.

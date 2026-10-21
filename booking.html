@@ -137,7 +137,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -154,6 +154,8 @@
     let currentUser = null;
     let currentProfile = null;
     let submitting = false;
+    let editingBookingId = null;
+    let existingBooking = null;
 
     function showError(message) {
       $("loading").classList.add("hidden");
@@ -199,6 +201,7 @@
     $("scheduledAt").min = localDateTimeMinimum();
     const params = new URLSearchParams(window.location.search);
     const requestedService = params.get("service");
+    editingBookingId = params.get("bookingId");
     const allowedServices = ["Rawat Luka", "Pasang Infus", "Pasang NGT", "Pasang DC", "Perawatan Lansia", "Lainnya"];
     if (allowedServices.includes(requestedService)) $("serviceName").value = requestedService;
 
@@ -229,6 +232,44 @@
         $("patientPhone").value = profile.phone || "";
         updateBookingFor();
         $("patientAddress").value = profile.address || "";
+
+        if (editingBookingId) {
+          const bookingSnap = await getDoc(doc(db, "bookingRequests", editingBookingId));
+          if (!bookingSnap.exists()) {
+            showError("Pesanan tidak ditemukan atau sudah tidak tersedia.");
+            return;
+          }
+          existingBooking = bookingSnap.data();
+          if (existingBooking.patientUid !== user.uid) {
+            showError("Kamu tidak memiliki akses untuk mengubah pesanan ini.");
+            return;
+          }
+          if (String(existingBooking.status || "").toLowerCase() !== "pending") {
+            showError("Pesanan hanya dapat diedit saat masih menunggu konfirmasi. Kembali ke riwayat untuk melihat status terbaru.");
+            return;
+          }
+          document.querySelector('input[name="bookingFor"][value="' + (existingBooking.bookingFor === "family" ? "family" : "self") + '"]').checked = true;
+          updateBookingFor();
+          $("relationship").value = existingBooking.relationship || "";
+          $("serviceName").value = existingBooking.serviceName || "";
+          $("patientName").value = existingBooking.patientName || "";
+          $("patientPhone").value = existingBooking.patientPhone || "";
+          $("patientAddress").value = existingBooking.patientAddress || "";
+          $("area").value = existingBooking.area || "";
+          $("notes").value = existingBooking.notes || "";
+          const scheduled = existingBooking.scheduledAt?.toDate ? existingBooking.scheduledAt.toDate() : new Date(existingBooking.scheduledAt);
+          if (Number.isFinite(scheduled.getTime())) {
+            const local = new Date(scheduled.getTime() - scheduled.getTimezoneOffset() * 60000);
+            $("scheduledAt").value = local.toISOString().slice(0, 16);
+          }
+          $("scheduledAt").min = localDateTimeMinimum();
+          $("submitButton").textContent = "Simpan Perubahan";
+          document.querySelector("#formCard h2").textContent = "Edit Pesanan Homecare";
+          document.querySelector("#formCard .section-desc").textContent = "Perubahan hanya bisa dilakukan sebelum pesanan dikonfirmasi.";
+          document.querySelector("#bookingForm .consent span").textContent = "Saya memastikan perubahan data pemesanan ini sudah benar.";
+          $("consent").checked = false;
+        }
+
         $("loading").classList.add("hidden");
         $("formCard").classList.remove("hidden");
       } catch (error) {
@@ -278,30 +319,58 @@
       $("formStatus").textContent = "";
 
       try {
-        const booking = await addDoc(collection(db, "bookingRequests"), {
-          // patientUid dipertahankan sebagai pemilik akses pesanan agar riwayat lama tetap kompatibel.
-          patientUid: currentUser.uid,
-          bookerUid: currentUser.uid,
-          bookerName,
-          bookingFor,
-          relationship,
-          patientName,
-          patientPhone,
-          patientAddress,
-          serviceName,
-          scheduledAt: Timestamp.fromDate(scheduledDate),
-          area,
-          notes,
-          nurseUid: null,
-          nurseName: null,
-          nursePhone: null,
-          status: "pending",
-          bookingSource: "github-pages",
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
+        let bookingId;
+        if (editingBookingId) {
+          const bookingRef = doc(db, "bookingRequests", editingBookingId);
+          const latest = await getDoc(bookingRef);
+          if (!latest.exists() || latest.data().patientUid !== currentUser.uid) {
+            throw new Error("Pesanan tidak ditemukan atau bukan milik akun ini.");
+          }
+          if (String(latest.data().status || "").toLowerCase() !== "pending") {
+            throw new Error("Pesanan sudah tidak bisa diedit karena statusnya berubah.");
+          }
+          await updateDoc(bookingRef, {
+            bookingFor,
+            relationship,
+            patientName,
+            patientPhone,
+            patientAddress,
+            serviceName,
+            scheduledAt: Timestamp.fromDate(scheduledDate),
+            area,
+            notes,
+            updatedAt: serverTimestamp()
+          });
+          bookingId = editingBookingId;
+          $("successCard h2").textContent = "Perubahan berhasil disimpan";
+          $("successCard p").innerHTML = "Data pesanan telah diperbarui. Status tetap <strong>Menunggu konfirmasi</strong>.";
+        } else {
+          const booking = await addDoc(collection(db, "bookingRequests"), {
+            // patientUid dipertahankan sebagai pemilik akses pesanan agar riwayat lama tetap kompatibel.
+            patientUid: currentUser.uid,
+            bookerUid: currentUser.uid,
+            bookerName,
+            bookingFor,
+            relationship,
+            patientName,
+            patientPhone,
+            patientAddress,
+            serviceName,
+            scheduledAt: Timestamp.fromDate(scheduledDate),
+            area,
+            notes,
+            nurseUid: null,
+            nurseName: null,
+            nursePhone: null,
+            status: "pending",
+            bookingSource: "github-pages",
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          bookingId = booking.id;
+        }
         $("formCard").classList.add("hidden");
-        $("bookingId").textContent = booking.id;
+        $("bookingId").textContent = bookingId;
         $("successCard").classList.remove("hidden");
       } catch (error) {
         console.error("Gagal menyimpan permintaan homecare:", error);

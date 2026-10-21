@@ -112,7 +112,57 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      allow update, delete: if false;
+      // Edit terbatas untuk pemilik pesanan yang masih menunggu konfirmasi.
+      allow update: if (isCompletePatient()
+        && resource.data.patientUid == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.patientUid == resource.data.patientUid
+        && request.resource.data.bookerUid == resource.data.bookerUid
+        && request.resource.data.bookerName == resource.data.bookerName
+        && request.resource.data.nurseUid == resource.data.nurseUid
+        && request.resource.data.nurseName == resource.data.nurseName
+        && request.resource.data.nursePhone == resource.data.nursePhone
+        && request.resource.data.bookingSource == resource.data.bookingSource
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly([
+          'patientUid', 'bookerUid', 'bookerName', 'bookingFor', 'relationship',
+          'patientName', 'patientPhone', 'patientAddress',
+          'serviceName', 'scheduledAt', 'area', 'notes',
+          'nurseUid', 'nurseName', 'nursePhone', 'status',
+          'bookingSource', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'bookingFor', 'relationship', 'patientName', 'patientPhone',
+          'patientAddress', 'serviceName', 'scheduledAt', 'area', 'notes', 'updatedAt'
+        ])
+        && request.resource.data.bookingFor in ['self', 'family']
+        && request.resource.data.relationship is string
+        && request.resource.data.relationship.size() > 0
+        && (request.resource.data.bookingFor == 'family'
+          || request.resource.data.relationship == 'Diri sendiri')
+        && request.resource.data.patientName is string
+        && request.resource.data.patientName.size() > 0
+        && request.resource.data.patientPhone is string
+        && request.resource.data.patientAddress is string
+        && request.resource.data.patientAddress.size() > 0
+        && request.resource.data.serviceName in [
+          'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
+          'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+        ]
+        && request.resource.data.scheduledAt is timestamp
+        && request.resource.data.area is string
+        && request.resource.data.area.size() > 0
+        && request.resource.data.notes is string
+        && request.resource.data.updatedAt == request.time)
+        // Pembatalan hanya mengubah status dan updatedAt, tanpa menghapus dokumen.
+        || (isCompletePatient()
+          && resource.data.patientUid == request.auth.uid
+          && resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+          && request.resource.data.status == 'cancelled'
+          && request.resource.data.updatedAt == request.time);
+      allow delete: if false;
     }
   }
 }
