@@ -83,8 +83,18 @@
           return;
         }
         const profile = snap.data();
+        if (profile.role === "pasien") {
+          window.location.replace("patient.html");
+          return;
+        }
         if (profile.role !== "praktisi") {
-          window.location.replace(profile.role === "pasien" ? "patient.html" : "index.html");
+          window.location.replace("index.html");
+          return;
+        }
+        if (profile.isVerified !== true) {
+          alert("Akun praktisi belum diverifikasi admin. Dashboard belum dapat diakses.");
+          await signOut(auth);
+          window.location.replace("index.html");
           return;
         }
         document.getElementById("greeting").textContent = "Halo, " + (profile.nama || user.displayName || "Praktisi") + "!";
