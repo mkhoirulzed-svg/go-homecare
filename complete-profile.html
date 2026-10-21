@@ -345,6 +345,11 @@
       }
       const currentProfile = userDoc.data();
       if (currentProfile.profileComplete === true) {
+        // Pertahankan tujuan pengajuan praktisi meskipun profil pasien sudah lengkap.
+        if (currentProfile.role === "pasien" && urlParams.get("next") === "praktisi") {
+          window.location.replace("apply-practitioner.html");
+          return;
+        }
         if (currentProfile.role === "praktisi" && currentProfile.isVerified === true) {
           window.location.replace("nurse.html");
         } else if (currentProfile.role === "pasien") {
