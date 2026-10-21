@@ -2,25 +2,48 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Preserve the currently published users rule for compatibility in this
-    // booking-focused draft. It is broad (owners can change their own role and
-    // verification fields), so tighten it separately after reviewing all flows.
-    match /users/{userId} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == userId;
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDocExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
     }
 
     function isCompletePatient() {
-      return request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+      return signedIn()
+        && userDocExists(request.auth.uid)
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'pasien'
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true;
     }
 
+    match /users/{userId} {
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == 'pasien'
+        && request.resource.data.profileComplete == false
+        && request.resource.data.keys().hasOnly([
+          'uid', 'nama', 'email', 'foto', 'role', 'profileComplete', 'updatedAt'
+        ]);
+
+      allow get: if signedIn() && request.auth.uid == userId;
+      allow list: if false;
+
+      // User cannot grant themselves practitioner access or mark themselves verified.
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.get('isVerified', false) == resource.data.get('isVerified', false)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nama', 'phone', 'profileComplete', 'updatedAt',
+          'birthDate', 'gender', 'address', 'emergencyContact'
+        ]);
+      allow delete: if false;
+    }
+
     match /bookingRequests/{requestId} {
-      // Patient reads must be constrained by patientUid in their Firestore query.
-      // Assigned nurses may read only requests assigned to their UID.
-      allow get, list: if request.auth != null
+      allow get, list: if signedIn()
         && (
           resource.data.patientUid == request.auth.uid
           || resource.data.nurseUid == request.auth.uid
@@ -61,11 +84,7 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      // Client-side status changes and nurse assignment are deliberately denied
-      // until a trusted nurse/admin workflow is implemented.
       allow update, delete: if false;
     }
-
-    // All other collections remain denied unless explicitly matched.
   }
 }
