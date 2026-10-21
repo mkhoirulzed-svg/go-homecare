@@ -539,6 +539,12 @@
 
     </div>
 
+    <section class="history-panel" id="historyPanel" aria-live="polite">
+      <div class="section-title">Riwayat Pemesanan</div>
+      <div id="historyList"><div class="empty-state">Tekan Riwayat untuk memuat pemesanan Anda.</div></div>
+      <button type="button" id="newBookingBtn" style="width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:var(--primary);color:#fff;font:inherit;font-weight:700;cursor:pointer">Pesan Layanan Baru</button>
+    </section>
+
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
       <div class="nav-item active" onclick="switchNav(this)">
@@ -638,7 +644,7 @@
         }).join("");
       } catch (error) {
         console.error("Gagal memuat riwayat pemesanan:", error);
-        historyList.innerHTML = '<div class="empty-state">Riwayat belum dapat dimuat. Pastikan aturan Firestore mengizinkan pasien membaca pemesanannya.</div>';
+        historyList.innerHTML = '<div class="empty-state">Riwayat gagal dimuat (' + escapeHtml(error.code || error.message || "kesalahan tidak diketahui") + '). Periksa izin baca bookingRequests di Firestore.</div>';
       }
     };
 
