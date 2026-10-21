@@ -226,7 +226,6 @@
         nama:            document.getElementById("fullName").value,
         phone:           document.getElementById("phone").value,
         profileComplete: true,
-        role:            role,
         updatedAt:       new Date()
       };
 
@@ -236,7 +235,6 @@
         dataToSave.specialization = document.getElementById("specialization").value;
         dataToSave.bio            = document.getElementById("bio").value;
         dataToSave.tarif          = document.getElementById("tarif").value;
-        dataToSave.isVerified     = false;
       } else {
         dataToSave.birthDate       = document.getElementById("birthDate").value;
         dataToSave.gender          = document.getElementById("gender").value;
@@ -246,13 +244,19 @@
 
       try {
         const userRef = doc(db, "users", user.uid);
-        await updateDoc(userRef, dataToSave);
-
-        if (role === 'praktisi') {
-          window.location.href = "nurse.html";
-        } else {
-          window.location.href = "patient.html";
+        const currentSnap = await getDoc(userRef);
+        if (!currentSnap.exists()) throw new Error("Data akun tidak ditemukan. Silakan login kembali.");
+        const currentProfile = currentSnap.data();
+        if (currentProfile.role !== role) {
+          alert("Role akun tidak sesuai. Kami akan mengarahkan Anda ke profil yang benar.");
+          window.location.replace("complete-profile.html?role=" + encodeURIComponent(currentProfile.role || "pasien"));
+          return;
         }
+        if (currentProfile.role !== "pasien") {
+          throw new Error("Perubahan data praktisi harus melalui proses verifikasi admin.");
+        }
+        await updateDoc(userRef, dataToSave);
+        window.location.replace("patient.html");
 
       } catch (error) {
         console.error("Error saving profile:", error);
@@ -270,13 +274,30 @@
       }
 
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().profileComplete === true) {
-        if (role === 'praktisi') {
-          window.location.href = "nurse.html";
+      if (!userDoc.exists()) {
+        alert("Data akun tidak ditemukan. Silakan login kembali.");
+        window.location.replace("index.html");
+        return;
+      }
+      const currentProfile = userDoc.data();
+      if (currentProfile.profileComplete === true) {
+        if (currentProfile.role === "praktisi" && currentProfile.isVerified === true) {
+          window.location.replace("nurse.html");
+        } else if (currentProfile.role === "pasien") {
+          window.location.replace("patient.html");
+        } else if (currentProfile.role === "praktisi") {
+          alert("Akun praktisi Anda masih menunggu verifikasi admin.");
+          await auth.signOut();
+          window.location.replace("index.html");
         } else {
-          window.location.href = "patient.html"; // FIX: typo "patien.html" → "patient.html"
+          alert("Role akun tidak valid. Hubungi admin Go-Homecare.");
+          await auth.signOut();
+          window.location.replace("index.html");
         }
         return;
+      }
+      if (currentProfile.role !== role) {
+        window.location.replace("complete-profile.html?role=" + encodeURIComponent(currentProfile.role || "pasien"));
       }
       // Kalau belum lengkap → form sudah tampil, tidak perlu doing anything
     });
