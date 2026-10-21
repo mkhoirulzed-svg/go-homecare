@@ -309,7 +309,11 @@
           throw new Error("Role akun tidak sesuai. Hubungi admin Go-Homecare.");
         }
         await updateDoc(userRef, dataToSave);
-        window.location.replace("patient.html");
+        if (urlParams.get("next") === "praktisi") {
+          window.location.replace("apply-practitioner.html");
+        } else {
+          window.location.replace("patient.html");
+        }
 
       } catch (error) {
         console.error("Error saving profile:", error);
