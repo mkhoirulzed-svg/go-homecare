@@ -381,6 +381,9 @@
     .status-pill.approved, .status-pill.accepted, .status-pill.completed { background:#d1fae5; color:#065f46; }
     .status-pill.rejected, .status-pill.cancelled { background:#fee2e2; color:#991b1b; }
     .empty-state { background:#fff; border:1px dashed var(--border); border-radius:14px; padding:22px 16px; text-align:center; color:var(--text-muted); font-size:13px; line-height:1.5; }
+    .booking-actions { display:flex; gap:8px; margin-top:12px; }
+    .booking-actions button { flex:1; min-height:38px; border:1px solid var(--primary); border-radius:10px; background:#ecfdf5; color:var(--primary-dark); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+    .booking-actions button.cancel-booking { border-color:#fecaca; background:#fff7f7; color:#b91c1c; }
 
     /* Bottom Navigation */
     .bottom-nav {
@@ -618,7 +621,7 @@
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -705,13 +708,53 @@
           const statusLabel = ({pending:"Menunggu konfirmasi", approved:"Disetujui", accepted:"Diterima", rejected:"Ditolak", cancelled:"Dibatalkan", completed:"Selesai"})[status] || status;
           const dateValue = item.scheduledAt?.toDate ? item.scheduledAt.toDate() : (item.scheduledAt ? new Date(item.scheduledAt) : null);
           const dateLabel = dateValue && !Number.isNaN(dateValue.getTime()) ? dateValue.toLocaleString("id-ID", {dateStyle:"medium", timeStyle:"short"}) : "Jadwal belum tersedia";
-          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.nurseName ? '<p>Perawat: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + '</article>';
+          const actions = status === "pending"
+            ? '<div class="booking-actions"><button type="button" data-booking-action="edit" data-booking-id="' + escapeHtml(item.id) + '">Edit pesanan</button><button type="button" class="cancel-booking" data-booking-action="cancel" data-booking-id="' + escapeHtml(item.id) + '">Batalkan</button></div>'
+            : '';
+          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Perawat: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
         }).join("");
       } catch (error) {
         console.error("Gagal memuat riwayat pemesanan:", error);
         historyList.innerHTML = '<div class="empty-state">Riwayat gagal dimuat (' + escapeHtml(error.code || error.message || "kesalahan tidak diketahui") + '). Periksa izin baca bookingRequests di Firestore.</div>';
       }
     };
+
+    historyList?.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-booking-action]");
+      if (!button || !currentPatientUid) return;
+      const bookingId = button.dataset.bookingId;
+      const action = button.dataset.bookingAction;
+      if (!bookingId) return;
+      if (action === "edit") {
+        window.location.href = "booking.html?bookingId=" + encodeURIComponent(bookingId);
+        return;
+      }
+      if (action === "cancel") {
+        if (!window.confirm("Batalkan pesanan ini? Pembatalan hanya tersedia selama status masih menunggu konfirmasi.")) return;
+        button.disabled = true;
+        button.textContent = "Membatalkan…";
+        try {
+          const bookingRef = doc(db, "bookingRequests", bookingId);
+          const snapshot = await getDoc(bookingRef);
+          if (!snapshot.exists() || snapshot.data().patientUid !== currentPatientUid) {
+            throw new Error("Pesanan tidak ditemukan atau bukan milik akun ini.");
+          }
+          if (String(snapshot.data().status || "").toLowerCase() !== "pending") {
+            throw new Error("Pesanan tidak lagi berstatus menunggu konfirmasi. Muat ulang riwayat.");
+          }
+          await updateDoc(bookingRef, { status: "cancelled", updatedAt: serverTimestamp() });
+          await window.loadBookingHistory();
+          await window.loadLatestServiceProgress();
+        } catch (error) {
+          console.error("Gagal membatalkan pesanan:", error);
+          window.alert(error.code === "permission-denied"
+            ? "Firestore menolak pembatalan. Pastikan Firestore Rules terbaru sudah diterapkan."
+            : (error.message || "Pesanan belum berhasil dibatalkan. Coba muat ulang halaman."));
+          button.disabled = false;
+          button.textContent = "Batalkan";
+        }
+      }
+    });
 
     document.getElementById("newBookingBtn")?.addEventListener("click", () => {
       window.location.href = "booking.html";
