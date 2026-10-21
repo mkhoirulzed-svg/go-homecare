@@ -440,24 +440,19 @@
       </div>
     </div>
 
-    <!-- Wallet Card -->
+    <!-- Ringkasan layanan; saldo digital belum tersedia -->
     <div class="wallet-card">
       <div class="wallet-left">
-        <p>Saldo GoPay</p>
-        <div class="wallet-amount">Rp 0</div>
+        <p>Go Homecare</p>
+        <div class="wallet-amount" style="font-size:18px">Layanan kesehatan di rumah</div>
+        <p style="margin-top:6px">Pesan layanan dan pantau statusnya di Riwayat.</p>
       </div>
       <div class="wallet-right">
-        <div class="wallet-action">
+        <div class="wallet-action" role="button" tabindex="0" onclick="window.location.href='booking.html'" onkeydown="if(event.key==='Enter')window.location.href='booking.html'">
           <div class="wallet-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 15H5V9h14zM7 11h4v4H7z"/></svg>
           </div>
-          <span>Top Up</span>
-        </div>
-        <div class="wallet-action">
-          <div class="wallet-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6v8h2V6h-2zm-4 0v8h2V6h-2zm-4 0v8h2V6H8zm-2 8H4V6h2v8zm1-10H3v14h4v3l3-3h6.43L20 15V4H7z"/></svg>
-          </div>
-          <span>Riwayat</span>
+          <span>Pesan</span>
         </div>
       </div>
     </div>
