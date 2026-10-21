@@ -399,10 +399,10 @@
       <div class="header-top">
         <div class="user-info">
           <span class="user-greeting">Halo, Selamat Datang</span>
-          <div class="user-name" id="userName">Muhammad Khairul</div>
+          <div class="user-name" id="userName">Memuat profil…</div>
           <div class="user-location">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
-            Jakarta Selatan
+            <span id="userLocation">Alamat belum diisi</span>
           </div>
         </div>
         <div class="header-actions">
@@ -551,10 +551,12 @@
 
     // Handle Bottom Nav Active State
     window.switchNav = function(element) {
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-      });
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       element.classList.add('active');
+      const label = element.querySelector('span')?.textContent?.trim();
+      if (label === 'Riwayat') window.location.href = 'booking.html';
+      else if (label === 'Profil') window.location.href = 'complete-profile.html?role=pasien';
+      else if (label === 'Chat') alert('Fitur chat belum tersedia.');
     };
 
     // Simulasi mengambil data user dari Firebase (Anda bisa ganti ini nanti)
@@ -565,7 +567,8 @@
 
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -578,7 +581,24 @@
 
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
     const logoutBtn = document.getElementById("logoutBtn");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.replace("index.html"); return; }
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (!snap.exists()) { alert("Profil akun tidak ditemukan."); await signOut(auth); window.location.replace("index.html"); return; }
+        const profile = snap.data();
+        if (profile.role !== "pasien") { window.location.replace(profile.role === "praktisi" && profile.isVerified === true ? "nurse.html" : "index.html"); return; }
+        if (profile.profileComplete !== true) { window.location.replace("complete-profile.html?role=pasien"); return; }
+        document.getElementById("userName").textContent = profile.nama || user.displayName || "Pasien";
+        document.getElementById("userLocation").textContent = profile.address || "Alamat belum diisi";
+      } catch (error) {
+        console.error("Gagal memuat profil pasien:", error);
+        alert("Profil pasien gagal dimuat. Periksa koneksi dan izin Firestore.");
+      }
+    });
 
     logoutBtn?.addEventListener("click", async () => {
       const confirmed = window.confirm("Yakin ingin keluar dari akun Go-Homecare?");
