@@ -21,7 +21,7 @@
     .notice{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:14px;font-size:13px;line-height:1.6}
     #loading{padding:60px 20px;text-align:center;color:var(--muted)}#content{display:none}
     .error{color:#b91c1c}
-    .profile-grid{display:grid;grid-template-columns:1fr;gap:12px}.profile-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#334155}.profile-field input,.profile-field textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:14px Inter,sans-serif;background:#fff;color:#0f172a}.profile-field textarea{min-height:82px;resize:vertical}.profile-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}.profile-actions button{background:var(--primary);color:#fff}.profile-message{font-size:13px;color:#0f766e;margin-top:10px;min-height:20px}.task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
+    .profile-link{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;background:var(--primary);color:#fff;text-decoration:none;font-weight:700;font-size:14px}.profile-link span{font-size:20px}.task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
@@ -46,24 +46,10 @@
         </section>
         <section class="card">
           <h2 style="font-size:18px;margin:0 0 8px">Profil Profesional</h2>
-          <p class="muted" style="color:#64748b;margin:0 0 16px">Pastikan kontak, alamat, keahlian, dan tarif selalu terbaru. Perubahan profil tidak mengubah status verifikasi.</p>
-          <form id="profileForm">
-            <div class="profile-grid">
-              <div class="profile-field"><label for="profileName">Nama lengkap</label><input id="profileName" maxlength="120" required autocomplete="name"></div>
-              <div class="profile-field"><label for="profilePhone">Nomor WhatsApp</label><input id="profilePhone" type="tel" maxlength="30" required autocomplete="tel"></div>
-              <div class="profile-field"><label for="profileAddress">Alamat domisili</label><textarea id="profileAddress" maxlength="1000" required autocomplete="street-address"></textarea></div>
-              <div class="profile-field"><label for="profileArea">Area layanan</label><input id="profileArea" maxlength="200" placeholder="Contoh: Palangka Raya dan sekitarnya"></div>
-              <div class="profile-field"><label for="profileStr">Nomor STR</label><input id="profileStr" maxlength="100" required></div>
-              <div class="profile-field"><label for="profileExperience">Pengalaman kerja (tahun)</label><input id="profileExperience" type="number" min="0" max="80" step="1" required></div>
-              <div class="profile-field"><label for="profileSpecialization">Spesialisasi / keahlian</label><input id="profileSpecialization" maxlength="200" required placeholder="Contoh: perawatan luka"></div>
-              <div class="profile-field"><label for="profileTarif">Tarif dasar per kunjungan (Rp)</label><input id="profileTarif" type="number" min="0" step="1000" required></div>
-              <div class="profile-field"><label for="profileBio">Deskripsi profesional</label><textarea id="profileBio" maxlength="1000" placeholder="Ringkasan pengalaman dan layanan yang dikuasai"></textarea></div>
-            </div>
-            <div class="profile-actions"><button id="saveProfileBtn" type="submit">Simpan perubahan</button></div>
-            <p id="profileMessage" class="profile-message" role="status" aria-live="polite"></p>
-          </form>
+          <p class="muted" style="color:#64748b;margin:0 0 16px">Kelola kontak, alamat, area layanan, keahlian, dan tarif Anda di halaman khusus.</p>
+          <a class="profile-link" href="edit-profil-praktisi.html">Edit profil profesional <span aria-hidden="true">→</span></a>
         </section>
-        <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:18px;margin:0">Tugas Homecare</h2><button id="refreshTasks" type="button" style="background:#ccfbf1;color:#115e59">Muat ulang</button></div><p id="taskStatus" class="muted" style="color:#64748b;margin:8px 0 12px" role="status">Memuat tugas…</p><div id="tasks"><div class="empty">Memuat tugas…</div></div></section><div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
+                <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:18px;margin:0">Tugas Homecare</h2><button id="refreshTasks" type="button" style="background:#ccfbf1;color:#115e59">Muat ulang</button></div><p id="taskStatus" class="muted" style="color:#64748b;margin:8px 0 12px" role="status">Memuat tugas…</p><div id="tasks"><div class="empty">Memuat tugas…</div></div></section><div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
       </main>
     </div>
   </div>
@@ -86,7 +72,6 @@
     const loading = document.getElementById("loading");
     const contentBox = document.getElementById("content");
     let currentPractitioner = null;
-    let currentProfile = null;
     const escapeHtml = (value) => String(value ?? "-").replace(/[&<>"']/g, (ch) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 
     onAuthStateChanged(auth, async (user) => {
@@ -117,10 +102,8 @@
           return;
         }
         currentPractitioner = user;
-        currentProfile = profile;
         document.getElementById("greeting").textContent = "Halo, " + (profile.nama || user.displayName || "Praktisi") + "!";
         document.getElementById("email").textContent = user.email || "";
-        populateProfile(profile);
         loading.style.display = "none";
         contentBox.style.display = "block";
         await loadTasks();
@@ -130,67 +113,6 @@
       }
     });
 
-
-    function populateProfile(profile) {
-      document.getElementById("profileName").value = profile.nama || "";
-      document.getElementById("profilePhone").value = profile.phone || "";
-      document.getElementById("profileAddress").value = profile.address || "";
-      document.getElementById("profileArea").value = profile.serviceArea || "";
-      document.getElementById("profileStr").value = profile.strNumber || "";
-      document.getElementById("profileExperience").value = profile.experience ?? "";
-      document.getElementById("profileSpecialization").value = profile.specialization || "";
-      document.getElementById("profileTarif").value = profile.tarif ?? "";
-      document.getElementById("profileBio").value = profile.bio || "";
-    }
-
-    document.getElementById("profileForm").addEventListener("submit", async (event) => {
-      event.preventDefault();
-      if (!currentPractitioner || !currentProfile) return;
-      const btn = document.getElementById("saveProfileBtn");
-      const message = document.getElementById("profileMessage");
-      const rawTarif = document.getElementById("profileTarif").value;
-      const rawExperience = document.getElementById("profileExperience").value;
-      const tarif = Number(rawTarif);
-      const experience = Number(rawExperience);
-      if (!Number.isFinite(tarif) || tarif < 0 || !Number.isInteger(experience) || experience < 0 || experience > 80) {
-        message.textContent = "Periksa kembali nilai tarif dan pengalaman kerja.";
-        message.className = "profile-message error";
-        return;
-      }
-      btn.disabled = true;
-      btn.textContent = "Menyimpan…";
-      message.textContent = "Menyimpan perubahan profil…";
-      message.className = "profile-message";
-      try {
-        const updatedProfile = {
-          nama: document.getElementById("profileName").value.trim(),
-          phone: document.getElementById("profilePhone").value.trim(),
-          address: document.getElementById("profileAddress").value.trim(),
-          serviceArea: document.getElementById("profileArea").value.trim(),
-          strNumber: document.getElementById("profileStr").value.trim(),
-          experience,
-          specialization: document.getElementById("profileSpecialization").value.trim(),
-          tarif,
-          bio: document.getElementById("profileBio").value.trim(),
-          updatedAt: serverTimestamp()
-        };
-        if (!updatedProfile.nama || !updatedProfile.phone || !updatedProfile.address || !updatedProfile.strNumber || !updatedProfile.specialization) {
-          throw new Error("Lengkapi nama, nomor WhatsApp, alamat, STR, dan spesialisasi.");
-        }
-        await updateDoc(doc(db, "users", currentPractitioner.uid), updatedProfile);
-        currentProfile = { ...currentProfile, ...updatedProfile };
-        document.getElementById("greeting").textContent = "Halo, " + updatedProfile.nama + "!";
-        message.textContent = "Profil berhasil disimpan.";
-        message.className = "profile-message";
-      } catch (error) {
-        console.error("Gagal menyimpan profil praktisi:", error);
-        message.textContent = "Profil belum tersimpan. Periksa koneksi dan Firestore Rules. " + error.message;
-        message.className = "profile-message error";
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Simpan perubahan";
-      }
-    });
 
     document.getElementById("refreshTasks").addEventListener("click", loadTasks);
 
