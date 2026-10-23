@@ -55,7 +55,8 @@ service cloud.firestore {
         && request.resource.data.get('isVerified', false) == resource.data.get('isVerified', false)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'nama', 'phone', 'profileComplete', 'updatedAt',
-          'birthDate', 'gender', 'address', 'emergencyContact'
+          'birthDate', 'gender', 'address', 'emergencyContact',
+          'strNumber', 'experience', 'specialization', 'bio', 'tarif', 'serviceArea'
         ]));
       allow delete: if false;
     }
