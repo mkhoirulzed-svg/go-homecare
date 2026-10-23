@@ -518,6 +518,10 @@
           }
 
           if (storedRole === "praktisi" && existing.isVerified !== true) {
+            if (existing.profileComplete !== true) {
+              window.location.replace("complete-profile.html?role=praktisi");
+              return;
+            }
             await signOut(auth);
             alert("Akun praktisi Anda masih menunggu verifikasi admin. Silakan hubungi admin Go-Homecare.");
             return;
@@ -540,20 +544,22 @@
           return;
         }
 
-        // Akun baru tetap dibuat sebagai pasien terlebih dahulu.
-        // Jika pengguna memilih praktisi, lanjutkan ke formulir pengajuan admin.
-        await setDoc(userRef, {
+        // Akun baru mengikuti pilihan role; praktisi tetap belum terverifikasi.
+        const isPractitionerSignup = selectedRole === "praktisi";
+        const newProfile = {
           uid: user.uid,
           nama: user.displayName || "",
           email: user.email || "",
           foto: user.photoURL || "",
-          role: "pasien",
+          role: isPractitionerSignup ? "praktisi" : "pasien",
           profileComplete: false,
           updatedAt: serverTimestamp()
-        });
+        };
+        if (isPractitionerSignup) newProfile.isVerified = false;
+        await setDoc(userRef, newProfile);
 
-        if (selectedRole === "praktisi") {
-          window.location.replace("complete-profile.html?role=pasien&next=praktisi");
+        if (isPractitionerSignup) {
+          window.location.replace("complete-profile.html?role=praktisi");
         } else {
           window.location.replace("complete-profile.html?role=pasien");
         }
