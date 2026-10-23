@@ -25,10 +25,10 @@
     .profile-cover{height:96px;background:radial-gradient(circle at 85% 15%,#99f6e4 0,transparent 28%),linear-gradient(120deg,#115e59,#0d9488);position:relative}
     .profile-cover:after{content:"";position:absolute;width:130px;height:130px;border:1px solid #ffffff38;border-radius:50%;right:-28px;top:-54px}
     .profile-main{padding:0 20px 20px}
-    .profile-head{display:flex;align-items:flex-end;gap:14px;margin-top:-42px;position:relative}
-    .profile-avatar{width:86px;height:86px;flex:0 0 86px;border-radius:24px;object-fit:cover;background:#ccfbf1;border:4px solid #fff;box-shadow:0 5px 16px #0f172a20}
+    .profile-head{display:block;margin-top:-42px;position:relative}
+    .profile-avatar{width:86px;height:86px;display:block;flex:0 0 86px;border-radius:24px;object-fit:cover;background:#ccfbf1;border:4px solid #fff;box-shadow:0 5px 16px #0f172a20}
     .profile-avatar-fallback{display:none;width:86px;height:86px;flex:0 0 86px;align-items:center;justify-content:center;border-radius:24px;background:#ccfbf1;border:4px solid #fff;color:#115e59;font-size:28px;font-weight:800;box-shadow:0 5px 16px #0f172a20}
-    .profile-heading{padding-bottom:5px;min-width:0}
+    .profile-heading{padding-top:12px;min-width:0}
     .profile-kicker{display:flex;align-items:center;gap:6px;color:#0f766e;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
     .profile-kicker i{width:7px;height:7px;background:#14b8a6;border-radius:50%;display:inline-block}
     .profile-name{font-size:21px;line-height:1.25;letter-spacing:-.45px;margin:0 0 5px;overflow-wrap:anywhere}
@@ -43,7 +43,7 @@
     .profile-edit:hover{transform:translateY(-1px);box-shadow:0 9px 20px #0d948833}
     .profile-edit svg{width:17px;height:17px;flex:none}
     .profile-footnote{font-size:11px;color:#94a3b8;text-align:center;margin:12px 0 0}
-    @media(max-width:380px){.profile-main{padding-left:15px;padding-right:15px}.profile-head{gap:10px}.profile-avatar,.profile-avatar-fallback{width:74px;height:74px;flex-basis:74px;border-radius:20px}.profile-name{font-size:18px}.profile-stat{padding:11px 10px}}
+    @media(max-width:380px){.profile-main{padding-left:15px;padding-right:15px}.profile-avatar,.profile-avatar-fallback{width:74px;height:74px;flex-basis:74px;border-radius:20px}.profile-name{font-size:18px}.profile-stat{padding:11px 10px}}
     .task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
   </style>
 </head>
@@ -68,7 +68,7 @@
               <img id="profilePhoto" class="profile-avatar" src="" alt="Foto profil praktisi">
               <div id="profilePhotoFallback" class="profile-avatar-fallback" aria-hidden="true">GH</div>
               <div class="profile-heading">
-                <div class="profile-kicker"><i></i> Profil profesional</div>
+                <div class="profile-kicker"><i></i> Profil Praktisi</div>
                 <h2 id="profileName" class="profile-name">Praktisi Go Homecare</h2>
                 <div id="email" class="profile-email"></div>
               </div>
