@@ -50,7 +50,18 @@ beforeEach(async () => {
     await setDoc(doc(db, "users", "nurse-1"), {
       uid: "nurse-1",
       role: "praktisi",
-      profileComplete: true
+      profileComplete: true,
+      isVerified: true,
+      nama: "Praktisi Terverifikasi",
+      phone: "628111111111"
+    });
+    await setDoc(doc(db, "users", "nurse-2"), {
+      uid: "nurse-2",
+      role: "praktisi",
+      profileComplete: true,
+      isVerified: false,
+      nama: "Praktisi Belum Terverifikasi",
+      phone: "628122222222"
     });
     await setDoc(doc(db, "bookingRequests", "existing-patient-1"), {
       patientUid: "patient-1",
@@ -62,6 +73,15 @@ beforeEach(async () => {
       nurseUid: null,
       status: "pending"
     });
+    await setDoc(doc(db, "bookingRequests", "assigned-accepted"), validBooking({
+      nurseUid: "nurse-1", nurseName: "Praktisi Terverifikasi",
+      nursePhone: "628111111111", status: "accepted"
+    }));
+    await setDoc(doc(db, "bookingRequests", "assigned-in-progress"), validBooking({
+      nurseUid: "nurse-1", nurseName: "Praktisi Terverifikasi",
+      nursePhone: "628111111111", status: "in_progress"
+    }));
+    await setDoc(doc(db, "bookingRequests", "pending-for-operations"), validBooking());
   });
 });
 
@@ -170,4 +190,74 @@ test("patient booking query must be scoped to that patient's UID", async () => {
     where("patientUid", "==", "patient-1")
   )));
   await assertFails(getDocs(collection(db, "bookingRequests")));
+});
+
+
+const ADMIN_UID = "Vsl0uEluR5TCOdqVY7UPX2wfw6y1";
+
+test("admin can list booking requests for operations", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertSucceeds(getDocs(collection(db, "bookingRequests")));
+});
+
+test("admin can assign a verified practitioner and accept a pending booking", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertSucceeds(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    nurseUid: "nurse-1",
+    nurseName: "Praktisi Terverifikasi",
+    nursePhone: "628111111111",
+    status: "accepted",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("admin cannot assign an unverified practitioner", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    nurseUid: "nurse-2",
+    nurseName: "Praktisi Belum Terverifikasi",
+    nursePhone: "628122222222",
+    status: "accepted",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("admin can reject a pending booking without assigning a practitioner", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertSucceeds(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    status: "rejected",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("assigned verified practitioner can start and complete a booking", async () => {
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertSucceeds(updateDoc(doc(db, "bookingRequests", "assigned-accepted"), {
+    status: "in_progress",
+    updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(updateDoc(doc(db, "bookingRequests", "assigned-in-progress"), {
+    status: "completed",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("unassigned practitioner cannot read or change another practitioner's booking", async () => {
+  const db = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(getDoc(doc(db, "bookingRequests", "assigned-accepted")));
+  await assertFails(updateDoc(doc(db, "bookingRequests", "assigned-accepted"), {
+    status: "in_progress",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("patient cannot assign a practitioner or change operational status", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    nurseUid: "nurse-1",
+    nurseName: "Praktisi Terverifikasi",
+    nursePhone: "628111111111",
+    status: "accepted",
+    updatedAt: serverTimestamp()
+  }));
 });
