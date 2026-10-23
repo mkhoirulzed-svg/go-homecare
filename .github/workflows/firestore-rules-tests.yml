@@ -1,0 +1,45 @@
+name: Firestore Rules Tests
+
+on:
+  push:
+    branches:
+      - "ci/firestore-rules-tests"
+      - "feature/booking-operations-foundation"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firestore-rules-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firestore-rules:
+    name: Test Firestore Security Rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java for Firebase Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run Firestore Rules tests in Emulator
+        run: npm run test:rules
