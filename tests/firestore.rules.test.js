@@ -291,3 +291,52 @@ test("assigned practitioner cannot alter patient details when starting service",
     updatedAt: serverTimestamp()
   }));
 });
+
+
+test("owner can edit allowed request details while booking is pending", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    patientName: "Nama Pasien Diperbarui",
+    patientPhone: "628133333333",
+    notes: "Catatan diperbarui",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("owner can cancel only their own pending booking", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    status: "cancelled",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("owner cannot edit or cancel a booking after it is accepted", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "assigned-accepted"), {
+    notes: "Perubahan setelah diterima",
+    updatedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(doc(db, "bookingRequests", "assigned-accepted"), {
+    status: "cancelled",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("admin cannot move a booking to an unsupported status", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    status: "completed",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("admin cannot assign a practitioner without accepting the booking", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    nurseUid: "nurse-1",
+    nurseName: "Praktisi Terverifikasi",
+    nursePhone: "628111111111",
+    updatedAt: serverTimestamp()
+  }));
+});
