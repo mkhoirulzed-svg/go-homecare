@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "ci/firestore-rules-tests"
+      - "feature/booking-operations-foundation"
   pull_request:
     branches:
       - main
