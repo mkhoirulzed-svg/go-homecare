@@ -21,7 +21,30 @@
     .notice{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:14px;font-size:13px;line-height:1.6}
     #loading{padding:60px 20px;text-align:center;color:var(--muted)}#content{display:none}
     .error{color:#b91c1c}
-    .profile-link{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;background:var(--primary);color:#fff;text-decoration:none;font-weight:700;font-size:14px}.profile-link span{font-size:20px}.task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
+    .profile-card{padding:0;overflow:hidden;border:1px solid #dbe7e8;background:#fff}
+    .profile-cover{height:96px;background:radial-gradient(circle at 85% 15%,#99f6e4 0,transparent 28%),linear-gradient(120deg,#115e59,#0d9488);position:relative}
+    .profile-cover:after{content:"";position:absolute;width:130px;height:130px;border:1px solid #ffffff38;border-radius:50%;right:-28px;top:-54px}
+    .profile-main{padding:0 20px 20px}
+    .profile-head{display:flex;align-items:flex-end;gap:14px;margin-top:-42px;position:relative}
+    .profile-avatar{width:86px;height:86px;flex:0 0 86px;border-radius:24px;object-fit:cover;background:#ccfbf1;border:4px solid #fff;box-shadow:0 5px 16px #0f172a20}
+    .profile-avatar-fallback{display:none;width:86px;height:86px;flex:0 0 86px;align-items:center;justify-content:center;border-radius:24px;background:#ccfbf1;border:4px solid #fff;color:#115e59;font-size:28px;font-weight:800;box-shadow:0 5px 16px #0f172a20}
+    .profile-heading{padding-bottom:5px;min-width:0}
+    .profile-kicker{display:flex;align-items:center;gap:6px;color:#0f766e;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+    .profile-kicker i{width:7px;height:7px;background:#14b8a6;border-radius:50%;display:inline-block}
+    .profile-name{font-size:21px;line-height:1.25;letter-spacing:-.45px;margin:0 0 5px;overflow-wrap:anywhere}
+    .profile-email{font-size:12px;color:#64748b;overflow-wrap:anywhere}
+    .profile-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0 17px}
+    .profile-stat{border:1px solid #e2e8f0;border-radius:14px;padding:13px 12px;min-width:0;background:#fbfdfd}
+    .profile-stat-label{font-size:11px;color:#64748b;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+    .profile-stat-value{font-size:14px;font-weight:750;color:#0f172a;line-height:1.4;overflow-wrap:anywhere}
+    .profile-stat-value.price{color:#0f766e;font-size:16px}
+    .profile-actions{display:flex;gap:10px;align-items:center}
+    .profile-edit{display:flex;justify-content:center;align-items:center;gap:9px;width:100%;padding:14px 16px;border-radius:13px;background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 6px 14px #0d94882b;transition:transform .18s,box-shadow .18s}
+    .profile-edit:hover{transform:translateY(-1px);box-shadow:0 9px 20px #0d948833}
+    .profile-edit svg{width:17px;height:17px;flex:none}
+    .profile-footnote{font-size:11px;color:#94a3b8;text-align:center;margin:12px 0 0}
+    @media(max-width:380px){.profile-main{padding-left:15px;padding-right:15px}.profile-head{gap:10px}.profile-avatar,.profile-avatar-fallback{width:74px;height:74px;flex-basis:74px;border-radius:20px}.profile-name{font-size:18px}.profile-stat{padding:11px 10px}}
+    .task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
@@ -38,16 +61,40 @@
         </div>
       </header>
       <main>
-        <section class="card">
-          <span class="tag">PRAKTISI</span>
-          <h2 id="greeting">Halo!</h2>
-          <p id="email" class="muted" style="color:#64748b"></p>
-          <p>Anda berhasil masuk ke area praktisi Go Homecare.</p>
-        </section>
-        <section class="card">
-          <h2 style="font-size:18px;margin:0 0 8px">Profil Profesional</h2>
-          <p class="muted" style="color:#64748b;margin:0 0 16px">Kelola kontak, alamat, area layanan, keahlian, dan tarif Anda di halaman khusus.</p>
-          <a class="profile-link" href="edit-profil-praktisi.html">Edit profil profesional <span aria-hidden="true">→</span></a>
+        <section class="card profile-card" aria-labelledby="profileName">
+          <div class="profile-cover" aria-hidden="true"></div>
+          <div class="profile-main">
+            <div class="profile-head">
+              <img id="profilePhoto" class="profile-avatar" src="" alt="Foto profil praktisi">
+              <div id="profilePhotoFallback" class="profile-avatar-fallback" aria-hidden="true">GH</div>
+              <div class="profile-heading">
+                <div class="profile-kicker"><i></i> Profil profesional</div>
+                <h2 id="profileName" class="profile-name">Praktisi Go Homecare</h2>
+                <div id="email" class="profile-email"></div>
+              </div>
+            </div>
+            <div class="profile-stats">
+              <div class="profile-stat">
+                <div class="profile-stat-label">Pengalaman kerja</div>
+                <div id="profileExperience" class="profile-stat-value">Belum diisi</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-label">Jenis praktisi / keahlian</div>
+                <div id="profileType" class="profile-stat-value">Belum diisi</div>
+              </div>
+              <div class="profile-stat" style="grid-column:1/-1">
+                <div class="profile-stat-label">Tarif dasar per kunjungan</div>
+                <div id="profileTarif" class="profile-stat-value price">Belum diatur</div>
+              </div>
+            </div>
+            <div class="profile-actions">
+              <a class="profile-edit" href="edit-profil-praktisi.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+                Edit profil profesional
+              </a>
+            </div>
+            <p class="profile-footnote">Pastikan informasi pengalaman, keahlian, dan tarif selalu terbaru.</p>
+          </div>
         </section>
                 <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:18px;margin:0">Tugas Homecare</h2><button id="refreshTasks" type="button" style="background:#ccfbf1;color:#115e59">Muat ulang</button></div><p id="taskStatus" class="muted" style="color:#64748b;margin:8px 0 12px" role="status">Memuat tugas…</p><div id="tasks"><div class="empty">Memuat tugas…</div></div></section><div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
       </main>
@@ -102,8 +149,22 @@
           return;
         }
         currentPractitioner = user;
-        document.getElementById("greeting").textContent = "Halo, " + (profile.nama || user.displayName || "Praktisi") + "!";
+        const practitionerName = profile.nama || user.displayName || "Praktisi Go Homecare";
+        document.getElementById("profileName").textContent = practitionerName;
         document.getElementById("email").textContent = user.email || "";
+        document.getElementById("profileExperience").textContent = profile.experience !== undefined && profile.experience !== null && profile.experience !== "" ? (profile.experience + (Number(profile.experience) === 1 ? " tahun" : " tahun")) : "Belum diisi";
+        document.getElementById("profileType").textContent = profile.jenisPraktisi || profile.practitionerType || profile.specialization || "Belum diisi";
+        const tarif = Number(profile.tarif);
+        document.getElementById("profileTarif").textContent = profile.tarif !== undefined && profile.tarif !== null && profile.tarif !== "" && Number.isFinite(tarif) ? new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(tarif) : "Belum diatur";
+        const photo = profile.photoURL || profile.photoUrl || profile.fotoURL || user.photoURL || "";
+        const photoEl = document.getElementById("profilePhoto");
+        const fallbackEl = document.getElementById("profilePhotoFallback");
+        const initials = practitionerName.trim().split(/\\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join("").toUpperCase() || "GH";
+        fallbackEl.textContent = initials;
+        const showFallback = () => { photoEl.style.display = "none"; fallbackEl.style.display = "flex"; };
+        photoEl.onerror = showFallback;
+        if (photo) { photoEl.src = photo; photoEl.style.display = "block"; fallbackEl.style.display = "none"; }
+        else showFallback();
         loading.style.display = "none";
         contentBox.style.display = "block";
         await loadTasks();
