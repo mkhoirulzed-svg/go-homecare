@@ -32,10 +32,16 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.auth.uid == userId
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.role == 'pasien'
         && request.resource.data.profileComplete == false
+        && (
+          (request.resource.data.role == 'pasien'
+            && !request.resource.data.keys().hasAny(['isVerified']))
+          ||
+          (request.resource.data.role == 'praktisi'
+            && request.resource.data.isVerified == false)
+        )
         && request.resource.data.keys().hasOnly([
-          'uid', 'nama', 'email', 'foto', 'role', 'profileComplete', 'updatedAt'
+          'uid', 'nama', 'email', 'foto', 'role', 'profileComplete', 'updatedAt', 'isVerified'
         ]);
 
       allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
@@ -56,10 +62,20 @@ service cloud.firestore {
 
     match /practitionerApplications/{applicationId} {
       allow create: if signedIn()
+        && applicationId == request.auth.uid
         && request.resource.data.uid == request.auth.uid
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'pasien'
+          ||
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'praktisi'
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isVerified == false
+          )
+        )
         && request.resource.data.status == 'pending'
         && request.resource.data.keys().hasOnly(['uid','nama','email','phone','strNumber','experience','specialization','bio','tarif','status','createdAt','updatedAt']);
-      allow get: if signedIn() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow get: if signedIn() && (isAdmin() || applicationId == request.auth.uid);
       allow list: if isAdmin();
       allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','reviewedBy','reviewedAt','updatedAt'])
