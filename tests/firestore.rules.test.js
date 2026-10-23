@@ -261,3 +261,33 @@ test("patient cannot assign a practitioner or change operational status", async 
     updatedAt: serverTimestamp()
   }));
 });
+
+
+test("admin cannot alter patient details while accepting a booking", async () => {
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "pending-for-operations"), {
+    patientName: "Nama diubah tanpa prosedur",
+    nurseUid: "nurse-1",
+    nurseName: "Praktisi Terverifikasi",
+    nursePhone: "628111111111",
+    status: "accepted",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("assigned practitioner cannot skip directly from accepted to completed", async () => {
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "assigned-accepted"), {
+    status: "completed",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("assigned practitioner cannot alter patient details when starting service", async () => {
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertFails(updateDoc(doc(db, "bookingRequests", "assigned-accepted"), {
+    patientPhone: "628199999999",
+    status: "in_progress",
+    updatedAt: serverTimestamp()
+  }));
+});
