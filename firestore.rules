@@ -14,6 +14,13 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == 'Vsl0uEluR5TCOdqVY7UPX2wfw6y1';
     }
 
+    function isVerifiedPractitioner(uid) {
+      return uid is string
+        && userDocExists(uid)
+        && get(/databases/$(database)/documents/users/$(uid)).data.role == 'praktisi'
+        && get(/databases/$(database)/documents/users/$(uid)).data.isVerified == true;
+    }
+
     function isCompletePatient() {
       return signedIn()
         && userDocExists(request.auth.uid)
@@ -63,7 +70,8 @@ service cloud.firestore {
     match /bookingRequests/{requestId} {
       allow get, list: if signedIn()
         && (
-          resource.data.patientUid == request.auth.uid
+          isAdmin()
+          || resource.data.patientUid == request.auth.uid
           || resource.data.nurseUid == request.auth.uid
         );
 
@@ -112,8 +120,9 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      // Edit terbatas untuk pemilik pesanan yang masih menunggu konfirmasi.
-      allow update: if (isCompletePatient()
+      // Pemilik hanya dapat mengedit rincian formulir ketika pesanan masih pending.
+      allow update: if (
+        isCompletePatient()
         && resource.data.patientUid == request.auth.uid
         && resource.data.status == 'pending'
         && request.resource.data.patientUid == resource.data.patientUid
@@ -154,14 +163,70 @@ service cloud.firestore {
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
         && request.resource.data.notes is string
-        && request.resource.data.updatedAt == request.time)
-        // Pembatalan hanya mengubah status dan updatedAt, tanpa menghapus dokumen.
-        || (isCompletePatient()
-          && resource.data.patientUid == request.auth.uid
-          && resource.data.status == 'pending'
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
-          && request.resource.data.status == 'cancelled'
-          && request.resource.data.updatedAt == request.time);
+        && request.resource.data.updatedAt == request.time
+      )
+      // Pembatalan oleh pemilik hanya mengubah status dan updatedAt.
+      || (
+        isCompletePatient()
+        && resource.data.patientUid == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.updatedAt == request.time
+      )
+      // Hanya admin yang boleh menerima dan menugaskan praktisi terverifikasi.
+      || (
+        isAdmin()
+        && resource.data.status == 'pending'
+        && resource.data.nurseUid == null
+        && resource.data.nurseName == null
+        && resource.data.nursePhone == null
+        && request.resource.data.status == 'accepted'
+        && isVerifiedPractitioner(request.resource.data.nurseUid)
+        && request.resource.data.nurseName is string
+        && request.resource.data.nurseName.size() > 0
+        && request.resource.data.nursePhone is string
+        && request.resource.data.nursePhone.size() > 0
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nurseUid', 'nurseName', 'nursePhone', 'status', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time
+      )
+      // Admin boleh menolak pesanan pending tanpa menugaskan praktisi.
+      || (
+        isAdmin()
+        && resource.data.status == 'pending'
+        && resource.data.nurseUid == null
+        && resource.data.nurseName == null
+        && resource.data.nursePhone == null
+        && request.resource.data.status == 'rejected'
+        && request.resource.data.nurseUid == null
+        && request.resource.data.nurseName == null
+        && request.resource.data.nursePhone == null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+      )
+      // Praktisi terverifikasi yang ditugaskan dapat memulai layanan.
+      || (
+        signedIn()
+        && isVerifiedPractitioner(request.auth.uid)
+        && resource.data.nurseUid == request.auth.uid
+        && resource.data.status == 'accepted'
+        && request.resource.data.status == 'in_progress'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+      )
+      // Praktisi terverifikasi yang sama dapat menandai layanan selesai.
+      || (
+        signedIn()
+        && isVerifiedPractitioner(request.auth.uid)
+        && resource.data.nurseUid == request.auth.uid
+        && resource.data.status == 'in_progress'
+        && request.resource.data.status == 'completed'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+      );
+
       allow delete: if false;
     }
   }
