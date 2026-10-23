@@ -297,6 +297,7 @@
               updatedAt: serverTimestamp()
             });
           });
+          // Tandai profil lengkap hanya setelah permohonan berhasil tersimpan.
           await updateDoc(userRef, { profileComplete: true, updatedAt: serverTimestamp() });
           alert("Permohonan praktisi terkirim dan menunggu verifikasi admin.");
           await signOut(auth);
