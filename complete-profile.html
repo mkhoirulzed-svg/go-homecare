@@ -253,12 +253,7 @@
         if (role === "praktisi") {
           // Akun praktisi lama yang sudah disetujui admin boleh melengkapi profil,
           // tetapi tidak boleh mengubah role atau status verifikasinya sendiri.
-          if (currentProfile.role === "praktisi") {
-            if (currentProfile.isVerified !== true) {
-              alert("Akun praktisi belum diverifikasi admin. Hubungi admin Go-Homecare.");
-              window.location.replace("index.html");
-              return;
-            }
+          if (currentProfile.role === "praktisi" && currentProfile.isVerified === true) {
             await updateDoc(userRef, {
               nama: dataToSave.nama,
               phone: dataToSave.phone,
@@ -268,7 +263,10 @@
             window.location.replace("nurse.html");
             return;
           }
-          if (currentProfile.role !== "pasien") {
+          const canApplyAsPractitioner =
+            currentProfile.role === "pasien" ||
+            (currentProfile.role === "praktisi" && currentProfile.isVerified === false);
+          if (!canApplyAsPractitioner) {
             throw new Error("Role akun tidak sesuai. Hubungi admin Go-Homecare.");
           }
           const existing = await getDoc(doc(db, "practitionerApplications", user.uid));
@@ -283,7 +281,6 @@
             phone: dataToSave.phone,
             updatedAt: serverTimestamp()
           });
-          await updateDoc(userRef, { profileComplete: true, updatedAt: serverTimestamp() });
           await import("https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js").then(async ({ setDoc }) => {
             await setDoc(doc(db, "practitionerApplications", user.uid), {
               uid: user.uid,
@@ -300,6 +297,8 @@
               updatedAt: serverTimestamp()
             });
           });
+          // Tandai profil lengkap hanya setelah permohonan berhasil tersimpan.
+          await updateDoc(userRef, { profileComplete: true, updatedAt: serverTimestamp() });
           alert("Permohonan praktisi terkirim dan menunggu verifikasi admin.");
           await signOut(auth);
           window.location.replace("index.html");

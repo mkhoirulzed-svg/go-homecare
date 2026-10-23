@@ -114,6 +114,47 @@ function validBooking(overrides = {}) {
   };
 }
 
+test("new practitioner can create own unverified profile but cannot self-verify", async () => {
+  const db = testEnv.authenticatedContext("new-practitioner").firestore();
+  await assertSucceeds(setDoc(doc(db, "users", "new-practitioner"), {
+    uid: "new-practitioner",
+    nama: "Praktisi Baru",
+    email: "praktisi@example.test",
+    foto: "",
+    role: "praktisi",
+    isVerified: false,
+    profileComplete: false,
+    updatedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(doc(db, "users", "new-practitioner"), {
+    isVerified: true,
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("user can check own practitioner application before one exists", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(getDoc(doc(db, "practitionerApplications", "patient-1")));
+});
+
+test("user cannot create a practitioner application for another UID", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(setDoc(doc(db, "practitionerApplications", "other-user"), {
+    uid: "patient-1",
+    nama: "Pengajuan palsu",
+    email: "patient@example.test",
+    phone: "628123456789",
+    strNumber: "STR-TEST",
+    experience: "1 tahun",
+    specialization: "Umum",
+    bio: "",
+    tarif: 100000,
+    status: "pending",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }));
+});
+
 test("complete signed-in patient can create a pending booking for own UID", async () => {
   const db = testEnv.authenticatedContext("patient-1").firestore();
   await assertSucceeds(setDoc(
