@@ -72,6 +72,10 @@ after(async () => {
 function validBooking(overrides = {}) {
   return {
     patientUid: "patient-1",
+    bookerUid: "patient-1",
+    bookerName: "Pasien Uji",
+    bookingFor: "self",
+    relationship: "Diri sendiri",
     patientName: "Pasien Uji",
     patientPhone: "628123456789",
     patientAddress: "Alamat Uji, Palangka Raya",
