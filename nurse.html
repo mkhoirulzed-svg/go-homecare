@@ -20,7 +20,7 @@
     .tag{display:inline-block;background:#ccfbf1;color:#115e59;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700}
     .notice{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:14px;font-size:13px;line-height:1.6}
     #loading{padding:60px 20px;text-align:center;color:var(--muted)}#content{display:none}
-    .error{color:#b91c1c}
+    .error{color:#b91c1c}.task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
@@ -43,18 +43,14 @@
           <p id="email" class="muted" style="color:#64748b"></p>
           <p>Anda berhasil masuk ke area praktisi Go Homecare.</p>
         </section>
-        <section class="card">
-          <h2 style="font-size:18px;margin-top:0">Layanan praktisi</h2>
-          <p>Halaman ini merupakan dashboard awal untuk pengujian login praktisi. Fitur daftar permintaan booking, penerimaan layanan, dan riwayat tugas belum diaktifkan.</p>
-        </section>
-        <div class="notice">Catatan pengujian: akses ke halaman ini bukan berarti akun praktisi sudah diverifikasi secara administratif. Jangan gunakan untuk menerima layanan pasien sungguhan sebelum proses verifikasi dan keamanan selesai.</div>
+        <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:18px;margin:0">Tugas Homecare</h2><button id="refreshTasks" type="button" style="background:#ccfbf1;color:#115e59">Muat ulang</button></div><p id="taskStatus" class="muted" style="color:#64748b;margin:8px 0 12px" role="status">Memuat tugas…</p><div id="tasks"><div class="empty">Memuat tugas…</div></div></section><div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
       </main>
     </div>
   </div>
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -69,6 +65,8 @@
     const db = getFirestore(app);
     const loading = document.getElementById("loading");
     const contentBox = document.getElementById("content");
+    let currentPractitioner = null;
+    const escapeHtml = (value) => String(value ?? "-").replace(/[&<>"']/g, (ch) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -97,15 +95,69 @@
           window.location.replace("index.html");
           return;
         }
+        currentPractitioner = user;
         document.getElementById("greeting").textContent = "Halo, " + (profile.nama || user.displayName || "Praktisi") + "!";
         document.getElementById("email").textContent = user.email || "";
         loading.style.display = "none";
         contentBox.style.display = "block";
+        await loadTasks();
       } catch (error) {
         console.error("Gagal memeriksa akun praktisi:", error);
         loading.innerHTML = '<p class="error">Tidak dapat memeriksa akun. Periksa koneksi internet dan aturan akses Firestore, lalu muat ulang halaman.</p><p><a href="index.html">Kembali ke halaman login</a></p>';
       }
     });
+
+
+    document.getElementById("refreshTasks").addEventListener("click", loadTasks);
+
+    async function loadTasks() {
+      if (!currentPractitioner) return;
+      const host = document.getElementById("tasks");
+      const status = document.getElementById("taskStatus");
+      host.innerHTML = '<div class="empty">Memuat tugas…</div>';
+      try {
+        const snapshot = await getDocs(query(collection(db, "bookingRequests"), where("nurseUid", "==", currentPractitioner.uid)));
+        const rows = [];
+        snapshot.forEach((item) => rows.push({ id: item.id, data: item.data() }));
+        rows.sort((a,b) => (b.data.updatedAt?.toMillis?.() || b.data.createdAt?.toMillis?.() || 0) - (a.data.updatedAt?.toMillis?.() || a.data.createdAt?.toMillis?.() || 0));
+        host.replaceChildren();
+        const active = rows.filter(row => ["accepted","in_progress"].includes(row.data.status));
+        status.textContent = active.length + " tugas aktif · " + rows.length + " total penugasan";
+        if (!rows.length) { host.innerHTML = '<div class="empty">Belum ada pesanan yang ditugaskan kepada Anda.</div>'; return; }
+        for (const row of rows) {
+          const x = row.data;
+          const date = x.scheduledAt?.toDate ? x.scheduledAt.toDate() : new Date(x.scheduledAt);
+          const dateText = Number.isFinite(date.getTime()) ? date.toLocaleString("id-ID", { dateStyle:"medium", timeStyle:"short" }) : "Jadwal tidak tersedia";
+          const labels = { accepted:"Diterima · Siap dilayani", in_progress:"Sedang berlangsung", completed:"Selesai", rejected:"Ditolak", cancelled:"Dibatalkan", pending:"Menunggu konfirmasi" };
+          const card = document.createElement("article"); card.className = "task";
+          card.innerHTML = '<h3>' + escapeHtml(x.serviceName) + ' — ' + escapeHtml(labels[x.status] || x.status) + '</h3><p><strong>Pasien:</strong> ' + escapeHtml(x.patientName) + '<br><strong>Telepon:</strong> ' + escapeHtml(x.patientPhone) + '<br><strong>Alamat:</strong> ' + escapeHtml(x.patientAddress) + '<br><strong>Area:</strong> ' + escapeHtml(x.area) + '<br><strong>Jadwal diminta:</strong> ' + escapeHtml(dateText) + '<br><strong>Catatan:</strong> ' + escapeHtml(x.notes || "-") + '</p><p class="muted" style="color:#64748b">ID pesanan: ' + escapeHtml(row.id) + '</p>';
+          if (x.status === "accepted" || x.status === "in_progress") {
+            const btn = document.createElement("button"); btn.textContent = x.status === "accepted" ? "Mulai layanan" : "Tandai selesai";
+            btn.addEventListener("click", async () => {
+              const nextStatus = x.status === "accepted" ? "in_progress" : "completed";
+              const confirmation = x.status === "accepted" ? "Mulai layanan untuk pesanan ini?" : "Konfirmasi bahwa layanan sudah selesai?";
+              if (!confirm(confirmation)) return;
+              btn.disabled = true;
+              try {
+                await updateDoc(doc(db, "bookingRequests", row.id), { status: nextStatus, updatedAt: serverTimestamp() });
+                alert(nextStatus === "in_progress" ? "Status diperbarui: layanan dimulai." : "Status diperbarui: layanan selesai.");
+                await loadTasks();
+              } catch (error) {
+                console.error("Gagal memperbarui status tugas:", error);
+                alert("Status belum berhasil diubah. Periksa koneksi, status pesanan, dan Firestore Rules. " + error.message);
+                btn.disabled = false;
+              }
+            });
+            card.appendChild(btn);
+          }
+          host.appendChild(card);
+        }
+      } catch (error) {
+        console.error("Gagal memuat tugas:", error);
+        status.textContent = "Gagal memuat tugas";
+        host.innerHTML = '<div class="empty error">Tidak dapat memuat tugas. Pastikan Firestore Rules mengizinkan praktisi membaca pesanan yang ditugaskan kepadanya.</div>';
+      }
+    }
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       if (!confirm("Yakin ingin keluar dari akun Go Homecare?")) return;
