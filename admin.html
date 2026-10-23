@@ -12,7 +12,6 @@ async function review(id,x,approve,el){if(!confirm((approve?"Setujui":"Tolak")+"
 
 async function loadLegacy(){try{const s=await getDocs(query(collection(db,"users"),where("role","==","praktisi")));const old=[];s.forEach(d=>{const x=d.data();if(x.isVerified!==true)old.push({id:d.id,x})});$("legacy").replaceChildren();if(!old.length){$("legacy").textContent="Tidak ditemukan akun praktisi lama yang belum terverifikasi.";return}old.forEach(({id,x})=>{const el=document.createElement("article");el.className="item";el.innerHTML="<h3>"+esc(x.nama||x.name||"Nama belum tersedia")+"</h3><p>Email: "+esc(x.email)+"<br>Telepon: "+esc(x.phone)+"<br>STR: "+esc(x.strNumber)+"<br>Pengalaman: "+esc(x.experience)+"<br>Keahlian: "+esc(x.specialization)+"<br>Tarif: Rp "+esc(x.tarif)+"<br>Alamat: "+esc(x.address)+"</p><p class='muted'>UID: "+esc(id)+" · Status: belum terverifikasi</p><button class='yes'>Setujui akun lama</button><button class='no' style='background:#b91c1c'>Tandai ditolak</button>";el.querySelector(".yes").onclick=()=>reviewLegacy(id,x,true,el);el.querySelector(".no").onclick=()=>reviewLegacy(id,x,false,el);$("legacy").appendChild(el)})}catch(e){$("legacy").textContent="Gagal memuat akun lama. "+e.message}}
 async function reviewLegacy(uid,x,approve,el){if(!confirm((approve?"Setujui":"Tandai ditolak")+" akun praktisi lama "+(x.nama||x.email||uid)+"? Pastikan identitas dan STR sudah diperiksa."))return;el.querySelectorAll("button").forEach(b=>b.disabled=true);try{await updateDoc(doc(db,"users",uid),{isVerified:approve,practitionerReviewStatus:approve?"approved":"rejected",practitionerReviewedBy:auth.currentUser.uid,practitionerReviewedAt:serverTimestamp(),updatedAt:serverTimestamp()});alert(approve?"Akun praktisi lama disetujui. Silakan login kembali.":"Akun tetap tidak terverifikasi dan ditandai ditolak.");await load()}catch(e){alert("Gagal memproses akun lama: "+e.message);el.querySelectorAll("button").forEach(b=>b.disabled=false)}}
-</script></body></html>
 async function loadBookings(){
   const host=$("bookings"),status=$("bookingStatus");host.textContent="Memuat pesanan…";status.textContent="";
   try{
@@ -48,3 +47,5 @@ async function loadBookings(){
     }
   }catch(e){host.textContent="Gagal memuat pesanan. Pastikan Firestore Rules yang aktif mengizinkan admin membaca bookingRequests. Detail: "+e.message;status.textContent="Pemuatan gagal"}
 }
+
+</script></body></html>
