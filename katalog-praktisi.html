@@ -42,7 +42,7 @@
 import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import {getFirestore,doc,getDoc,collection,query,where,getDocs} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:940961680:web:bb842fd8925e2432230715"};
+const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:123940961680:web:bb842fd8925e2432230715"};
 const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);let rows=[];
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
