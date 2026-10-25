@@ -263,7 +263,8 @@ service cloud.firestore {
         && resource.data.nurseUid == request.auth.uid
         && resource.data.status == 'in_progress'
         && request.resource.data.status == 'completed'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completedAt', 'updatedAt'])
+        && request.resource.data.completedAt == request.time
         && request.resource.data.updatedAt == request.time
       );
 
