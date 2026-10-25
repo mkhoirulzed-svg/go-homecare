@@ -797,3 +797,92 @@ test("incomplete patient cannot read public practitioner profile and public prof
   await assertFails(getDoc(doc(incompleteDb, "practitionerPublicProfiles", "nurse-1")));
   await assertFails(getDocs(collection(incompleteDb, "practitionerPublicProfiles")));
 });
+
+
+test("patient can create catalog booking with published service and exact price snapshot", async () => {
+  await seedPractitionerService("catalog-location", "catalog-service", "published");
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(setDoc(
+    doc(db, "bookingRequests", "catalog-booking-valid"),
+    validBooking({
+      serviceName: "Perawatan Luka",
+      locationId: "catalog-location",
+      serviceId: "catalog-service",
+      locationName: "Lokasi Layanan Uji",
+      locationType: "practice",
+      servicePrice: 150000,
+      serviceDurationMinutes: 60,
+      practitionerUid: "nurse-1"
+    })
+  ));
+});
+
+test("catalog booking rejects altered price, unpublished service, and incomplete catalog metadata", async () => {
+  await seedPractitionerService("catalog-location", "catalog-service", "published");
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(setDoc(
+    doc(db, "bookingRequests", "catalog-booking-forged-price"),
+    validBooking({
+      serviceName: "Perawatan Luka",
+      locationId: "catalog-location",
+      serviceId: "catalog-service",
+      locationName: "Lokasi Layanan Uji",
+      locationType: "practice",
+      servicePrice: 1,
+      serviceDurationMinutes: 60,
+      practitionerUid: "nurse-1"
+    })
+  ));
+  await assertFails(setDoc(
+    doc(db, "bookingRequests", "catalog-booking-partial"),
+    validBooking({ locationId: "catalog-location" })
+  ));
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "practitionerLocations", "catalog-location", "services", "catalog-service"), {
+      status: "paused"
+    });
+  });
+  await assertFails(setDoc(
+    doc(db, "bookingRequests", "catalog-booking-paused"),
+    validBooking({
+      serviceName: "Perawatan Luka",
+      locationId: "catalog-location",
+      serviceId: "catalog-service",
+      locationName: "Lokasi Layanan Uji",
+      locationType: "practice",
+      servicePrice: 150000,
+      serviceDurationMinutes: 60,
+      practitionerUid: "nurse-1"
+    })
+  ));
+});
+
+test("patient cannot change catalog service or price snapshot while editing pending booking", async () => {
+  await seedPractitionerService("catalog-location", "catalog-service", "published");
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "bookingRequests", "catalog-booking-existing"), validBooking({
+      serviceName: "Perawatan Luka",
+      locationId: "catalog-location",
+      serviceId: "catalog-service",
+      locationName: "Lokasi Layanan Uji",
+      locationType: "practice",
+      servicePrice: 150000,
+      serviceDurationMinutes: 60,
+      practitionerUid: "nurse-1"
+    }));
+  });
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  const ref = doc(db, "bookingRequests", "catalog-booking-existing");
+  await assertSucceeds(updateDoc(ref, {
+    notes: "Ada tangga di pintu masuk",
+    updatedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(ref, {
+    serviceName: "Lainnya",
+    updatedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(ref, {
+    servicePrice: 1,
+    updatedAt: serverTimestamp()
+  }));
+});
