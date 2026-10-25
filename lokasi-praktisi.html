@@ -260,6 +260,18 @@
       card.appendChild(reason);
     }
     if (["draft", "published"].includes(x.status)) {
+      const scheduleActions = document.createElement("div");
+      scheduleActions.className = "mini-actions";
+      const manageSchedule = document.createElement("button");
+      manageSchedule.className = "secondary";
+      manageSchedule.textContent = "Atur jadwal";
+      manageSchedule.addEventListener("click", () => {
+        window.location.href = "jadwal-lokasi-praktisi.html?locationId=" + encodeURIComponent(location.id);
+      });
+      scheduleActions.appendChild(manageSchedule);
+      card.appendChild(scheduleActions);
+    }
+    if (["draft", "published"].includes(x.status)) {
       const serviceActions = document.createElement("div");
       serviceActions.className = "mini-actions";
       const manageServices = document.createElement("button");
