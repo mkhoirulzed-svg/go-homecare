@@ -35,14 +35,26 @@ Praktisi terverifikasi dapat membuat lokasi berstatus `draft`, mengedit draft, l
 
 Lokasi kunjungan rumah bukan alamat rumah praktisi atau pasien. Simpan cakupan wilayah, bukan alamat pasien di dokumen lokasi.
 
-## Tahap berikutnya: layanan, tarif, dan jadwal
+## Tahap 2: layanan dan tarif per lokasi
 
-Setelah aturan lokasi diuji, tambahkan subkoleksi:
+Subkoleksi yang mulai diterapkan pada tahap ini:
 
-- `practitionerLocations/{locationId}/services/{serviceId}`: nama layanan, deskripsi, tarif dalam rupiah sebagai integer, durasi perkiraan, status review/publikasi.
-- `practitionerLocations/{locationId}/availability/{availabilityId}`: pola hari/jam atau slot tanggal tertentu, kapasitas, dan status aktif.
+`practitionerLocations/{locationId}/services/{serviceId}`
 
-Layanan dan jadwal harus divalidasi terhadap lokasi induk dan UID pemilik. Jangan menerima tarif atau status publikasi yang dikirim pasien sebagai sumber kebenaran.
+| Field | Tipe | Keterangan |
+|---|---|---|
+| `name` | string | Nama layanan |
+| `description` | string | Deskripsi singkat |
+| `price` | integer | Tarif rupiah, tidak boleh negatif |
+| `durationMinutes` | integer | Perkiraan durasi 5–1440 menit |
+| `status` | string | `draft`, `pending_review`, `published`, `rejected`, atau `paused` |
+| `createdAt` | timestamp | Waktu dibuat |
+| `updatedAt` | timestamp | Waktu perubahan terakhir |
+| `reviewedBy`, `reviewedAt`, `reviewNote` | opsional | Metadata tinjauan admin |
+
+Aturan layanan memeriksa kepemilikan lokasi induk dan status verifikasi praktisi. Praktisi hanya dapat membuat layanan berstatus draft dan mengedit draft/layanan yang ditolak. Pasien hanya dapat membaca layanan published di bawah lokasi published. Admin dapat meninjau layanan, dan tidak dapat memublikasikan layanan jika lokasi induknya belum published. Penghapusan layanan dinonaktifkan agar riwayat/rujukan tidak hilang secara tidak sengaja.
+
+Jadwal per lokasi tetap tahap berikutnya. Pola hari/jam dan slot tanggal harus dirancang terpisah agar tidak menciptakan konflik jadwal atau menerima pemesanan pada waktu yang sudah lewat.
 
 ## Perubahan pemesanan berikutnya
 
