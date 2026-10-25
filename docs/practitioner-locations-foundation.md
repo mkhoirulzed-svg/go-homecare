@@ -1,6 +1,6 @@
 # Fondasi Lokasi Praktisi dan Katalog Layanan Go Homecare
 
-Status dokumen: rancangan Tahap 1. Belum mengubah aplikasi frontend atau data Firestore yang sudah ada.
+Status dokumen: fondasi lokasi dan aturan layanan sudah masuk ke branch main. UI pengelolaan lokasi dan layanan dikembangkan bertahap; perubahan Rules di repository belum diterapkan ke Firebase production.
 
 ## Keputusan produk
 
@@ -56,6 +56,10 @@ Aturan layanan memeriksa kepemilikan lokasi induk dan status verifikasi praktisi
 
 Jadwal per lokasi tetap tahap berikutnya. Pola hari/jam dan slot tanggal harus dirancang terpisah agar tidak menciptakan konflik jadwal atau menerima pemesanan pada waktu yang sudah lewat.
 
+### UI pengelolaan layanan
+
+Halaman `layanan-praktisi.html` mengelola layanan di bawah lokasi yang dipilih melalui `locationId`. Praktisi terverifikasi dapat membuat draft, mengedit draft/layanan yang ditolak, dan mengajukan tinjauan. Penghapusan dinonaktifkan. Tautan pengelolaan ditampilkan pada kartu lokasi berstatus `draft` atau `published`. Halaman ini belum mengubah alur pemesanan pasien.
+
 ## Perubahan pemesanan berikutnya
 
 Tambahkan ke `bookingRequests` setelah frontend dan Rules siap bersamaan:
@@ -79,9 +83,10 @@ Pertahankan field `nurseUid`, `nurseName`, dan `nursePhone` untuk kompatibilitas
 
 ## Urutan implementasi
 
-1. Skema dan Rules koleksi lokasi (PR ini).
-2. UI praktisi untuk membuat/mengedit/mengajukan lokasi.
-3. Koleksi layanan, tarif, dan jadwal plus Rules.
-4. Katalog publik praktisi/lokasi yang aman.
-5. Alur booking baru dengan harga snapshot dan penerimaan praktisi.
-6. Notifikasi WhatsApp backend, retry, dan eskalasi admin.
+1. Skema dan Rules koleksi lokasi serta layanan (sudah ada di `main`; belum deploy ke Firebase production).
+2. UI praktisi untuk membuat/mengedit/mengajukan lokasi (sudah ada).
+3. UI praktisi untuk mengelola layanan dan tarif per lokasi (PR ini).
+4. Jadwal per lokasi beserta validasi ketersediaan.
+5. Katalog publik praktisi/lokasi/layanan yang aman.
+6. Alur booking baru dengan harga snapshot dan penerimaan praktisi.
+7. Notifikasi admin/praktisi dan integrasi WhatsApp backend, retry, serta eskalasi.
