@@ -88,6 +88,15 @@
               <option value="Wali/Pendamping">Wali/Pendamping</option>
             </select>
           </div>
+          <div id="catalogSelection" class="field hidden" aria-live="polite">
+            <div style="padding:14px;border:1px solid #99f6e4;border-radius:14px;background:#f0fdfa">
+              <div style="font-size:11px;font-weight:800;color:#0f766e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Pilihan dari katalog</div>
+              <div id="catalogLocationName" style="font-weight:800;font-size:15px"></div>
+              <div id="catalogDetails" class="hint"></div>
+              <div id="catalogPrice" style="font-size:14px;font-weight:800;color:#0f766e;margin-top:7px"></div>
+              <div class="hint">Harga dan jadwal akhir tetap perlu dikonfirmasi oleh praktisi. Permintaan ini belum merupakan reservasi yang terkonfirmasi.</div>
+            </div>
+          </div>
           <div class="field">
             <label for="serviceName">Jenis layanan *</label>
             <select id="serviceName" required>
@@ -168,6 +177,7 @@
     let submitting = false;
     let editingBookingId = null;
     let existingBooking = null;
+    let catalogSelection = null;
 
     function showError(message) {
       $("loading").classList.add("hidden");
@@ -219,9 +229,52 @@
     $("scheduledAt").min = localDateTimeMinimum();
     const params = new URLSearchParams(window.location.search);
     const requestedService = params.get("service");
+    const requestedLocationId = params.get("locationId");
+    const requestedServiceId = params.get("serviceId");
     editingBookingId = params.get("bookingId");
     const allowedServices = ["Rawat Luka", "Pasang Infus", "Pasang NGT", "Pasang DC", "Perawatan Lansia", "Lainnya"];
     if (allowedServices.includes(requestedService)) $("serviceName").value = requestedService;
+
+    function formatRupiah(value) {
+      return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value) || 0);
+    }
+    async function loadCatalogSelection() {
+      if (!requestedLocationId || !requestedServiceId || editingBookingId) return;
+      const [locationSnap, serviceSnap] = await Promise.all([
+        getDoc(doc(db, "practitionerLocations", requestedLocationId)),
+        getDoc(doc(db, "practitionerLocations", requestedLocationId, "services", requestedServiceId))
+      ]);
+      if (!locationSnap.exists() || !serviceSnap.exists()) throw new Error("Lokasi atau layanan dari katalog tidak ditemukan.");
+      const location = locationSnap.data(), service = serviceSnap.data();
+      if (location.status !== "published" || service.status !== "published") throw new Error("Lokasi atau layanan ini tidak lagi tersedia di katalog.");
+      if (!location.ownerUid || typeof service.price !== "number" || !Number.isInteger(service.price)) throw new Error("Data layanan belum lengkap untuk pemesanan.");
+      catalogSelection = {
+        locationId: requestedLocationId,
+        serviceId: requestedServiceId,
+        locationName: location.name,
+        locationType: location.locationType,
+        serviceName: service.name,
+        servicePrice: service.price,
+        serviceDurationMinutes: service.durationMinutes,
+        practitionerUid: location.ownerUid,
+        address: location.address || "",
+        area: [location.area, location.city, location.province].filter(Boolean).join(", ")
+      };
+      const option = Array.from($("serviceName").options).find(item => item.value === service.name);
+      if (!option) $("serviceName").add(new Option(service.name, service.name));
+      $("serviceName").value = service.name;
+      $("catalogLocationName").textContent = location.name;
+      $("catalogDetails").textContent = (location.locationType === "practice" ? "Klinik / tempat praktik" : "Kunjungan rumah") + " · " + catalogSelection.area;
+      $("catalogPrice").textContent = formatRupiah(service.price) + " · estimasi " + service.durationMinutes + " menit";
+      $("catalogSelection").classList.remove("hidden");
+      if (location.locationType === "practice" && location.address) {
+        $("patientAddress").value = location.address;
+        $("area").value = catalogSelection.area;
+      } else if (catalogSelection.area) {
+        $("area").value = catalogSelection.area;
+      }
+      $("serviceName").disabled = true;
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -250,6 +303,12 @@
         $("patientPhone").value = profile.phone || "";
         updateBookingFor();
         $("patientAddress").value = profile.address || "";
+        try {
+          await loadCatalogSelection();
+        } catch (selectionError) {
+          showError(selectionError.message || "Pilihan katalog tidak dapat diverifikasi. Silakan kembali ke katalog.");
+          return;
+        }
 
         if (editingBookingId) {
           const bookingSnap = await getDoc(doc(db, "bookingRequests", editingBookingId));
@@ -258,6 +317,16 @@
             return;
           }
           existingBooking = bookingSnap.data();
+          if (existingBooking.locationId) {
+            const catalogOption = Array.from($("serviceName").options).find(item => item.value === existingBooking.serviceName);
+            if (!catalogOption) $("serviceName").add(new Option(existingBooking.serviceName, existingBooking.serviceName));
+            $("serviceName").value = existingBooking.serviceName;
+            $("serviceName").disabled = true;
+            $("catalogSelection").classList.remove("hidden");
+            $("catalogLocationName").textContent = existingBooking.locationName || "Lokasi layanan";
+            $("catalogDetails").textContent = existingBooking.locationType === "practice" ? "Klinik / tempat praktik" : "Kunjungan rumah";
+            $("catalogPrice").textContent = formatRupiah(existingBooking.servicePrice) + " · estimasi " + existingBooking.serviceDurationMinutes + " menit (harga saat pemesanan)";
+          }
           if (existingBooking.patientUid !== user.uid) {
             showError("Kamu tidak memiliki akses untuk mengubah pesanan ini.");
             return;
@@ -353,7 +422,7 @@
             patientName,
             patientPhone,
             patientAddress,
-            serviceName,
+            serviceName: existingBooking?.locationId ? existingBooking.serviceName : serviceName,
             scheduledAt: Timestamp.fromDate(scheduledDate),
             area,
             notes,
@@ -375,6 +444,15 @@
             patientPhone,
             patientAddress,
             serviceName,
+            ...(catalogSelection ? {
+              locationId: catalogSelection.locationId,
+              serviceId: catalogSelection.serviceId,
+              locationName: catalogSelection.locationName,
+              locationType: catalogSelection.locationType,
+              servicePrice: catalogSelection.servicePrice,
+              serviceDurationMinutes: catalogSelection.serviceDurationMinutes,
+              practitionerUid: catalogSelection.practitionerUid
+            } : {}),
             scheduledAt: Timestamp.fromDate(scheduledDate),
             area,
             notes,
