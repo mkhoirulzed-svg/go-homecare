@@ -110,6 +110,12 @@
             <div class="section-heading"><h2>Ringkasan pesanan</h2><button type="button" class="text-button" data-go-tab="orders">Lihat pesanan</button></div>
             <p class="section-help">Kelola penugasan yang diberikan kepada akun Anda dan perbarui status layanan sesuai tahap pengerjaan.</p>
           </section>
+          <section class="card" aria-labelledby="serviceSummaryTitle">
+            <div class="section-heading"><h2 id="serviceSummaryTitle">Layanan & tarif per lokasi</h2><button id="refreshPractitionerServices" type="button" class="text-button">Muat ulang</button></div>
+            <p class="section-help">Daftar ini menampilkan tarif yang Anda buat untuk setiap lokasi praktik, beserta status tinjauannya.</p>
+            <div id="practitionerServices"><div class="empty">Memuat layanan dan tarif…</div></div>
+            <a class="location-manage" href="lokasi-praktisi.html">Kelola lokasi & tambah layanan</a>
+          </section>
         </section>
 
         <section class="tab-panel" id="panel-orders" hidden aria-labelledby="ordersTitle">
@@ -163,12 +169,7 @@
             <p class="profile-footnote">Pastikan informasi pengalaman, keahlian, dan tarif selalu terbaru.</p>
           </div>
         </section>
-          <section class="card" aria-labelledby="serviceSummaryTitle">
-            <div class="section-heading"><h2 id="serviceSummaryTitle">Layanan & tarif per lokasi</h2><button id="refreshPractitionerServices" type="button" class="text-button">Muat ulang</button></div>
-            <p class="section-help">Daftar ini menampilkan tarif yang Anda buat untuk setiap lokasi praktik, beserta status tinjauannya.</p>
-            <div id="practitionerServices"><div class="empty">Memuat layanan dan tarif…</div></div>
-            <a class="location-manage" href="lokasi-praktisi.html">Kelola lokasi & tambah layanan</a>
-          </section>
+          
           <div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
         </section>
       </main>
