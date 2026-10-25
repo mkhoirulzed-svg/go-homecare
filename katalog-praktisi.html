@@ -22,7 +22,7 @@
     .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.type{font-size:10px;letter-spacing:.08em;font-weight:800;text-transform:uppercase;color:var(--teal);margin:0 0 7px}
     h2{font-size:18px;line-height:1.35;margin:0 0 7px;overflow-wrap:anywhere}.muted{font-size:12px;line-height:1.6;color:var(--muted);margin:5px 0}
     .tag{font-size:10px;font-weight:800;color:#065f46;background:#d1fae5;border-radius:99px;padding:6px 8px;white-space:nowrap}
-    .service{border-top:1px solid var(--line);padding-top:12px;margin-top:13px}.service-title{font-weight:800;font-size:14px}.price{font-weight:800;color:var(--teal);font-size:15px;margin-top:5px}
+    .practitioner{display:flex;gap:12px;align-items:flex-start;background:#f8fafc;border-radius:13px;padding:12px;margin-top:12px}.avatar{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:var(--mint);color:var(--teal);font-weight:800;font-size:17px}.practitioner-name{font-size:14px;font-weight:800;margin-bottom:4px}.service{border-top:1px solid var(--line);padding-top:12px;margin-top:13px}.service-title{font-weight:800;font-size:14px}.price{font-weight:800;color:var(--teal);font-size:15px;margin-top:5px}
     .duration{font-size:11px;color:var(--muted);margin-top:4px}.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
     .book{display:block;text-align:center;text-decoration:none;background:var(--teal);color:white;padding:12px;border-radius:11px;font-weight:800;font-size:13px;margin-top:12px}
     @media(min-width:600px){.tools{grid-template-columns:1fr 190px}}
@@ -55,7 +55,9 @@ function render(){
  for(const row of filtered){
   const x=row.location,card=document.createElement("article");card.className="card";
   const services=row.services.map(s=>'<div class="service"><div class="service-title">'+escapeHtml(s.name)+'</div>'+(s.description?'<p class="muted">'+escapeHtml(s.description)+'</p>':'')+'<div class="price">'+rupiah(s.price)+'</div><div class="duration">Estimasi durasi '+escapeHtml(s.durationMinutes)+' menit</div><a class="book" href="booking.html?service='+encodeURIComponent(s.name)+'">Pesan layanan ini</a></div>').join("");
-  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">Terverifikasi & terbit</span></div><p class="muted">📍 '+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+'<p class="muted">Profil nama praktisi dan rating akan ditambahkan setelah profil publik dan sistem ulasan tersedia.</p>'+services;
+  const p=row.profile;
+  const practitioner=p?'<div class="practitioner"><div class="avatar" aria-hidden="true">'+escapeHtml((p.name||"P").trim().charAt(0).toUpperCase())+'</div><div><div class="practitioner-name">'+escapeHtml(p.name)+'</div><div class="muted">'+escapeHtml(p.specialization||"Praktisi kesehatan")+(Number.isInteger(p.experienceYears)?" · "+p.experienceYears+" tahun pengalaman":"")+'</div>'+(p.bio?'<p class="muted">'+escapeHtml(p.bio)+'</p>':'')+(p.serviceArea?'<p class="muted">Area layanan: '+escapeHtml(p.serviceArea)+'</p>':'')+'</div></div>':'<p class="muted">Profil profesional praktisi belum dilengkapi.</p>';
+  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">Dipublikasikan</span></div><p class="muted">📍 '+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+practitioner+'<p class="muted">Penilaian bintang belum tersedia karena sistem ulasan belum dibuat.</p>'+services;
   $("catalog").append(card);
  }
 }
@@ -65,8 +67,15 @@ async function loadCatalog(){
   const locSnap=await getDocs(query(collection(db,"practitionerLocations"),where("status","==","published")));
   const locations=locSnap.docs.map(d=>({id:d.id,...d.data()}));
   const loaded=await Promise.all(locations.map(async location=>{
-   const ss=await getDocs(query(collection(db,"practitionerLocations",location.id,"services"),where("status","==","published")));
-   return {location,services:ss.docs.map(d=>({id:d.id,...d.data()}))};
+   const [ss,profileSnap]=await Promise.all([
+    getDocs(query(collection(db,"practitionerLocations",location.id,"services"),where("status","==","published"))),
+    location.ownerUid ? getDoc(doc(db,"practitionerPublicProfiles",location.ownerUid)) : Promise.resolve(null)
+   ]);
+   return {
+    location,
+    profile:profileSnap&&profileSnap.exists()?profileSnap.data():null,
+    services:ss.docs.map(d=>({id:d.id,...d.data()}))
+   };
   }));
   rows=loaded.filter(r=>r.services.length>0);
   $("status").textContent=rows.length?("Ditemukan "+rows.length+" lokasi dengan layanan yang telah dipublikasikan."):"Belum ada lokasi dengan layanan yang dipublikasikan.";
