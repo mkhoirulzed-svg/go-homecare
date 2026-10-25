@@ -355,6 +355,41 @@ service cloud.firestore {
     }
 
     match /bookingRequests/{requestId} {
+      function hasCatalogSelection() {
+        return request.resource.data.keys().hasAny([
+          'locationId', 'serviceId', 'locationNameSnapshot',
+          'locationTypeSnapshot', 'priceSnapshot',
+          'serviceDurationMinutesSnapshot', 'practitionerUidSnapshot'
+        ]);
+      }
+      function validCatalogSelection() {
+        return request.resource.data.keys().hasAll([
+          'locationId', 'serviceId', 'locationNameSnapshot',
+          'locationTypeSnapshot', 'priceSnapshot',
+          'serviceDurationMinutesSnapshot', 'practitionerUidSnapshot'
+        ])
+        && request.resource.data.locationId is string
+        && request.resource.data.locationId.size() > 0
+        && request.resource.data.serviceId is string
+        && request.resource.data.serviceId.size() > 0
+        && request.resource.data.priceSnapshot is int
+        && request.resource.data.priceSnapshot >= 0
+        && request.resource.data.serviceDurationMinutesSnapshot is int
+        && request.resource.data.locationTypeSnapshot in ['practice', 'home_visit']
+        && request.resource.data.practitionerUidSnapshot is string
+        && exists(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId))
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)).data.status == 'published'
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)).data.name == request.resource.data.locationNameSnapshot
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)).data.locationType == request.resource.data.locationTypeSnapshot
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)).data.ownerUid == request.resource.data.practitionerUidSnapshot
+        && isVerifiedPractitioner(request.resource.data.practitionerUidSnapshot)
+        && exists(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)/services/$(request.resource.data.serviceId))
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)/services/$(request.resource.data.serviceId)).data.status == 'published'
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)/services/$(request.resource.data.serviceId)).data.name == request.resource.data.serviceName
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)/services/$(request.resource.data.serviceId)).data.price == request.resource.data.priceSnapshot
+        && get(/databases/$(database)/documents/practitionerLocations/$(request.resource.data.locationId)/services/$(request.resource.data.serviceId)).data.durationMinutes == request.resource.data.serviceDurationMinutesSnapshot;
+      }
+
       allow get, list: if signedIn()
         && (
           isAdmin()
@@ -375,7 +410,10 @@ service cloud.firestore {
           'patientName', 'patientPhone', 'patientAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
-          'bookingSource', 'createdAt', 'updatedAt'
+          'bookingSource', 'createdAt', 'updatedAt',
+          'locationId', 'serviceId', 'locationNameSnapshot',
+          'locationTypeSnapshot', 'priceSnapshot',
+          'serviceDurationMinutesSnapshot', 'practitionerUidSnapshot'
         ])
         && request.resource.data.patientUid == request.auth.uid
         && request.resource.data.bookerUid == request.auth.uid
@@ -391,10 +429,13 @@ service cloud.firestore {
         && request.resource.data.patientPhone is string
         && request.resource.data.patientAddress is string
         && request.resource.data.patientAddress.size() > 0
-        && request.resource.data.serviceName in [
-          'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
-          'Pasang DC', 'Perawatan Lansia', 'Lainnya'
-        ]
+        && (
+          (hasCatalogSelection() && validCatalogSelection())
+          || (!hasCatalogSelection() && request.resource.data.serviceName in [
+            'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
+            'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+          ])
+        )
         && request.resource.data.scheduledAt is timestamp
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
@@ -426,7 +467,10 @@ service cloud.firestore {
           'patientName', 'patientPhone', 'patientAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
-          'bookingSource', 'createdAt', 'updatedAt'
+          'bookingSource', 'createdAt', 'updatedAt',
+          'locationId', 'serviceId', 'locationNameSnapshot',
+          'locationTypeSnapshot', 'priceSnapshot',
+          'serviceDurationMinutesSnapshot', 'practitionerUidSnapshot'
         ])
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'bookingFor', 'relationship', 'patientName', 'patientPhone',
@@ -442,10 +486,20 @@ service cloud.firestore {
         && request.resource.data.patientPhone is string
         && request.resource.data.patientAddress is string
         && request.resource.data.patientAddress.size() > 0
-        && request.resource.data.serviceName in [
-          'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
-          'Pasang DC', 'Perawatan Lansia', 'Lainnya'
-        ]
+        && (
+          (resource.data.keys().hasAny(['locationId'])
+            && request.resource.data.serviceName == resource.data.serviceName
+            && request.resource.data.keys().hasAll([
+              'locationId', 'serviceId', 'locationNameSnapshot',
+              'locationTypeSnapshot', 'priceSnapshot',
+              'serviceDurationMinutesSnapshot', 'practitionerUidSnapshot'
+            ]))
+          || (!resource.data.keys().hasAny(['locationId'])
+            && request.resource.data.serviceName in [
+              'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
+              'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+            ])
+        )
         && request.resource.data.scheduledAt is timestamp
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
