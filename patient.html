@@ -562,32 +562,31 @@
 
     </div>
 
+    <section class="history-panel" id="ordersPanel" aria-live="polite">
+      <div class="section-title">Pesanan Aktif</div>
+      <div id="activeOrdersList"><div class="empty-state">Memuat pesanan aktif…</div></div>
+      <button type="button" id="newBookingFromOrdersBtn" style="width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:var(--primary);color:#fff;font:inherit;font-weight:700;cursor:pointer">Pesan Layanan Baru</button>
+    </section>
     <section class="history-panel" id="historyPanel" aria-live="polite">
       <div class="section-title">Riwayat Pemesanan</div>
-      <div id="historyList"><div class="empty-state">Tekan Riwayat untuk memuat pemesanan Anda.</div></div>
+      <div id="historyList"><div class="empty-state">Tekan Riwayat untuk memuat pesanan sebelumnya.</div></div>
       <button type="button" id="newBookingBtn" style="width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:var(--primary);color:#fff;font:inherit;font-weight:700;cursor:pointer">Pesan Layanan Baru</button>
     </section>
-
     <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <div class="nav-item active" onclick="switchNav(this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        <span>Beranda</span>
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <div class="nav-item active" onclick="switchNav(this)" role="button" tabindex="0">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span>
       </div>
-      <div class="nav-item" onclick="switchNav(this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-        <span>Riwayat</span>
+      <div class="nav-item" onclick="switchNav(this)" role="button" tabindex="0">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 14 2 2 4-4"/></svg><span>Pesanan</span>
       </div>
-      <div class="nav-item" onclick="switchNav(this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-        <span>Chat</span>
+      <div class="nav-item" onclick="switchNav(this)" role="button" tabindex="0">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span>Riwayat</span>
       </div>
-      <div class="nav-item" onclick="switchNav(this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <span>Profil</span>
+      <div class="nav-item" onclick="switchNav(this)" role="button" tabindex="0">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Profil</span>
       </div>
     </nav>
-
   </div>
 
   <script>
@@ -596,24 +595,30 @@
       window.location.href = "booking.html?service=" + encodeURIComponent(serviceName);
     };
 
-    // Navigasi halaman dashboard pasien.
+    // Navigasi dashboard pasien: Beranda, Pesanan, Riwayat, Profil.
     window.switchNav = function(element) {
       const label = element.querySelector('span')?.textContent?.trim();
       document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       element.classList.add('active');
       const main = document.querySelector('.main-content');
+      const orders = document.getElementById('ordersPanel');
       const history = document.getElementById('historyPanel');
-      if (label === 'Riwayat') {
+      if (label === 'Pesanan') {
         main.style.display = 'none';
+        orders.classList.add('visible');
+        history.classList.remove('visible');
+        window.loadActiveOrders?.();
+      } else if (label === 'Riwayat') {
+        main.style.display = 'none';
+        orders.classList.remove('visible');
         history.classList.add('visible');
         window.loadBookingHistory?.();
       } else if (label === 'Beranda') {
         main.style.display = '';
+        orders.classList.remove('visible');
         history.classList.remove('visible');
       } else if (label === 'Profil') {
         window.location.href = 'profile.html';
-      } else if (label === 'Chat') {
-        alert('Fitur chat belum tersedia.');
       }
     };
   </script>
@@ -639,6 +644,8 @@
     let currentPatientUid = null;
 
     const historyList = document.getElementById("historyList");
+    const activeOrdersList = document.getElementById("activeOrdersList");
+    const ACTIVE_ORDER_STATUSES = ["pending", "approved", "accepted", "in_progress"];
     const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, ch => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     })[ch]);
@@ -646,7 +653,8 @@
     const statusText = status => ({
       pending: "Menunggu konfirmasi",
       approved: "Layanan disetujui",
-      accepted: "Perawat menerima pesanan",
+      accepted: "Praktisi ditugaskan",
+      in_progress: "Sedang berlangsung",
       rejected: "Pemesanan ditolak",
       cancelled: "Pemesanan dibatalkan",
       completed: "Layanan selesai"
@@ -688,6 +696,36 @@
       if (historyNav) window.switchNav(historyNav);
     });
 
+    window.loadActiveOrders = async function() {
+      if (!currentPatientUid || !activeOrdersList) return;
+      activeOrdersList.innerHTML = '<div class="empty-state">Memuat pesanan aktif…</div>';
+      try {
+        const q = query(collection(db, "bookingRequests"), where("patientUid", "==", currentPatientUid));
+        const result = await getDocs(q);
+        const rows = result.docs.map(item => ({ id: item.id, ...item.data() }))
+          .filter(item => ACTIVE_ORDER_STATUSES.includes(String(item.status || "pending").toLowerCase()));
+        const time = value => value?.toDate ? value.toDate().getTime() : (value ? new Date(value).getTime() : 0);
+        rows.sort((a, b) => time(b.createdAt) - time(a.createdAt));
+        if (!rows.length) {
+          activeOrdersList.innerHTML = '<div class="empty-state">Belum ada pesanan aktif. Pesanan yang menunggu konfirmasi atau sedang dilayani akan muncul di sini.</div>';
+          return;
+        }
+        activeOrdersList.innerHTML = rows.map(item => {
+          const status = String(item.status || "pending").toLowerCase();
+          const statusLabel = ({pending:"Menunggu konfirmasi", approved:"Disetujui", accepted:"Praktisi ditugaskan", in_progress:"Sedang berlangsung"})[status] || status;
+          const dateValue = item.scheduledAt?.toDate ? item.scheduledAt.toDate() : (item.scheduledAt ? new Date(item.scheduledAt) : null);
+          const dateLabel = dateValue && !Number.isNaN(dateValue.getTime()) ? dateValue.toLocaleString("id-ID", {dateStyle:"medium", timeStyle:"short"}) : "Jadwal belum tersedia";
+          const actions = status === "pending"
+            ? '<div class="booking-actions"><button type="button" data-booking-action="edit" data-booking-id="' + escapeHtml(item.id) + '">Edit pesanan</button><button type="button" class="cancel-booking" data-booking-action="cancel" data-booking-id="' + escapeHtml(item.id) + '">Batalkan</button></div>'
+            : '';
+          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Praktisi: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
+        }).join("");
+      } catch (error) {
+        console.error("Gagal memuat pesanan aktif:", error);
+        activeOrdersList.innerHTML = '<div class="empty-state">Pesanan aktif gagal dimuat (' + escapeHtml(error.code || error.message || "kesalahan tidak diketahui") + ').</div>';
+      }
+    };
+
     window.loadBookingHistory = async function() {
       if (!currentPatientUid || !historyList) return;
       historyList.innerHTML = '<div class="empty-state">Memuat riwayat pemesanan…</div>';
@@ -695,14 +733,19 @@
         const q = query(collection(db, "bookingRequests"), where("patientUid", "==", currentPatientUid));
         const result = await getDocs(q);
         if (result.empty) {
-          historyList.innerHTML = '<div class="empty-state">Belum ada pemesanan layanan. Pilih layanan homecare untuk membuat pemesanan pertama Anda.</div>';
+          historyList.innerHTML = '<div class="empty-state">Belum ada riwayat pesanan selesai, ditolak, atau dibatalkan.</div>';
           return;
         }
-        const rows = result.docs.map(item => ({ id: item.id, ...item.data() }));
+        const rows = result.docs.map(item => ({ id: item.id, ...item.data() }))
+          .filter(item => !ACTIVE_ORDER_STATUSES.includes(String(item.status || "pending").toLowerCase()));
         rows.sort((a, b) => {
           const time = value => value?.toDate ? value.toDate().getTime() : (value ? new Date(value).getTime() : 0);
           return time(b.createdAt) - time(a.createdAt);
         });
+        if (!rows.length) {
+          historyList.innerHTML = '<div class="empty-state">Belum ada riwayat pesanan selesai, ditolak, atau dibatalkan.</div>';
+          return;
+        }
         historyList.innerHTML = rows.map(item => {
           const status = String(item.status || "pending").toLowerCase();
           const statusLabel = ({pending:"Menunggu konfirmasi", approved:"Disetujui", accepted:"Diterima", rejected:"Ditolak", cancelled:"Dibatalkan", completed:"Selesai"})[status] || status;
@@ -719,7 +762,7 @@
       }
     };
 
-    historyList?.addEventListener("click", async (event) => {
+    const handleBookingAction = async (event) => {
       const button = event.target.closest("button[data-booking-action]");
       if (!button || !currentPatientUid) return;
       const bookingId = button.dataset.bookingId;
@@ -744,6 +787,7 @@
           }
           await updateDoc(bookingRef, { status: "cancelled", updatedAt: serverTimestamp() });
           await window.loadBookingHistory();
+          await window.loadActiveOrders();
           await window.loadLatestServiceProgress();
         } catch (error) {
           console.error("Gagal membatalkan pesanan:", error);
@@ -754,9 +798,14 @@
           button.textContent = "Batalkan";
         }
       }
-    });
+    };
+    historyList?.addEventListener("click", handleBookingAction);
+    activeOrdersList?.addEventListener("click", handleBookingAction);
 
     document.getElementById("newBookingBtn")?.addEventListener("click", () => {
+      window.location.href = "booking.html";
+    });
+    document.getElementById("newBookingFromOrdersBtn")?.addEventListener("click", () => {
       window.location.href = "booking.html";
     });
 
@@ -772,8 +821,15 @@
         document.getElementById("userName").textContent = profile.nama || user.displayName || "Pasien";
         document.getElementById("userLocation").textContent = profile.address || "Alamat belum diisi";
         window.loadLatestServiceProgress?.();
+        window.loadActiveOrders?.();
 
         const pageParams = new URLSearchParams(window.location.search);
+        if (pageParams.get("tab") === "orders") {
+          const ordersNav = Array.from(document.querySelectorAll(".nav-item"))
+            .find(item => item.querySelector("span")?.textContent?.trim() === "Pesanan");
+          if (ordersNav) window.switchNav(ordersNav);
+          window.history.replaceState({}, "", "patient.html");
+        }
         if (pageParams.get("tab") === "history") {
           const historyNav = Array.from(document.querySelectorAll(".nav-item"))
             .find(item => item.querySelector("span")?.textContent?.trim() === "Riwayat");
