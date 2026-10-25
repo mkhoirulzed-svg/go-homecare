@@ -59,7 +59,7 @@
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
       authDomain: "gocare-c94bc.firebaseapp.com",
@@ -142,7 +142,20 @@
         if (!updatedProfile.nama || !updatedProfile.phone || !updatedProfile.address || !updatedProfile.strNumber || !updatedProfile.specialization) {
           throw new Error("Lengkapi nama, nomor WhatsApp, alamat, STR, dan spesialisasi.");
         }
-        await updateDoc(doc(db, "users", currentPractitioner.uid), updatedProfile);
+        const publicProfile = {
+          ownerUid: currentPractitioner.uid,
+          name: updatedProfile.nama,
+          experienceYears: experience,
+          specialization: updatedProfile.specialization,
+          bio: updatedProfile.bio,
+          serviceArea: updatedProfile.serviceArea,
+          updatedAt: serverTimestamp()
+        };
+        // Simpan profil privat dan proyeksi publik secara atomik agar tidak berbeda versi.
+        const batch = writeBatch(db);
+        batch.update(doc(db, "users", currentPractitioner.uid), updatedProfile);
+        batch.set(doc(db, "practitionerPublicProfiles", currentPractitioner.uid), publicProfile);
+        await batch.commit();
         currentProfile = { ...currentProfile, ...updatedProfile };
         document.getElementById("greeting").textContent = "Halo, " + updatedProfile.nama;
         message.textContent = "Profil berhasil disimpan.";
