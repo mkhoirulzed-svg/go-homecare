@@ -1,4 +1,4 @@
-import { collection, query, where, onSnapshot, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const READABLE_STATUSES = new Set(["accepted", "in_progress", "completed"]);
 
@@ -103,32 +103,29 @@ export function startChatNotifications({ db, user, role }) {
         if (unsubMessages.has(bookingId)) return;
 
         let initialized = false;
-        let lastMessageId = null;
         const stop = onSnapshot(
-          query(collection(db, "bookingChats", bookingId, "messages"), orderBy("createdAt", "desc"), limit(1)),
+          query(collection(db, "bookingChats", bookingId, "messages"), orderBy("createdAt", "asc")),
           (messagesSnapshot) => {
-            if (messagesSnapshot.empty) {
-              initialized = true;
-              lastMessageId = null;
-              return;
-            }
-            const latest = messagesSnapshot.docs[0];
-            const data = latest.data();
+            // Abaikan seluruh pesan yang sudah ada saat listener pertama kali aktif.
             if (!initialized) {
               initialized = true;
-              lastMessageId = latest.id;
               setDiagnostic("aktif · " + eligibleBookings + " pesanan aktif · " + unsubMessages.size + " chat dipantau");
               return;
             }
-            if (latest.id === lastMessageId) return;
-            lastMessageId = latest.id;
-            if (data.senderUid === user.uid) return;
-            const currentChatId = new URLSearchParams(window.location.search).get("bookingId");
-            if (window.location.pathname.endsWith("/chat.html") && currentChatId === bookingId) return;
-            const sender = role === "pasien" ? (booking.nurseName || "Praktisi") : (booking.patientName || "Pasien");
-            const preview = String(data.text || "Mengirim pesan").trim().slice(0, 140);
-            setDiagnostic("pesan baru terdeteksi dari " + sender + " · menampilkan pop-up");
-            showToast(host, { title: "Pesan baru dari " + sender, text: preview, bookingId });
+
+            // Pantau dokumen pesan baru secara langsung; tidak bergantung pada pesan mana
+            // yang kebetulan berada di urutan pertama/terakhir saat timestamp berdekatan.
+            for (const change of messagesSnapshot.docChanges()) {
+              if (change.type !== "added") continue;
+              const data = change.doc.data();
+              if (data.senderUid === user.uid) continue;
+              const currentChatId = new URLSearchParams(window.location.search).get("bookingId");
+              if (window.location.pathname.endsWith("/chat.html") && currentChatId === bookingId) continue;
+              const sender = role === "pasien" ? (booking.nurseName || "Praktisi") : (booking.patientName || "Pasien");
+              const preview = String(data.text || "Mengirim pesan").trim().slice(0, 140);
+              setDiagnostic("pesan baru terdeteksi dari " + sender + " · menampilkan pop-up");
+              showToast(host, { title: "Pesan baru dari " + sender, text: preview, bookingId });
+            }
           },
           (error) => {
             console.warn("Notifikasi chat tidak dapat dipantau:", error.code || error.message);
