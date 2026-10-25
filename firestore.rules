@@ -195,17 +195,13 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/practitionerLocations/$(locationId)).data;
       }
       function validScheduleFields() {
-        return request.resource.data.keys().hasAll([
-          'dayOfWeek', 'startTime', 'endTime', 'active', 'createdAt', 'updatedAt'
-        ])
-        && request.resource.data.keys().hasOnly([
-          'dayOfWeek', 'startTime', 'endTime', 'active', 'createdAt', 'updatedAt'
-        ])
-        && request.resource.data.dayOfWeek is int
-        && request.resource.data.dayOfWeek >= 0
-        && request.resource.data.dayOfWeek <= 6
-        && request.resource.data.startTime is string
-        && request.resource.data.startTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]
+        return request.resource.data.keys().hasAll(['dayOfWeek', 'startTime', 'endTime', 'active', 'createdAt', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['dayOfWeek', 'startTime', 'endTime', 'active', 'createdAt', 'updatedAt'])
+          && request.resource.data.dayOfWeek is int
+          && request.resource.data.dayOfWeek >= 0
+          && request.resource.data.dayOfWeek <= 6
+          && request.resource.data.startTime is string
+          && request.resource.data.startTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]
     match /practitionerLocations/{locationId}/services/{serviceId} {
       function parentLocationExists() {
         return exists(/databases/$(database)/documents/practitionerLocations/$(locationId));
@@ -514,9 +510,10 @@ service cloud.firestore {
       allow update, delete: if false;
     }
   }
-})
-        && request.resource.data.endTime is string
-        && request.resource.data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]
+}
+)
+          && request.resource.data.endTime is string
+          && request.resource.data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]
     match /practitionerLocations/{locationId}/services/{serviceId} {
       function parentLocationExists() {
         return exists(/databases/$(database)/documents/practitionerLocations/$(locationId));
@@ -825,23 +822,16 @@ service cloud.firestore {
       allow update, delete: if false;
     }
   }
-})
-        && request.resource.data.startTime < request.resource.data.endTime
-        && request.resource.data.active is bool;
+}
+)
+          && request.resource.data.startTime < request.resource.data.endTime
+          && request.resource.data.active is bool;
       }
 
       allow get, list: if isAdmin()
-        || (
-          signedIn()
-          && parentLocationExists()
-          && parentLocation().ownerUid == request.auth.uid
-        )
-        || (
-          isCompletePatient()
-          && parentLocationExists()
-          && parentLocation().status == 'published'
-          && resource.data.active == true
-        );
+        || (signedIn() && parentLocationExists() && parentLocation().ownerUid == request.auth.uid)
+        || (isCompletePatient() && parentLocationExists()
+          && parentLocation().status == 'published' && resource.data.active == true);
 
       allow create: if signedIn()
         && isVerifiedPractitioner(request.auth.uid)
