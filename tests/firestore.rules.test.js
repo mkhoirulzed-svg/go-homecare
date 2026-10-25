@@ -381,3 +381,135 @@ test("admin cannot assign a practitioner without accepting the booking", async (
     updatedAt: serverTimestamp()
   }));
 });
+
+
+// Multi-location foundation tests. These are emulator tests; they do not deploy Rules.
+function validPractitionerLocation(ownerUid, overrides = {}) {
+  return {
+    ownerUid,
+    name: "Tempat Praktik Uji",
+    locationType: "practice",
+    address: "Jalan Contoh No. 1",
+    area: "Palangka Raya",
+    city: "Palangka Raya",
+    province: "Kalimantan Tengah",
+    status: "draft",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...overrides
+  };
+}
+
+async function seedPractitionerLocation(id, ownerUid, status = "draft") {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "practitionerLocations", id), {
+      ownerUid,
+      name: "Lokasi Uji",
+      locationType: "practice",
+      address: "Jalan Contoh No. 1",
+      area: "Palangka Raya",
+      city: "Palangka Raya",
+      province: "Kalimantan Tengah",
+      status,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+  });
+}
+
+test("verified practitioner can create a draft location and submit it for review", async () => {
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  const locationRef = doc(db, "practitionerLocations", "location-nurse-1");
+  await assertSucceeds(setDoc(
+    locationRef,
+    validPractitionerLocation("nurse-1")
+  ));
+  await assertSucceeds(updateDoc(locationRef, {
+    status: "pending_review",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("unverified practitioner cannot create a location", async () => {
+  const db = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "location-nurse-2"),
+    validPractitionerLocation("nurse-2")
+  ));
+});
+
+test("practitioner cannot create or edit a location owned by another practitioner", async () => {
+  await seedPractitionerLocation("location-nurse-2", "nurse-2", "draft");
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "forged-owner"),
+    validPractitionerLocation("nurse-2")
+  ));
+  await assertFails(updateDoc(doc(db, "practitionerLocations", "location-nurse-2"), {
+    name: "Perubahan tidak sah",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("another practitioner and a patient cannot read a draft location", async () => {
+  await seedPractitionerLocation("private-location", "nurse-1", "draft");
+  const otherPractitioner = testEnv.authenticatedContext("nurse-2").firestore();
+  const patient = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(getDoc(doc(otherPractitioner, "practitionerLocations", "private-location")));
+  await assertFails(getDoc(doc(patient, "practitionerLocations", "private-location")));
+});
+
+test("complete patient can query published locations but not drafts", async () => {
+  await seedPractitionerLocation("published-location", "nurse-1", "published");
+  await seedPractitionerLocation("draft-location", "nurse-1", "draft");
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  const publishedQuery = query(
+    collection(db, "practitionerLocations"),
+    where("status", "==", "published")
+  );
+  const snapshot = await assertSucceeds(getDocs(publishedQuery));
+  assert.equal(snapshot.size, 1);
+  assert.equal(snapshot.docs[0].id, "published-location");
+  await assertFails(getDoc(doc(db, "practitionerLocations", "draft-location")));
+});
+
+test("incomplete patient cannot read a published location", async () => {
+  await seedPractitionerLocation("published-location", "nurse-1", "published");
+  const db = testEnv.authenticatedContext("patient-incomplete").firestore();
+  await assertFails(getDoc(doc(db, "practitionerLocations", "published-location")));
+});
+
+test("admin can publish a submitted location", async () => {
+  await seedPractitionerLocation("review-location", "nurse-1", "pending_review");
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertSucceeds(updateDoc(doc(db, "practitionerLocations", "review-location"), {
+    status: "published",
+    reviewedBy: ADMIN_UID,
+    reviewedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("admin cannot publish a draft that was not submitted for review", async () => {
+  await seedPractitionerLocation("draft-location", "nurse-1", "draft");
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertFails(updateDoc(doc(db, "practitionerLocations", "draft-location"), {
+    status: "published",
+    reviewedBy: ADMIN_UID,
+    reviewedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("practitioner cannot publish or edit a location after submission", async () => {
+  await seedPractitionerLocation("review-location", "nurse-1", "pending_review");
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertFails(updateDoc(doc(db, "practitionerLocations", "review-location"), {
+    status: "published",
+    updatedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(doc(db, "practitionerLocations", "review-location"), {
+    name: "Diubah setelah diajukan",
+    updatedAt: serverTimestamp()
+  }));
+});
