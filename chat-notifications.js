@@ -1,159 +1,145 @@
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const READABLE_STATUSES = new Set(["accepted", "in_progress", "completed"]);
 
-function ensureToastStyles() {
-  if (document.getElementById("gh-chat-toast-styles")) return;
+function setBadge(badge, count) {
+  if (!badge) return;
+  const label = count > 99 ? "99+" : String(count);
+  if (badge.textContent !== label) badge.textContent = label;
+  if (badge.hidden !== (count <= 0)) badge.hidden = count <= 0;
+}
+
+function ensureBadgeStyles() {
+  if (document.getElementById("gh-unread-chat-styles")) return;
   const style = document.createElement("style");
-  style.id = "gh-chat-toast-styles";
-  style.textContent = `
-    .gh-chat-toast-host{position:fixed;right:16px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:99999;display:flex;flex-direction:column;gap:10px;width:min(360px,calc(100vw - 32px));pointer-events:none}
-    .gh-chat-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:11px;width:100%;padding:14px 15px;border:1px solid #99f6e4;border-radius:16px;background:#fff;color:#0f172a;box-shadow:0 14px 40px #0f172a2b;text-align:left;cursor:pointer;animation:ghToastIn .24s ease-out}
-    .gh-chat-toast-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:12px;background:#ccfbf1;color:#0f766e;font-size:20px}
-    .gh-chat-toast-content{min-width:0;flex:1}.gh-chat-toast-title{font-size:13px;font-weight:800;margin:1px 0 4px}.gh-chat-toast-body{font-size:13px;color:#475569;line-height:1.4;overflow-wrap:anywhere}.gh-chat-toast-close{border:0;background:transparent;color:#64748b;font-size:20px;line-height:1;padding:0 0 4px 4px;cursor:pointer}
-    @keyframes ghToastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @media(prefers-reduced-motion:reduce){.gh-chat-toast{animation:none}}
-  `;
+  style.id = "gh-unread-chat-styles";
+  style.textContent = ".gh-unread-nav-badge{position:absolute;top:1px;left:calc(50% + 10px);min-width:18px;height:18px;padding:0 5px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:18px;box-shadow:0 0 0 2px #fff}.gh-unread-chat-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:7px;border-radius:999px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:18px;vertical-align:middle}.gh-unread-nav-item{position:relative}";
   document.head.appendChild(style);
 }
 
-function ensureDiagnostic() {
-  let panel = document.getElementById("gh-chat-notif-diagnostic");
-  if (panel) return panel;
-  panel = document.createElement("div");
-  panel.id = "gh-chat-notif-diagnostic";
-  panel.style.cssText = "position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:100000;max-width:calc(100vw - 24px);padding:8px 12px;border-radius:10px;background:#e0f2fe;color:#075985;border:1px solid #7dd3fc;box-shadow:0 4px 16px #0f172a20;font:600 12px/1.4 system-ui,sans-serif;overflow-wrap:anywhere";
-  panel.setAttribute("role", "status");
-  panel.setAttribute("aria-live", "polite");
-  document.body.appendChild(panel);
-  return panel;
+function ensureNavigationBadge() {
+  const items = Array.from(document.querySelectorAll(".nav-item"));
+  const ordersItem = items.find(item => item.querySelector("span")?.textContent?.trim() === "Pesanan");
+  if (!ordersItem) return null;
+  ordersItem.classList.add("gh-unread-nav-item");
+  let badge = document.getElementById("ghUnreadNavBadge");
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.id = "ghUnreadNavBadge";
+    badge.className = "gh-unread-nav-badge";
+    badge.setAttribute("aria-label", "Pesan belum dibaca");
+    badge.hidden = true;
+    ordersItem.appendChild(badge);
+  }
+  return badge;
 }
 
-function setDiagnostic(message, isError = false) {
-  const panel = ensureDiagnostic();
-  panel.textContent = "Diagnostik notifikasi: " + message;
-  panel.style.background = isError ? "#fee2e2" : "#e0f2fe";
-  panel.style.color = isError ? "#991b1b" : "#075985";
-  panel.style.borderColor = isError ? "#fca5a5" : "#7dd3fc";
-}
-
-function showToast(host, { title, text, bookingId }) {
-  const toast = document.createElement("div");
-  toast.className = "gh-chat-toast";
-  toast.setAttribute("role", "status");
-  const icon = document.createElement("div");
-  icon.className = "gh-chat-toast-icon";
-  icon.textContent = "✉";
-  const content = document.createElement("div");
-  content.className = "gh-chat-toast-content";
-  const heading = document.createElement("div");
-  heading.className = "gh-chat-toast-title";
-  heading.textContent = title;
-  const body = document.createElement("div");
-  body.className = "gh-chat-toast-body";
-  body.textContent = text || "Anda menerima pesan baru.";
-  content.append(heading, body);
-  const close = document.createElement("button");
-  close.className = "gh-chat-toast-close";
-  close.type = "button";
-  close.setAttribute("aria-label", "Tutup notifikasi");
-  close.textContent = "×";
-  close.addEventListener("click", (event) => {
-    event.stopPropagation();
-    toast.remove();
-
+function updateBookingBadge(bookingId, count) {
+  document.querySelectorAll("[data-chat-booking]").forEach(button => {
+    if (button.dataset.chatBooking !== bookingId) return;
+    let badge = button.querySelector(".gh-unread-chat-badge");
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "gh-unread-chat-badge";
+      badge.setAttribute("aria-label", "Pesan belum dibaca");
+      button.appendChild(badge);
+    }
+    setBadge(badge, count);
   });
-  toast.append(icon, content, close);
-  toast.addEventListener("click", () => {
-    window.location.href = "chat.html?bookingId=" + encodeURIComponent(bookingId);
-  });
-  host.appendChild(toast);
-  window.setTimeout(() => {
-    toast.remove();
-
-  }, 7000);
 }
 
 export function startChatNotifications({ db, user, role }) {
   if (!db || !user?.uid || !["pasien", "praktisi"].includes(role)) return () => {};
-  ensureToastStyles();
-  setDiagnostic("memulai pemantauan…");
-  let host = document.querySelector(".gh-chat-toast-host");
-  if (!host) {
-    host = document.createElement("div");
-    host.className = "gh-chat-toast-host";
-    host.setAttribute("aria-live", "polite");
-    host.setAttribute("aria-relevant", "additions");
-    document.body.appendChild(host);
+  ensureBadgeStyles();
+  const navBadge = ensureNavigationBadge();
+  const field = role === "pasien" ? "patientUid" : "nurseUid";
+  const counts = new Map();
+  const listeners = new Map();
+  let stopped = false;
+  const badgeObserver = new MutationObserver(() => {
+    for (const [bookingId, count] of counts.entries()) updateBookingBadge(bookingId, count);
+  });
+  badgeObserver.observe(document.body, { childList: true, subtree: true });
+
+  function renderTotal() {
+    const total = Array.from(counts.values()).reduce((sum, count) => sum + count, 0);
+    setBadge(navBadge || document.getElementById("ghUnreadNavBadge"), total);
   }
 
-  const field = role === "pasien" ? "patientUid" : "nurseUid";
-  const unsubMessages = new Map();
+  function stopBooking(bookingId) {
+    const item = listeners.get(bookingId);
+    if (item) {
+      item.stopMessages?.();
+      item.stopRead?.();
+      listeners.delete(bookingId);
+    }
+    counts.delete(bookingId);
+    updateBookingBadge(bookingId, 0);
+    renderTotal();
+  }
+
   const stopBookings = onSnapshot(
     query(collection(db, "bookingRequests"), where(field, "==", user.uid)),
-    (snapshot) => {
-      const currentIds = new Set();
-      let eligibleBookings = 0;
-      snapshot.forEach((bookingDoc) => {
+    snapshot => {
+      if (stopped) return;
+      const eligible = new Set();
+      snapshot.forEach(bookingDoc => {
         const booking = bookingDoc.data();
         if (!READABLE_STATUSES.has(String(booking.status || "").toLowerCase())) return;
         const bookingId = bookingDoc.id;
-        eligibleBookings++;
-        currentIds.add(bookingId);
-        if (unsubMessages.has(bookingId)) return;
+        eligible.add(bookingId);
+        if (listeners.has(bookingId)) return;
 
-        let initialized = false;
-        const stop = onSnapshot(
-          collection(db, "bookingChats", bookingId, "messages"),
-          (messagesSnapshot) => {
-            // Abaikan seluruh pesan yang sudah ada saat listener pertama kali aktif.
-            if (!initialized) {
-              initialized = true;
-              setDiagnostic("aktif · " + eligibleBookings + " pesanan aktif · " + unsubMessages.size + " chat dipantau");
-              return;
-            }
-
-            // Pantau dokumen pesan baru secara langsung tanpa orderBy(createdAt), sehingga
-            // pesan tetap terdeteksi meskipun timestamp server belum tersedia atau berubah.
-            for (const change of messagesSnapshot.docChanges()) {
-              if (change.type !== "added") continue;
-              const data = change.doc.data();
-              if (data.senderUid === user.uid) continue;
-              const currentChatId = new URLSearchParams(window.location.search).get("bookingId");
-              if (window.location.pathname.endsWith("/chat.html") && currentChatId === bookingId) continue;
-              const sender = role === "pasien" ? (booking.nurseName || "Praktisi") : (booking.patientName || "Pasien");
-              const preview = String(data.text || "Mengirim pesan").trim().slice(0, 140);
-              setDiagnostic("pesan baru terdeteksi dari " + sender + " · menampilkan pop-up");
-              showToast(host, { title: "Pesan baru dari " + sender, text: preview, bookingId });
-            }
+        let readAt = 0;
+        let messagesSnapshot = null;
+        const refresh = () => {
+          if (!messagesSnapshot) return;
+          let unread = 0;
+          messagesSnapshot.forEach(messageDoc => {
+            const message = messageDoc.data();
+            if (message.senderUid === user.uid) return;
+            const sentAt = message.createdAt?.toMillis?.() ?? 0;
+            if (sentAt > readAt) unread++;
+          });
+          counts.set(bookingId, unread);
+          updateBookingBadge(bookingId, unread);
+          renderTotal();
+        };
+        const item = { stopMessages: null, stopRead: null };
+        listeners.set(bookingId, item);
+        item.stopRead = onSnapshot(
+          doc(db, "bookingChats", bookingId, "reads", user.uid),
+          readDoc => {
+            readAt = readDoc.exists() ? (readDoc.data().lastReadAt?.toMillis?.() ?? 0) : 0;
+            refresh();
           },
-          (error) => {
-            console.warn("Notifikasi chat tidak dapat dipantau:", error.code || error.message);
-            setDiagnostic("gagal membaca pesan (" + (error.code || error.message) + ")", true);
-          }
+          error => console.warn("Status baca chat tidak dapat dimuat:", error.code || error.message)
         );
-        unsubMessages.set(bookingId, stop);
+        item.stopMessages = onSnapshot(
+          collection(db, "bookingChats", bookingId, "messages"),
+          messageDocs => {
+            messagesSnapshot = messageDocs;
+            refresh();
+          },
+          error => console.warn("Pesan chat tidak dapat dihitung:", error.code || error.message)
+        );
       });
-
-      if (eligibleBookings === 0) setDiagnostic("akun terbaca, tetapi tidak ada pesanan berstatus diterima / berlangsung / selesai");
-      else setDiagnostic("aktif · " + eligibleBookings + " pesanan aktif · " + unsubMessages.size + " chat dipantau");
-
-      for (const [bookingId, stop] of unsubMessages.entries()) {
-        if (!currentIds.has(bookingId)) {
-          stop();
-          unsubMessages.delete(bookingId);
-        }
+      for (const bookingId of Array.from(listeners.keys())) {
+        if (!eligible.has(bookingId)) stopBooking(bookingId);
       }
     },
-    (error) => {
-      console.warn("Daftar pesanan untuk notifikasi gagal dimuat:", error.code || error.message);
-      setDiagnostic("gagal membaca daftar pesanan (" + (error.code || error.message) + ")", true);
-    }
+    error => console.warn("Daftar pesanan untuk hitungan pesan gagal dimuat:", error.code || error.message)
   );
 
   return () => {
+    stopped = true;
+    badgeObserver.disconnect();
     stopBookings();
-    for (const stop of unsubMessages.values()) stop();
-    unsubMessages.clear();
+    for (const item of listeners.values()) {
+      item.stopMessages?.();
+      item.stopRead?.();
+    }
+    listeners.clear();
+    counts.clear();
   };
 }

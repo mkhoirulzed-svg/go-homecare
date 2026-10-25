@@ -405,6 +405,7 @@
     }
 
     .nav-item {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -578,7 +579,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span>
       </div>
       <div class="nav-item" onclick="switchNav(this)" role="button" tabindex="0">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 14 2 2 4-4"/></svg><span>Pesanan</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 14 2 2 4-4"/></svg><span>Pesanan</span><span id="ghUnreadNavBadge" class="gh-unread-nav-badge" aria-label="Pesan belum dibaca" hidden>0</span>
       </div>
       <div class="nav-item" onclick="switchNav(this)" role="button" tabindex="0">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span>Riwayat</span>

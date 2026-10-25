@@ -18,7 +18,7 @@ form{display:flex;gap:8px;padding:12px;border-top:1px solid #e2e8f0;padding-bott
 <script type="module">
 import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import {getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,addDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import {getFirestore,doc,getDoc,collection,query,orderBy,onSnapshot,addDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const config={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:123940961680:web:bb842fd8925e2432230715"};
 const app=getApps().length?getApps()[0]:initializeApp(config),auth=getAuth(app),db=getFirestore(app);
 const bookingId=new URLSearchParams(location.search).get("bookingId"),info=document.getElementById("bookingInfo"),notice=document.getElementById("notice"),messages=document.getElementById("messages"),input=document.getElementById("messageInput"),send=document.getElementById("send");
@@ -36,7 +36,7 @@ const ps=await getDoc(doc(db,"users",user.uid));if(!ps.exists())throw Error("Pro
 if(patient&&profile.role!=="pasien")throw Error("Akun pasien tidak valid.");if(practitioner&&(profile.role!=="praktisi"||profile.isVerified!==true))throw Error("Akun praktisi belum terverifikasi.");
 info.textContent=(booking.serviceName||"Layanan homecare")+" · "+(booking.patientName||"Pasien");if(!["accepted","in_progress","completed"].includes(String(booking.status||"")))throw Error("Chat tersedia setelah praktisi menerima pesanan.");updateStatus();
 stopBooking?.();stopBooking=onSnapshot(ref,s=>{if(!s.exists())return;booking=s.data();updateStatus()},e=>{console.error(e);notice.textContent="Status pesanan tidak dapat diperbarui.";notice.classList.add("error")});
-stopMessages?.();stopMessages=onSnapshot(query(collection(db,"bookingChats",bookingId,"messages"),orderBy("createdAt","asc")),renderMessages,e=>{console.error(e);notice.textContent="Pesan gagal dimuat. Pastikan Firestore Rules chat sudah dipublikasikan.";notice.classList.add("error")})}
+stopMessages?.();stopMessages=onSnapshot(query(collection(db,"bookingChats",bookingId,"messages"),orderBy("createdAt","asc")),snapshot=>{renderMessages(snapshot);setDoc(doc(db,"bookingChats",bookingId,"reads",user.uid),{lastReadAt:serverTimestamp()},{merge:true}).catch(err=>console.warn("Status baca chat belum tersimpan:",err.code||err.message))},e=>{console.error(e);notice.textContent="Pesan gagal dimuat. Pastikan Firestore Rules chat sudah dipublikasikan.";notice.classList.add("error")})}
 document.getElementById("sendForm").addEventListener("submit",async e=>{e.preventDefault();const text=input.value.trim();if(!text||!currentUser||!booking||sending)return;if(!["accepted","in_progress"].includes(String(booking.status||""))){updateStatus();return}
 sending=true;composer(true);send.textContent="…";try{await addDoc(collection(db,"bookingChats",bookingId,"messages"),{senderUid:currentUser.uid,text,createdAt:serverTimestamp()});input.value=""}
 catch(err){console.error(err);notice.textContent=err.code==="permission-denied"?"Pesan ditolak Firestore Rules. Pastikan aturan chat sudah dipublikasikan.":"Pesan belum terkirim. Periksa koneksi lalu coba lagi.";notice.classList.add("error")}

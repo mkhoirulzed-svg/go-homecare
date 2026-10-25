@@ -72,7 +72,7 @@
     .nav-item.active{color:var(--primary);font-weight:700;background:transparent}
     .nav-item.active svg{transform:translateY(-2px)}
     .nav-item:focus-visible{outline:2px solid #0d9488;outline-offset:2px}
-    .nav-count{position:absolute;top:2px;left:calc(50% + 11px);min-width:17px;height:17px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:99px;background:#dc2626;color:#fff;font-size:10px;line-height:17px}
+    .nav-count{position:absolute;top:2px;left:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:99px;background:#dc2626;color:#fff;font-size:10px;line-height:17px}
     @media(min-width:600px){body{padding:0 12px}.wrap{box-shadow:0 0 40px #0f172a14}.bottom-nav{border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0}}
   </style>
 </head>
@@ -166,7 +166,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span>
         </button>
         <button class="nav-item" type="button" data-tab="orders" aria-label="Pesanan">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3h-4.18A3 3 0 0 0 9.18 3H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM12 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM7 8h10v2H7Zm0 4h10v2H7Zm0 4h7v2H7Z"/></svg><span>Pesanan</span><span class="nav-count" id="navActiveCount" hidden>0</span>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3h-4.18A3 3 0 0 0 9.18 3H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM12 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM7 8h10v2H7Zm0 4h10v2H7Zm0 4h7v2H7Z"/></svg><span>Pesanan</span><span class="nav-count" id="navActiveCount" hidden>0</span><span class="gh-unread-nav-badge" id="ghUnreadNavBadge" aria-label="Pesan belum dibaca" hidden>0</span>
         </button>
         <button class="nav-item" type="button" data-tab="schedule" aria-label="Jadwal">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 15H5V9h14ZM7 11h4v3H7Zm6 0h4v3h-4Z"/></svg><span>Jadwal</span>
@@ -286,6 +286,7 @@
           if (["accepted", "in_progress", "completed"].includes(x.status)) {
             const chatBtn = document.createElement("button");
             chatBtn.type = "button";
+            chatBtn.dataset.chatBooking = row.id;
             chatBtn.textContent = x.status === "completed" ? "Lihat riwayat chat" : "Chat pasien";
             chatBtn.style.cssText = "margin:0 8px 10px 0;padding:10px 14px;border:0;border-radius:10px;background:#0d9488;color:#fff;font:inherit;font-weight:700;cursor:pointer";
             chatBtn.addEventListener("click", () => {
