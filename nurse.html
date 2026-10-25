@@ -302,7 +302,7 @@
               if (!confirm(confirmation)) return;
               btn.disabled = true;
               try {
-                await updateDoc(doc(db, "bookingRequests", row.id), { status: nextStatus, updatedAt: serverTimestamp() });
+                await updateDoc(doc(db, "bookingRequests", row.id), nextStatus === "completed" ? { status: nextStatus, completedAt: serverTimestamp(), updatedAt: serverTimestamp() } : { status: nextStatus, updatedAt: serverTimestamp() });
                 alert(nextStatus === "in_progress" ? "Status diperbarui: layanan dimulai." : "Status diperbarui: layanan selesai.");
                 await loadTasks();
               } catch (error) {
