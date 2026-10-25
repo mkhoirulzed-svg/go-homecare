@@ -186,8 +186,7 @@ service cloud.firestore {
     }
 
 
-    // Jadwal mingguan per lokasi. Satu dokumen mewakili satu rentang waktu;
-    // beberapa rentang pada hari yang sama diperbolehkan (misalnya pagi dan sore).
+    // Jadwal mingguan per lokasi. Satu dokumen mewakili satu rentang waktu.
     match /practitionerLocations/{locationId}/weeklySchedule/{scheduleId} {
       function parentLocationExists() {
         return exists(/databases/$(database)/documents/practitionerLocations/$(locationId));
@@ -515,8 +514,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
   }
-}
-)
+})
         && request.resource.data.endTime is string
         && request.resource.data.endTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]
     match /practitionerLocations/{locationId}/services/{serviceId} {
@@ -827,8 +825,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
   }
-}
-)
+})
         && request.resource.data.startTime < request.resource.data.endTime
         && request.resource.data.active is bool;
       }
