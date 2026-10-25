@@ -28,7 +28,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true;
     }
 
-    // Chat hanya untuk akun pasien pemilik pesanan dan praktisi yang ditugaskan.
+    // Chat tindak lanjut hanya untuk pasien pemilik pesanan dan praktisi yang ditugaskan.
     function chatBookingExists(bookingId) {
       return exists(/databases/$(database)/documents/bookingRequests/$(bookingId));
     }
@@ -47,7 +47,7 @@ service cloud.firestore {
     function isChatOpen(bookingId) {
       return chatBookingExists(bookingId)
         && get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.status
-          in ['accepted', 'in_progress']
+          in ['accepted', 'in_progress', 'completed']
         && get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.nurseUid is string;
     }
 
@@ -284,7 +284,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Percakapan memakai ID pesanan. Riwayat tetap dapat dibaca setelah layanan selesai.
+    // Percakapan memakai ID pesanan. Riwayat dan tindak lanjut chat tetap tersedia setelah layanan selesai; pesanan baru tetap dibuat terpisah.
     match /bookingChats/{bookingId}/messages/{messageId} {
       allow get, list: if isChatParticipant(bookingId) && isChatReadable(bookingId);
       allow create: if isChatParticipant(bookingId)
