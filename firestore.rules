@@ -84,6 +84,201 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Lokasi praktisi: aturan aditif untuk fondasi multi-lokasi.
+    // Dokumen lokasi tidak menyimpan data pasien atau nomor telepon pribadi.
+    match /practitionerLocations/{locationId} {
+      allow get, list: if isAdmin()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid)
+        || (
+          isCompletePatient()
+          && resource.data.status == 'published'
+        );
+
+      allow create: if signedIn()
+        && isVerifiedPractitioner(request.auth.uid)
+        && request.resource.data.keys().hasAll([
+          'ownerUid', 'name', 'locationType', 'address', 'area',
+          'city', 'province', 'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'name', 'locationType', 'address', 'area',
+          'city', 'province', 'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.locationType in ['practice', 'home_visit']
+        && request.resource.data.address is string
+        && request.resource.data.address.size() <= 500
+        && (request.resource.data.locationType == 'home_visit'
+          || request.resource.data.address.size() > 0)
+        && request.resource.data.area is string
+        && request.resource.data.area.size() > 0
+        && request.resource.data.area.size() <= 200
+        && request.resource.data.city is string
+        && request.resource.data.city.size() > 0
+        && request.resource.data.city.size() <= 100
+        && request.resource.data.province is string
+        && request.resource.data.province.size() > 0
+        && request.resource.data.province.size() <= 100
+        && request.resource.data.status == 'draft'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // Praktisi hanya dapat mengubah lokasi miliknya yang belum dipublikasikan.
+      // Mengajukan tinjauan dilakukan dengan status pending_review.
+      allow update: if (
+        signedIn()
+        && isVerifiedPractitioner(request.auth.uid)
+        && resource.data.ownerUid == request.auth.uid
+        && resource.data.status in ['draft', 'rejected']
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.status in ['draft', 'pending_review']
+        && request.resource.data.keys().hasAll([
+          'ownerUid', 'name', 'locationType', 'address', 'area',
+          'city', 'province', 'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'name', 'locationType', 'address', 'area',
+          'city', 'province', 'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.locationType in ['practice', 'home_visit']
+        && request.resource.data.address is string
+        && request.resource.data.address.size() <= 500
+        && (request.resource.data.locationType == 'home_visit'
+          || request.resource.data.address.size() > 0)
+        && request.resource.data.area is string
+        && request.resource.data.area.size() > 0
+        && request.resource.data.area.size() <= 200
+        && request.resource.data.city is string
+        && request.resource.data.city.size() > 0
+        && request.resource.data.city.size() <= 100
+        && request.resource.data.province is string
+        && request.resource.data.province.size() > 0
+        && request.resource.data.province.size() <= 100
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+      ) || (
+        isAdmin()
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedBy', 'reviewedAt', 'updatedAt'
+        ])
+        && (
+          (resource.data.status == 'pending_review'
+            && request.resource.data.status in ['published', 'rejected'])
+          || (resource.data.status == 'published'
+            && request.resource.data.status == 'paused')
+          || (resource.data.status == 'paused'
+            && request.resource.data.status == 'published'
+            && isVerifiedPractitioner(resource.data.ownerUid))
+        )
+        && (request.resource.data.status != 'published'
+          || isVerifiedPractitioner(resource.data.ownerUid))
+        && request.resource.data.updatedAt == request.time
+      );
+
+      allow delete: if false;
+    }
+
+
+    // Katalog layanan dan tarif terikat pada lokasi induk.
+    match /practitionerLocations/{locationId}/services/{serviceId} {
+      function parentLocationExists() {
+        return exists(/databases/$(database)/documents/practitionerLocations/$(locationId));
+      }
+      function parentLocation() {
+        return get(/databases/$(database)/documents/practitionerLocations/$(locationId)).data;
+      }
+      function validServiceFields() {
+        return request.resource.data.keys().hasAll([
+          'name', 'description', 'price', 'durationMinutes',
+          'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'name', 'description', 'price', 'durationMinutes',
+          'status', 'createdAt', 'updatedAt', 'reviewedBy', 'reviewedAt', 'reviewNote'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 1000
+        && request.resource.data.price is int
+        && request.resource.data.price >= 0
+        && request.resource.data.price <= 100000000
+        && request.resource.data.durationMinutes is int
+        && request.resource.data.durationMinutes >= 5
+        && request.resource.data.durationMinutes <= 1440;
+      }
+
+      allow get, list: if isAdmin()
+        || (
+          signedIn()
+          && parentLocationExists()
+          && parentLocation().ownerUid == request.auth.uid
+        )
+        || (
+          isCompletePatient()
+          && parentLocationExists()
+          && parentLocation().status == 'published'
+          && resource.data.status == 'published'
+        );
+
+      allow create: if signedIn()
+        && isVerifiedPractitioner(request.auth.uid)
+        && parentLocationExists()
+        && parentLocation().ownerUid == request.auth.uid
+        && parentLocation().status in ['draft', 'published']
+        && validServiceFields()
+        && request.resource.data.status == 'draft'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && !request.resource.data.keys().hasAny(['reviewedBy', 'reviewedAt', 'reviewNote']);
+
+      allow update: if (
+        signedIn()
+        && isVerifiedPractitioner(request.auth.uid)
+        && parentLocationExists()
+        && parentLocation().ownerUid == request.auth.uid
+        && parentLocation().status in ['draft', 'published']
+        && resource.data.status in ['draft', 'rejected']
+        && request.resource.data.status in ['draft', 'pending_review']
+        && validServiceFields()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'description', 'price', 'durationMinutes', 'status', 'updatedAt'
+        ])
+      ) || (
+        isAdmin()
+        && parentLocationExists()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'reviewedBy', 'reviewedAt', 'reviewNote', 'updatedAt'
+        ])
+        && (
+          (resource.data.status == 'pending_review'
+            && request.resource.data.status in ['published', 'rejected'])
+          || (resource.data.status == 'published'
+            && request.resource.data.status == 'paused')
+          || (resource.data.status == 'paused'
+            && request.resource.data.status == 'published')
+        )
+        && (request.resource.data.status != 'published'
+          || (
+            parentLocation().status == 'published'
+            && isVerifiedPractitioner(parentLocation().ownerUid)
+          ))
+        && request.resource.data.updatedAt == request.time
+      );
+
+      allow delete: if false;
+    }
+
     match /practitionerApplications/{applicationId} {
       allow create: if signedIn()
         && applicationId == request.auth.uid
