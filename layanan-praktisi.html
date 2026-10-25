@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>Layanan & Tarif - Go Homecare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--teal:#0f766e;--mint:#ccfbf1;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f1f5f9}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+    .wrap{max-width:720px;min-height:100vh;margin:auto;background:#fff}
+    header{padding:22px 20px 25px;background:linear-gradient(140deg,#115e59,#0d9488);color:#fff;border-radius:0 0 24px 24px}
+    .back{display:inline-flex;align-items:center;gap:7px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:22px}
+    h1{font-size:24px;letter-spacing:-.5px;margin:0 0 8px}.subtitle{font-size:13px;line-height:1.6;color:#d1fae5;margin:0}
+    main{padding:20px 16px 40px}.card{border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 5px 20px #0f172a08}
+    .eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--teal);margin:0 0 8px}.card h2{font-size:18px;margin:0 0 8px}
+    .help{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 16px}
+    label{display:block;font-size:12px;font-weight:700;margin:14px 0 7px}
+    input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:11px;padding:12px 13px;font:500 14px Inter,sans-serif;color:var(--ink);background:#fff;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:#0d9488;box-shadow:0 0 0 3px #0d94881a}
+    textarea{resize:vertical;min-height:74px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+    .buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}button{border:0;border-radius:11px;padding:12px 14px;font:700 13px Inter,sans-serif;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}.primary{background:var(--teal);color:#fff}.secondary{background:var(--mint);color:#115e59}.quiet{background:#f1f5f9;color:#334155}
+    .status{padding:12px 13px;border-radius:11px;background:#f8fafc;color:#475569;font-size:12px;line-height:1.5;margin:0 0 14px;white-space:pre-wrap}
+    .status.error{background:#fef2f2;color:#991b1b}.status.success{background:#ecfdf5;color:#065f46}
+    .service{border:1px solid var(--line);border-radius:14px;padding:15px;margin-top:12px}.service-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .service h3{font-size:15px;line-height:1.4;margin:0 0 5px;overflow-wrap:anywhere}.service p{font-size:12px;color:var(--muted);line-height:1.55;margin:5px 0;overflow-wrap:anywhere}
+    .pill{display:inline-flex;align-items:center;white-space:nowrap;border-radius:99px;padding:5px 8px;font-size:10px;font-weight:800;background:#f1f5f9;color:#475569}
+    .pill.published{background:#dcfce7;color:#166534}.pill.pending_review{background:#fef3c7;color:#92400e}.pill.rejected{background:#fee2e2;color:#991b1b}.pill.paused{background:#e2e8f0;color:#334155}
+    .empty{padding:15px;border-radius:12px;background:#f8fafc;color:var(--muted);font-size:12px;line-height:1.6}
+    .mini-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.mini-actions button{padding:9px 11px;font-size:11px}
+    .notice{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:12px;padding:13px;font-size:12px;line-height:1.6}
+    .location-summary{padding:12px 13px;border-radius:12px;background:#f0fdfa;border:1px solid #ccfbf1;margin-bottom:16px;font-size:13px;line-height:1.6}
+    [hidden]{display:none!important}@media(max-width:460px){.grid{grid-template-columns:1fr}.service-top{display:block}.pill{margin-top:7px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading" style="padding:60px 20px;text-align:center;color:#64748b">Memeriksa akun dan lokasi…</div>
+  <div id="app" hidden>
+    <header>
+      <a class="back" id="backLink" href="lokasi-praktisi.html">← Kembali ke lokasi praktik</a>
+      <p class="eyebrow" style="color:#99f6e4">KATALOG LAYANAN</p>
+      <h1>Layanan & Tarif</h1>
+      <p class="subtitle">Atur layanan, biaya, dan perkiraan durasi secara terpisah untuk setiap lokasi praktik.</p>
+    </header>
+    <main>
+      <div id="locationSummary" class="location-summary">Memuat detail lokasi…</div>
+      <section class="card">
+        <p class="eyebrow">FORM LAYANAN</p>
+        <h2 id="formTitle">Tambah layanan</h2>
+        <p class="help">Tarif dimasukkan dalam rupiah tanpa titik atau simbol. Layanan yang diajukan menunggu tinjauan admin. Layanan hanya bisa dipublikasikan jika lokasi induknya sudah dipublikasikan.</p>
+        <div id="message" class="status" role="status" hidden></div>
+        <form id="serviceForm">
+          <label for="name">Nama layanan *</label>
+          <input id="name" maxlength="120" required placeholder="Contoh: Perawatan luka">
+          <label for="description">Deskripsi layanan</label>
+          <textarea id="description" maxlength="1000" placeholder="Jelaskan cakupan layanan secara singkat, tanpa data pasien."></textarea>
+          <div class="grid">
+            <div>
+              <label for="price">Tarif (Rp) *</label>
+              <input id="price" type="number" min="0" max="100000000" step="1" required inputmode="numeric" placeholder="150000">
+            </div>
+            <div>
+              <label for="duration">Perkiraan durasi (menit) *</label>
+              <input id="duration" type="number" min="5" max="1440" step="1" required inputmode="numeric" value="60">
+            </div>
+          </div>
+          <div class="buttons">
+            <button id="saveDraft" class="secondary" type="button">Simpan draft</button>
+            <button id="submitReview" class="primary" type="button">Simpan & ajukan tinjauan</button>
+            <button id="cancelEdit" class="quiet" type="button" hidden>Batal edit</button>
+          </div>
+        </form>
+      </section>
+      <section class="card">
+        <p class="eyebrow">DAFTAR LAYANAN</p>
+        <h2>Layanan di lokasi ini</h2>
+        <p class="help">Draft atau layanan yang ditolak dapat diedit. Setelah diajukan, layanan dikunci sampai admin memberi keputusan.</p>
+        <div id="services"><div class="empty">Memuat layanan…</div></div>
+        <div class="buttons"><button id="refresh" class="quiet" type="button">Muat ulang</button></div>
+      </section>
+      <div class="notice">Pastikan layanan sesuai kompetensi, kewenangan, dan perizinan yang berlaku. Jangan mencantumkan janji kesembuhan atau memasukkan informasi pasien pada deskripsi layanan. Penghapusan layanan dinonaktifkan agar riwayat tetap terjaga.</div>
+    </main>
+  </div>
+</div>
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
+    authDomain: "gocare-c94bc.firebaseapp.com",
+    projectId: "gocare-c94bc",
+    storageBucket: "gocare-c94bc.firebasestorage.app",
+    messagingSenderId: "123940961680",
+    appId: "1:123940961680:web:bb842fd8925e2432230715"
+  };
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const $ = id => document.getElementById(id);
+  const params = new URLSearchParams(window.location.search);
+  const locationId = params.get("locationId");
+  let currentUser = null;
+  let locationData = null;
+  let editingId = null;
+  let saving = false;
+  const statusLabels = {draft:"Draft",pending_review:"Menunggu tinjauan",published:"Dipublikasikan",rejected:"Perlu perbaikan",paused:"Dijeda"};
+
+  function showMessage(text,type="") {
+    const el=$("message"); el.textContent=text; el.className="status"+(type?" "+type:""); el.hidden=false;
+  }
+  function clearMessage(){ $("message").hidden=true; $("message").textContent=""; }
+  function formData(){
+    return {
+      name:$("name").value.trim(),
+      description:$("description").value.trim(),
+      price:Number($("price").value),
+      durationMinutes:Number($("duration").value)
+    };
+  }
+  function validateForm(){
+    const x=formData();
+    if(!x.name){showMessage("Nama layanan wajib diisi.","error");return null;}
+    if($("price").value.trim()===""||!Number.isInteger(x.price)||x.price<0||x.price>100000000){showMessage("Tarif harus berupa bilangan rupiah bulat dari Rp0 sampai Rp100.000.000.","error");return null;}
+    if($("duration").value.trim()===""||!Number.isInteger(x.durationMinutes)||x.durationMinutes<5||x.durationMinutes>1440){showMessage("Durasi harus berupa bilangan bulat 5–1.440 menit.","error");return null;}
+    return x;
+  }
+  function setSaving(value){
+    saving=value; ["saveDraft","submitReview","refresh"].forEach(id=>$(id).disabled=value);
+  }
+  function resetForm(){
+    editingId=null; $("serviceForm").reset(); $("duration").value="60";
+    $("formTitle").textContent="Tambah layanan"; $("cancelEdit").hidden=true; clearMessage();
+  }
+  $("cancelEdit").addEventListener("click",resetForm);
+
+  async function saveService(submitForReview){
+    if(saving||!currentUser||!locationId)return;
+    clearMessage(); const values=validateForm(); if(!values)return;
+    setSaving(true);
+    try{
+      const now={...values,updatedAt:serverTimestamp()};
+      let serviceId=editingId;
+      if(serviceId){
+        await updateDoc(doc(db,"practitionerLocations",locationId,"services",serviceId),{
+          ...now,status:submitForReview?"pending_review":"draft"
+        });
+      }else{
+        const created=await addDoc(collection(db,"practitionerLocations",locationId,"services"),{
+          ...values,status:"draft",createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+        });
+        serviceId=created.id;
+        if(submitForReview){
+          await updateDoc(doc(db,"practitionerLocations",locationId,"services",serviceId),{
+            status:"pending_review",updatedAt:serverTimestamp()
+          });
+        }
+      }
+      resetForm();
+      showMessage(submitForReview?"Layanan tersimpan dan diajukan untuk ditinjau admin.":"Draft layanan berhasil disimpan.","success");
+      await loadServices();
+    }catch(error){
+      console.error("Gagal menyimpan layanan:",error);
+      showMessage("Layanan belum dapat disimpan. Periksa koneksi dan pastikan Firestore Rules multi-lokasi diterapkan di proyek Firebase sebelum pengujian langsung.","error");
+    }finally{setSaving(false);}
+  }
+  $("saveDraft").addEventListener("click",()=>saveService(false));
+  $("submitReview").addEventListener("click",()=>saveService(true));
+
+  function beginEdit(row){
+    editingId=row.id; const x=row.data;
+    $("name").value=x.name||""; $("description").value=x.description||"";
+    $("price").value=Number.isInteger(x.price)?String(x.price):"";
+    $("duration").value=Number.isInteger(x.durationMinutes)?String(x.durationMinutes):"60";
+    $("formTitle").textContent="Edit layanan"; $("cancelEdit").hidden=false; clearMessage();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function formatRupiah(value){
+    return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(value)||0);
+  }
+  function makeServiceCard(row){
+    const x=row.data; const card=document.createElement("article"); card.className="service";
+    const top=document.createElement("div"); top.className="service-top";
+    const titleWrap=document.createElement("div"); const title=document.createElement("h3"); title.textContent=x.name||"Layanan tanpa nama";
+    const description=document.createElement("p"); description.textContent=x.description||"Belum ada deskripsi.";
+    titleWrap.append(title,description);
+    const pill=document.createElement("span"); pill.className="pill "+(x.status||"draft"); pill.textContent=statusLabels[x.status]||"Status tidak diketahui";
+    top.append(titleWrap,pill); card.append(top);
+    const detail=document.createElement("p"); detail.textContent=formatRupiah(x.price)+" · Perkiraan "+(x.durationMinutes||"—")+" menit";
+    card.append(detail);
+    if(x.status==="rejected"){
+      const reason=document.createElement("p"); reason.textContent=x.reviewNote?"Catatan admin: "+x.reviewNote:"Silakan periksa kembali informasi layanan lalu ajukan ulang."; card.append(reason);
+    }
+    if(["draft","rejected"].includes(x.status)){
+      const actions=document.createElement("div"); actions.className="mini-actions";
+      const edit=document.createElement("button"); edit.className="secondary"; edit.textContent="Edit layanan"; edit.addEventListener("click",()=>beginEdit(row));
+      const submit=document.createElement("button"); submit.className="primary"; submit.textContent="Ajukan tinjauan";
+      submit.addEventListener("click",async()=>{
+        if(!confirm("Ajukan layanan ini untuk ditinjau admin? Setelah diajukan, layanan tidak dapat diedit sampai ada keputusan."))return;
+        submit.disabled=true;
+        try{
+          await updateDoc(doc(db,"practitionerLocations",locationId,"services",row.id),{status:"pending_review",updatedAt:serverTimestamp()});
+          showMessage("Layanan diajukan untuk ditinjau admin.","success"); await loadServices();
+        }catch(error){console.error(error);showMessage("Gagal mengajukan layanan. Periksa Rules dan status lokasi induk.","error");}
+        finally{submit.disabled=false;}
+      });
+      actions.append(edit,submit); card.append(actions);
+    }
+    return card;
+  }
+  async function loadServices(){
+    const host=$("services"); host.replaceChildren();
+    const loading=document.createElement("div"); loading.className="empty"; loading.textContent="Memuat layanan…"; host.append(loading);
+    try{
+      const snap=await getDocs(collection(db,"practitionerLocations",locationId,"services"));
+      host.replaceChildren();
+      if(snap.empty){const empty=document.createElement("div");empty.className="empty";empty.textContent="Belum ada layanan di lokasi ini. Tambahkan layanan melalui formulir di atas.";host.append(empty);return;}
+      const rows=snap.docs.map(d=>({id:d.id,data:d.data()}));
+      rows.sort((a,b)=>(a.data.name||"").localeCompare(b.data.name||"","id"));
+      rows.forEach(row=>host.append(makeServiceCard(row)));
+    }catch(error){
+      console.error("Gagal memuat layanan:",error);host.replaceChildren();
+      const msg=document.createElement("div");msg.className="empty";msg.textContent="Layanan belum dapat dimuat. Pastikan Firestore Rules multi-lokasi telah diterapkan di Firebase dan coba lagi.";host.append(msg);
+    }
+  }
+  $("refresh").addEventListener("click",loadServices);
+
+  onAuthStateChanged(auth,async user=>{
+    if(!user){window.location.replace("index.html");return;}
+    try{
+      const userSnap=await getDoc(doc(db,"users",user.uid));
+      if(!userSnap.exists()){await signOut(auth);window.location.replace("index.html");return;}
+      const profile=userSnap.data();
+      if(profile.role!=="praktisi"){window.location.replace(profile.role==="pasien"?"patient.html":"index.html");return;}
+      if(profile.isVerified!==true){alert("Akun praktisi belum diverifikasi admin.");window.location.replace("nurse.html");return;}
+      if(!locationId){$("loading").textContent="ID lokasi tidak ditemukan. Kembali ke halaman lokasi praktik dan pilih Kelola layanan.";return;}
+      const locationSnap=await getDoc(doc(db,"practitionerLocations",locationId));
+      if(!locationSnap.exists()){ $("loading").textContent="Lokasi tidak ditemukan atau tidak dapat diakses.";return; }
+      locationData=locationSnap.data();
+      if(locationData.ownerUid!==user.uid){$("loading").textContent="Anda tidak memiliki izin mengelola lokasi ini.";return;}
+      if(!["draft","published"].includes(locationData.status)){
+        $("loading").textContent="Layanan hanya dapat dikelola ketika lokasi berstatus Draft atau Dipublikasikan. Selesaikan tinjauan lokasi terlebih dahulu.";return;
+      }
+      currentUser=user;
+      $("locationSummary").textContent=locationData.name+" · "+(locationData.locationType==="home_visit"?"Layanan kunjungan ke rumah":"Tempat praktik / klinik")+" · "+[locationData.area,locationData.city,locationData.province].filter(Boolean).join(", ");
+      $("backLink").href="lokasi-praktisi.html";
+      $("loading").hidden=true;$("app").hidden=false;
+      if(locationData.status!=="published"){
+        const warning=document.createElement("p");warning.className="help";warning.style.margin="8px 0 0";warning.textContent="Lokasi ini belum dipublikasikan. Layanan dapat disiapkan, tetapi admin hanya dapat memublikasikan layanan setelah lokasi induk dipublikasikan.";
+        $("locationSummary").appendChild(warning);
+      }
+      await loadServices();
+    }catch(error){
+      console.error("Gagal memeriksa akun/lokasi:",error);
+      $("loading").textContent="Gagal memeriksa akun atau lokasi. Periksa koneksi dan aturan akses Firestore.";
+    }
+  });
+</script>
+</body>
+</html>
