@@ -429,13 +429,22 @@ service cloud.firestore {
         && request.resource.data.patientAddress is string
         && request.resource.data.patientAddress.size() > 0
         && (
-          request.resource.data.serviceName in [
-            'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
-            'Pasang DC', 'Perawatan Lansia', 'Lainnya'
-          ]
-          || (
-            request.resource.data.keys().hasAny(['locationId'])
+          (
+            request.resource.data.keys().hasAny([
+              'locationId', 'serviceId', 'locationName', 'locationType',
+              'servicePrice', 'serviceDurationMinutes', 'practitionerUid'
+            ])
             && validCatalogBooking()
+          )
+          || (
+            !request.resource.data.keys().hasAny([
+              'locationId', 'serviceId', 'locationName', 'locationType',
+              'servicePrice', 'serviceDurationMinutes', 'practitionerUid'
+            ])
+            && request.resource.data.serviceName in [
+              'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
+              'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+            ]
           )
         )
         && request.resource.data.scheduledAt is timestamp
