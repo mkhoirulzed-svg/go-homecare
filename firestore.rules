@@ -28,6 +28,29 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileComplete == true;
     }
 
+    // Chat hanya untuk akun pasien pemilik pesanan dan praktisi yang ditugaskan.
+    function chatBookingExists(bookingId) {
+      return exists(/databases/$(database)/documents/bookingRequests/$(bookingId));
+    }
+    function isChatParticipant(bookingId) {
+      return signedIn() && chatBookingExists(bookingId)
+        && (
+          get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.patientUid == request.auth.uid
+          || get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.nurseUid == request.auth.uid
+        );
+    }
+    function isChatReadable(bookingId) {
+      return chatBookingExists(bookingId)
+        && get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.status
+          in ['accepted', 'in_progress', 'completed'];
+    }
+    function isChatOpen(bookingId) {
+      return chatBookingExists(bookingId)
+        && get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.status
+          in ['accepted', 'in_progress']
+        && get(/databases/$(database)/documents/bookingRequests/$(bookingId)).data.nurseUid is string;
+    }
+
     match /users/{userId} {
       allow create: if signedIn()
         && request.auth.uid == userId
@@ -245,6 +268,21 @@ service cloud.firestore {
       );
 
       allow delete: if false;
+    }
+
+    // Percakapan memakai ID pesanan. Riwayat tetap dapat dibaca setelah layanan selesai.
+    match /bookingChats/{bookingId}/messages/{messageId} {
+      allow get, list: if isChatParticipant(bookingId) && isChatReadable(bookingId);
+      allow create: if isChatParticipant(bookingId)
+        && isChatOpen(bookingId)
+        && request.resource.data.keys().hasAll(['senderUid', 'text', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['senderUid', 'text', 'createdAt'])
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
     }
   }
 }

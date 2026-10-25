@@ -281,6 +281,16 @@
           const labels = { accepted:"Diterima · Siap dilayani", in_progress:"Sedang berlangsung", completed:"Selesai", rejected:"Ditolak", cancelled:"Dibatalkan", pending:"Menunggu konfirmasi" };
           const card = document.createElement("article"); card.className = "task";
           card.innerHTML = '<h3>' + escapeHtml(x.serviceName) + ' — ' + escapeHtml(labels[x.status] || x.status) + '</h3><p><strong>Pasien:</strong> ' + escapeHtml(x.patientName) + '<br><strong>Telepon:</strong> ' + escapeHtml(x.patientPhone) + '<br><strong>Alamat:</strong> ' + escapeHtml(x.patientAddress) + '<br><strong>Area:</strong> ' + escapeHtml(x.area) + '<br><strong>Jadwal diminta:</strong> ' + escapeHtml(dateText) + '<br><strong>Catatan:</strong> ' + escapeHtml(x.notes || "-") + '</p><p class="muted" style="color:#64748b">ID pesanan: ' + escapeHtml(row.id) + '</p>';
+          if (["accepted", "in_progress", "completed"].includes(x.status)) {
+            const chatBtn = document.createElement("button");
+            chatBtn.type = "button";
+            chatBtn.textContent = x.status === "completed" ? "Lihat riwayat chat" : "Chat pasien";
+            chatBtn.style.cssText = "margin:0 8px 10px 0;padding:10px 14px;border:0;border-radius:10px;background:#0d9488;color:#fff;font:inherit;font-weight:700;cursor:pointer";
+            chatBtn.addEventListener("click", () => {
+              window.location.href = "chat.html?bookingId=" + encodeURIComponent(row.id);
+            });
+            card.appendChild(chatBtn);
+          }
           if (x.status === "accepted" || x.status === "in_progress") {
             const btn = document.createElement("button"); btn.textContent = x.status === "accepted" ? "Mulai layanan" : "Tandai selesai";
             btn.addEventListener("click", async () => {
