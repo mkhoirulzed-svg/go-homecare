@@ -774,6 +774,12 @@
         window.loadLatestServiceProgress?.();
 
         const pageParams = new URLSearchParams(window.location.search);
+        if (pageParams.get("tab") === "history") {
+          const historyNav = Array.from(document.querySelectorAll(".nav-item"))
+            .find(item => item.querySelector("span")?.textContent?.trim() === "Riwayat");
+          if (historyNav) window.switchNav(historyNav);
+          window.history.replaceState({}, "", "patient.html");
+        }
         if (pageParams.get("bookingUpdated") === "1") {
           const historyNav = Array.from(document.querySelectorAll(".nav-item"))
             .find(item => item.querySelector("span")?.textContent?.trim() === "Riwayat");
