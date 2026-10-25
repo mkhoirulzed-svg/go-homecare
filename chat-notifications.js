@@ -6,7 +6,11 @@ function setBadge(badge, count) {
   if (!badge) return;
   const label = count > 99 ? "99+" : String(count);
   if (badge.textContent !== label) badge.textContent = label;
-  if (badge.hidden !== (count <= 0)) badge.hidden = count <= 0;
+  const hide = count <= 0;
+  badge.hidden = hide;
+  // Inline display ensures zero-count badges stay hidden even if site CSS overrides
+  // the browser's default [hidden] styling.
+  badge.style.display = hide ? "none" : "inline-flex";
 }
 
 function ensureBadgeStyles() {
