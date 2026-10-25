@@ -1,4 +1,4 @@
-import { collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const READABLE_STATUSES = new Set(["accepted", "in_progress", "completed"]);
 
@@ -104,7 +104,7 @@ export function startChatNotifications({ db, user, role }) {
 
         let initialized = false;
         const stop = onSnapshot(
-          query(collection(db, "bookingChats", bookingId, "messages"), orderBy("createdAt", "asc")),
+          collection(db, "bookingChats", bookingId, "messages"),
           (messagesSnapshot) => {
             // Abaikan seluruh pesan yang sudah ada saat listener pertama kali aktif.
             if (!initialized) {
@@ -113,8 +113,8 @@ export function startChatNotifications({ db, user, role }) {
               return;
             }
 
-            // Pantau dokumen pesan baru secara langsung; tidak bergantung pada pesan mana
-            // yang kebetulan berada di urutan pertama/terakhir saat timestamp berdekatan.
+            // Pantau dokumen pesan baru secara langsung tanpa orderBy(createdAt), sehingga
+            // pesan tetap terdeteksi meskipun timestamp server belum tersedia atau berubah.
             for (const change of messagesSnapshot.docChanges()) {
               if (change.type !== "added") continue;
               const data = change.doc.data();
