@@ -93,7 +93,7 @@
         <div id="locations"><div class="empty">Memuat lokasi…</div></div>
         <div class="buttons"><button id="refresh" class="quiet" type="button">Muat ulang</button></div>
       </section>
-      <div class="notice">Catatan: tahap ini hanya mengelola lokasi praktik. Layanan per lokasi, tarif, dan jadwal akan ditambahkan setelah fondasi ini stabil. Jangan masukkan data pasien pada deskripsi lokasi.</div>
+      <div class="notice">Lokasi berstatus Draft atau Dipublikasikan dapat memiliki daftar layanan dan tarif masing-masing. Jadwal per lokasi akan ditambahkan pada tahap berikutnya. Jangan masukkan data pasien pada deskripsi lokasi.</div>
     </main>
   </div>
 </div>
@@ -258,6 +258,18 @@
       const reason = document.createElement("p");
       reason.textContent = x.reviewNote ? "Catatan admin: " + x.reviewNote : "Silakan periksa kembali informasi lokasi lalu ajukan ulang.";
       card.appendChild(reason);
+    }
+    if (["draft", "published"].includes(x.status)) {
+      const serviceActions = document.createElement("div");
+      serviceActions.className = "mini-actions";
+      const manageServices = document.createElement("button");
+      manageServices.className = "secondary";
+      manageServices.textContent = "Kelola layanan & tarif";
+      manageServices.addEventListener("click", () => {
+        window.location.href = "layanan-praktisi.html?locationId=" + encodeURIComponent(location.id);
+      });
+      serviceActions.appendChild(manageServices);
+      card.appendChild(serviceActions);
     }
     if (["draft", "rejected"].includes(x.status)) {
       const actions = document.createElement("div");
