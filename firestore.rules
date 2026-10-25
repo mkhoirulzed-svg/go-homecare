@@ -168,9 +168,15 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status', 'reviewedBy', 'reviewedAt', 'updatedAt'
         ])
-        && request.resource.data.status in [
-          'pending_review', 'published', 'rejected', 'paused'
-        ]
+        && (
+          (resource.data.status == 'pending_review'
+            && request.resource.data.status in ['published', 'rejected'])
+          || (resource.data.status == 'published'
+            && request.resource.data.status == 'paused')
+          || (resource.data.status == 'paused'
+            && request.resource.data.status == 'published'
+            && isVerifiedPractitioner(resource.data.ownerUid))
+        )
         && (request.resource.data.status != 'published'
           || isVerifiedPractitioner(resource.data.ownerUid))
         && request.resource.data.updatedAt == request.time
