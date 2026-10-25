@@ -279,7 +279,8 @@ service cloud.firestore {
         && isChatParticipant(bookingId) && isChatReadable(bookingId)
         && request.resource.data.keys().hasOnly(['lastReadAt'])
         && request.resource.data.keys().hasAll(['lastReadAt'])
-        && request.resource.data.lastReadAt == request.time;
+        && request.resource.data.lastReadAt is timestamp
+        && request.resource.data.lastReadAt <= request.time;
       allow delete: if false;
     }
 
