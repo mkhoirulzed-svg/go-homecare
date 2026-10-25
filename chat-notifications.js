@@ -4,8 +4,9 @@ const READABLE_STATUSES = new Set(["accepted", "in_progress", "completed"]);
 
 function setBadge(badge, count) {
   if (!badge) return;
-  badge.textContent = count > 99 ? "99+" : String(count);
-  badge.hidden = count <= 0;
+  const label = count > 99 ? "99+" : String(count);
+  if (badge.textContent !== label) badge.textContent = label;
+  if (badge.hidden !== (count <= 0)) badge.hidden = count <= 0;
 }
 
 function ensureBadgeStyles() {
@@ -55,6 +56,10 @@ export function startChatNotifications({ db, user, role }) {
   const counts = new Map();
   const listeners = new Map();
   let stopped = false;
+  const badgeObserver = new MutationObserver(() => {
+    for (const [bookingId, count] of counts.entries()) updateBookingBadge(bookingId, count);
+  });
+  badgeObserver.observe(document.body, { childList: true, subtree: true });
 
   function renderTotal() {
     const total = Array.from(counts.values()).reduce((sum, count) => sum + count, 0);
@@ -128,6 +133,7 @@ export function startChatNotifications({ db, user, role }) {
 
   return () => {
     stopped = true;
+    badgeObserver.disconnect();
     stopBookings();
     for (const item of listeners.values()) {
       item.stopMessages?.();
