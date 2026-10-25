@@ -143,9 +143,17 @@
           return;
         }
         if (profile.isVerified !== true) {
-          alert("Akun praktisi belum diverifikasi admin. Dashboard belum dapat diakses.");
-          await signOut(auth);
-          window.location.replace("index.html");
+          // Jangan menghapus sesi secara otomatis: tampilkan penyebab agar akun
+          // praktisi yang belum terverifikasi tidak terlihat seperti gagal login.
+          loading.innerHTML =
+            '<div style="max-width:420px;margin:12vh auto;padding:24px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;color:#0f172a;font-family:system-ui,sans-serif;line-height:1.6">' +
+            '<h2 style="font-size:20px;margin:0 0 10px">Akun belum terverifikasi</h2>' +
+            '<p style="margin:0 0 12px">Login Google berhasil, tetapi akun ini belum memiliki status verifikasi admin yang valid. Dashboard praktisi tetap dikunci demi keamanan.</p>' +
+            '<p style="margin:0 0 16px;font-size:13px;color:#64748b">Status terdeteksi: isVerified = ' +
+            String(profile.isVerified === undefined ? "belum diatur" : JSON.stringify(profile.isVerified)) +
+            '.</p><p style="margin:0 0 16px">Minta admin memeriksa dan menyetujui akun melalui halaman admin Go Homecare, lalu login kembali.</p>' +
+            '<a href="index.html" style="display:block;text-align:center;padding:12px;border-radius:10px;background:#0d9488;color:#fff;text-decoration:none;font-weight:700">Kembali ke halaman login</a></div>';
+          contentBox.style.display = "none";
           return;
         }
         currentPractitioner = user;
