@@ -41,7 +41,7 @@ function showToast(host, { title, text, bookingId }) {
   close.addEventListener("click", (event) => {
     event.stopPropagation();
     toast.remove();
-    if (!host.children.length) host.remove();
+
   });
   toast.append(icon, content, close);
   toast.addEventListener("click", () => {
@@ -50,7 +50,7 @@ function showToast(host, { title, text, bookingId }) {
   host.appendChild(toast);
   window.setTimeout(() => {
     toast.remove();
-    if (!host.children.length) host.remove();
+
   }, 7000);
 }
 
