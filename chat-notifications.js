@@ -17,6 +17,26 @@ function ensureToastStyles() {
   document.head.appendChild(style);
 }
 
+function ensureDiagnostic() {
+  let panel = document.getElementById("gh-chat-notif-diagnostic");
+  if (panel) return panel;
+  panel = document.createElement("div");
+  panel.id = "gh-chat-notif-diagnostic";
+  panel.style.cssText = "position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:100000;max-width:calc(100vw - 24px);padding:8px 12px;border-radius:10px;background:#e0f2fe;color:#075985;border:1px solid #7dd3fc;box-shadow:0 4px 16px #0f172a20;font:600 12px/1.4 system-ui,sans-serif;overflow-wrap:anywhere";
+  panel.setAttribute("role", "status");
+  panel.setAttribute("aria-live", "polite");
+  document.body.appendChild(panel);
+  return panel;
+}
+
+function setDiagnostic(message, isError = false) {
+  const panel = ensureDiagnostic();
+  panel.textContent = "Diagnostik notifikasi: " + message;
+  panel.style.background = isError ? "#fee2e2" : "#e0f2fe";
+  panel.style.color = isError ? "#991b1b" : "#075985";
+  panel.style.borderColor = isError ? "#fca5a5" : "#7dd3fc";
+}
+
 function showToast(host, { title, text, bookingId }) {
   const toast = document.createElement("div");
   toast.className = "gh-chat-toast";
@@ -57,6 +77,7 @@ function showToast(host, { title, text, bookingId }) {
 export function startChatNotifications({ db, user, role }) {
   if (!db || !user?.uid || !["pasien", "praktisi"].includes(role)) return () => {};
   ensureToastStyles();
+  setDiagnostic("memulai pemantauan…");
   let host = document.querySelector(".gh-chat-toast-host");
   if (!host) {
     host = document.createElement("div");
@@ -72,10 +93,12 @@ export function startChatNotifications({ db, user, role }) {
     query(collection(db, "bookingRequests"), where(field, "==", user.uid)),
     (snapshot) => {
       const currentIds = new Set();
+      let eligibleBookings = 0;
       snapshot.forEach((bookingDoc) => {
         const booking = bookingDoc.data();
         if (!READABLE_STATUSES.has(String(booking.status || "").toLowerCase())) return;
         const bookingId = bookingDoc.id;
+        eligibleBookings++;
         currentIds.add(bookingId);
         if (unsubMessages.has(bookingId)) return;
 
@@ -94,6 +117,7 @@ export function startChatNotifications({ db, user, role }) {
             if (!initialized) {
               initialized = true;
               lastMessageId = latest.id;
+              setDiagnostic("aktif · " + eligibleBookings + " pesanan aktif · " + unsubMessages.size + " chat dipantau");
               return;
             }
             if (latest.id === lastMessageId) return;
@@ -103,12 +127,19 @@ export function startChatNotifications({ db, user, role }) {
             if (window.location.pathname.endsWith("/chat.html") && currentChatId === bookingId) return;
             const sender = role === "pasien" ? (booking.nurseName || "Praktisi") : (booking.patientName || "Pasien");
             const preview = String(data.text || "Mengirim pesan").trim().slice(0, 140);
+            setDiagnostic("pesan baru terdeteksi dari " + sender + " · menampilkan pop-up");
             showToast(host, { title: "Pesan baru dari " + sender, text: preview, bookingId });
           },
-          (error) => console.warn("Notifikasi chat tidak dapat dipantau:", error.code || error.message)
+          (error) => {
+            console.warn("Notifikasi chat tidak dapat dipantau:", error.code || error.message);
+            setDiagnostic("gagal membaca pesan (" + (error.code || error.message) + ")", true);
+          }
         );
         unsubMessages.set(bookingId, stop);
       });
+
+      if (eligibleBookings === 0) setDiagnostic("akun terbaca, tetapi tidak ada pesanan berstatus diterima / berlangsung / selesai");
+      else setDiagnostic("aktif · " + eligibleBookings + " pesanan aktif · " + unsubMessages.size + " chat dipantau");
 
       for (const [bookingId, stop] of unsubMessages.entries()) {
         if (!currentIds.has(bookingId)) {
@@ -117,7 +148,10 @@ export function startChatNotifications({ db, user, role }) {
         }
       }
     },
-    (error) => console.warn("Daftar pesanan untuk notifikasi gagal dimuat:", error.code || error.message)
+    (error) => {
+      console.warn("Daftar pesanan untuk notifikasi gagal dimuat:", error.code || error.message);
+      setDiagnostic("gagal membaca daftar pesanan (" + (error.code || error.message) + ")", true);
+    }
   );
 
   return () => {
