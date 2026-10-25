@@ -627,6 +627,7 @@
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { startChatNotifications } from "./chat-notifications.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -830,6 +831,7 @@
         document.getElementById("userLocation").textContent = profile.address || "Alamat belum diisi";
         window.loadLatestServiceProgress?.();
         window.loadActiveOrders?.();
+        startChatNotifications({ db, user, role: "pasien" });
 
         const pageParams = new URLSearchParams(window.location.search);
         if (pageParams.get("tab") === "orders") {

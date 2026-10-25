@@ -181,6 +181,7 @@
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    import { startChatNotifications } from "./chat-notifications.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
@@ -245,6 +246,7 @@
         loading.style.display = "none";
         contentBox.style.display = "block";
         await loadTasks();
+        startChatNotifications({ db, user, role: "praktisi" });
       } catch (error) {
         console.error("Gagal memeriksa akun praktisi:", error);
         loading.innerHTML = '<p class="error">Tidak dapat memeriksa akun. Periksa koneksi internet dan aturan akses Firestore, lalu muat ulang halaman.</p><p><a href="index.html">Kembali ke halaman login</a></p>';
