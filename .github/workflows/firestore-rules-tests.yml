@@ -5,6 +5,7 @@ on:
     branches:
       - "ci/firestore-rules-tests"
       - "feature/booking-operations-foundation"
+      - "feature/practitioner-locations-foundation"
   pull_request:
     branches:
       - main
