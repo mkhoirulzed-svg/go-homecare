@@ -598,7 +598,7 @@
   <script>
     // Handle Service Click: buka form pemesanan dengan layanan yang dipilih.
     window.handleServiceClick = function(serviceName) {
-      window.location.href = "booking.html?service=" + encodeURIComponent(serviceName);
+      window.location.href = "katalog-praktisi.html?search=" + encodeURIComponent(serviceName);
     };
 
     // Navigasi dashboard pasien: Beranda, Pesanan, Riwayat, Profil.
@@ -818,10 +818,10 @@
     activeOrdersList?.addEventListener("click", handleBookingAction);
 
     document.getElementById("newBookingBtn")?.addEventListener("click", () => {
-      window.location.href = "booking.html";
+      window.location.href = "katalog-praktisi.html";
     });
     document.getElementById("newBookingFromOrdersBtn")?.addEventListener("click", () => {
-      window.location.href = "booking.html";
+      window.location.href = "katalog-praktisi.html";
     });
 
     onAuthStateChanged(auth, async (user) => {
