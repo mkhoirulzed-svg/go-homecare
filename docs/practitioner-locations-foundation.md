@@ -60,6 +60,20 @@ Jadwal per lokasi tetap tahap berikutnya. Pola hari/jam dan slot tanggal harus d
 
 Halaman `layanan-praktisi.html` mengelola layanan di bawah lokasi yang dipilih melalui `locationId`. Praktisi terverifikasi dapat membuat draft, mengedit draft/layanan yang ditolak, dan mengajukan tinjauan. Penghapusan dinonaktifkan. Tautan pengelolaan ditampilkan pada kartu lokasi berstatus `draft` atau `published`. Halaman ini belum mengubah alur pemesanan pasien.
 
+## Tahap 3: jadwal mingguan per lokasi
+
+Subkoleksi: `practitionerLocations/{locationId}/weeklySchedule/{scheduleId}`
+
+Setiap dokumen mewakili satu rentang waktu mingguan:
+- `dayOfWeek`: angka 0–6 (Minggu–Sabtu).
+- `startTime` dan `endTime`: string format 24 jam `HH:mm`; waktu selesai harus lebih akhir pada hari yang sama.
+- `active`: apakah rentang ditampilkan sebagai jam layanan yang aktif.
+- `createdAt` dan `updatedAt`: timestamp.
+
+Satu hari dapat memiliki beberapa rentang, misalnya pagi dan sore. UI mencegah benturan antar rentang aktif pada data yang sudah dimuat; aturan keamanan memvalidasi format dan kepemilikan tetapi bukan pemeriksaan benturan atomik. Karena itu, jadwal belum boleh dipakai untuk mengonfirmasi slot booking secara otomatis. Jadwal aktif hanya dapat dibaca pasien pada lokasi yang dipublikasikan. Jadwal dinonaktifkan, bukan dihapus.
+
+Halaman `jadwal-lokasi-praktisi.html?locationId=...` dikelola pemilik lokasi yang terverifikasi. Ini masih berupa jam operasional mingguan, belum termasuk pengecualian hari libur, slot tanggal tertentu, durasi layanan, atau pencegahan double-booking.
+
 ## Perubahan pemesanan berikutnya
 
 Tambahkan ke `bookingRequests` setelah frontend dan Rules siap bersamaan:
@@ -86,7 +100,7 @@ Pertahankan field `nurseUid`, `nurseName`, dan `nursePhone` untuk kompatibilitas
 1. Skema dan Rules koleksi lokasi serta layanan (sudah ada di `main`; belum deploy ke Firebase production).
 2. UI praktisi untuk membuat/mengedit/mengajukan lokasi (sudah ada).
 3. UI praktisi untuk mengelola layanan dan tarif per lokasi (PR ini).
-4. Jadwal per lokasi beserta validasi ketersediaan.
+4. Jadwal mingguan per lokasi (PR ini); berikutnya pengecualian tanggal, validasi ketersediaan, dan pencegahan benturan booking.
 5. Katalog publik praktisi/lokasi/layanan yang aman.
 6. Alur booking baru dengan harga snapshot dan penerimaan praktisi.
 7. Notifikasi admin/praktisi dan integrasi WhatsApp backend, retry, serta eskalasi.
