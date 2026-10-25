@@ -36,6 +36,11 @@
     <div class="notice">Katalog hanya menampilkan lokasi dan layanan yang telah dipublikasikan. Tarif dan ketersediaan perlu dikonfirmasi kembali sebelum pemesanan. Penilaian bintang belum ditampilkan karena fitur ulasan belum tersedia.</div>
     <div id="status" class="status" role="status">Memeriksa sesi dan memuat katalog…</div>
     <div id="catalog"></div>
+    <section aria-label="Bantuan pemesanan" style="margin-top:18px;padding:16px;border:1px solid #e2e8f0;border-radius:15px;background:#f8fafc">
+      <strong style="display:block;font-size:14px;margin-bottom:6px">Tidak menemukan layanan yang dibutuhkan?</strong>
+      <p style="font-size:12px;line-height:1.6;color:#64748b;margin:0 0 12px">Anda tetap bisa mengirim permintaan umum. Praktisi dan tarif belum ditetapkan pada tahap ini; admin perlu membantu mencocokkan layanan yang sesuai.</p>
+      <a href="booking.html" style="display:block;text-align:center;text-decoration:none;background:#fff;border:1px solid #0f766e;color:#0f766e;padding:11px;border-radius:10px;font-size:13px;font-weight:800">Ajukan permintaan umum</a>
+    </section>
   </main>
 </div>
 <script type="module">
@@ -82,6 +87,8 @@ async function loadCatalog(){
   render();
  }catch(error){console.error("Gagal memuat katalog:",error);$("status").textContent="Katalog belum dapat dimuat. Pastikan sesi pasien aktif dan Firestore Rules yang sesuai sudah tersedia. ("+(error.code||"kesalahan")+")";}
 }
+const initialSearch = new URLSearchParams(window.location.search).get("search");
+if (initialSearch) $("search").value = initialSearch;
 $("search").addEventListener("input",render);$("typeFilter").addEventListener("change",render);
 onAuthStateChanged(auth,async user=>{
  if(!user){$("status").textContent="Silakan masuk ke akun pasien untuk melihat katalog.";return;}
