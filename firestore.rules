@@ -186,7 +186,7 @@ service cloud.firestore {
     }
 
 
-    // Jadwal mingguan per lokasi. Satu dokumen mewakili satu rentang waktu.
+    // Jadwal mingguan per lokasi.
     match /practitionerLocations/{locationId}/weeklySchedule/{scheduleId} {
       function parentLocationExists() {
         return exists(/databases/$(database)/documents/practitionerLocations/$(locationId));
