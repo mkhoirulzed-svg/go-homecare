@@ -746,3 +746,54 @@ test("unverified practitioner cannot create a weekly schedule", async () => {
     validWeeklySchedule()
   ));
 });
+
+
+// Public practitioner profile projection: only non-sensitive professional fields are readable.
+function validPublicProfile(overrides = {}) {
+  return {
+    ownerUid: "nurse-1",
+    name: "Praktisi Terverifikasi",
+    experienceYears: 8,
+    specialization: "Perawatan luka",
+    bio: "Berpengalaman memberikan perawatan di rumah.",
+    serviceArea: "Palangka Raya",
+    updatedAt: serverTimestamp(),
+    ...overrides
+  };
+}
+
+test("verified practitioner can publish a safe public profile and patient can read it", async () => {
+  const practitionerDb = testEnv.authenticatedContext("nurse-1").firestore();
+  const ref = doc(practitionerDb, "practitionerPublicProfiles", "nurse-1");
+  await assertSucceeds(setDoc(ref, validPublicProfile()));
+  const patientDb = testEnv.authenticatedContext("patient-1").firestore();
+  const profile = await assertSucceeds(getDoc(doc(patientDb, "practitionerPublicProfiles", "nurse-1")));
+  assert.equal(profile.data().name, "Praktisi Terverifikasi");
+  assert.equal(profile.data().specialization, "Perawatan luka");
+});
+
+test("public practitioner profile rejects private fields and unverified writers", async () => {
+  const practitionerDb = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertFails(setDoc(
+    doc(practitionerDb, "practitionerPublicProfiles", "nurse-1"),
+    validPublicProfile({ phone: "628111111111" })
+  ));
+  const unverifiedDb = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(setDoc(
+    doc(unverifiedDb, "practitionerPublicProfiles", "nurse-2"),
+    validPublicProfile({ ownerUid: "nurse-2" })
+  ));
+});
+
+test("incomplete patient cannot read public practitioner profile and public profiles cannot be listed", async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "practitionerPublicProfiles", "nurse-1"), {
+      ownerUid: "nurse-1", name: "Praktisi Terverifikasi", experienceYears: 8,
+      specialization: "Perawatan luka", bio: "", serviceArea: "Palangka Raya",
+      updatedAt: Timestamp.now()
+    });
+  });
+  const incompleteDb = testEnv.authenticatedContext("patient-incomplete").firestore();
+  await assertFails(getDoc(doc(incompleteDb, "practitionerPublicProfiles", "nurse-1")));
+  await assertFails(getDocs(collection(incompleteDb, "practitionerPublicProfiles")));
+});
