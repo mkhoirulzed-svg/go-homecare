@@ -1,4 +1,5 @@
 const { readFileSync } = require("node:fs");
+const assert = require("node:assert/strict");
 const { test, before, beforeEach, after } = require("node:test");
 const path = require("node:path");
 const {
@@ -279,6 +280,7 @@ test("assigned verified practitioner can start and complete a booking", async ()
   }));
   await assertSucceeds(updateDoc(doc(db, "bookingRequests", "assigned-in-progress"), {
     status: "completed",
+    completedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   }));
 });
