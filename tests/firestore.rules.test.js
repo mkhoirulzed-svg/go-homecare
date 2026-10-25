@@ -797,3 +797,55 @@ test("incomplete patient cannot read public practitioner profile and public prof
   await assertFails(getDoc(doc(incompleteDb, "practitionerPublicProfiles", "nurse-1")));
   await assertFails(getDocs(collection(incompleteDb, "practitionerPublicProfiles")));
 });
+
+
+async function seedCatalogBookingTarget(locationStatus = "published", serviceStatus = "published", price = 150000) {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, "practitionerLocations", "catalog-location-1"), {
+      ownerUid: "nurse-1", name: "Klinik Sehat", locationType: "practice",
+      address: "Jalan Contoh", area: "Palangka Raya", city: "Palangka Raya",
+      province: "Kalimantan Tengah", status: locationStatus,
+      createdAt: Timestamp.now(), updatedAt: Timestamp.now()
+    });
+    await setDoc(doc(db, "practitionerLocations", "catalog-location-1", "services", "catalog-service-1"), {
+      name: "Perawatan Luka Modern", description: "Layanan uji",
+      price, durationMinutes: 60, status: serviceStatus,
+      createdAt: Timestamp.now(), updatedAt: Timestamp.now()
+    });
+  });
+}
+function validCatalogBooking(overrides = {}) {
+  return validBooking({
+    serviceName: "Perawatan Luka Modern",
+    locationId: "catalog-location-1",
+    serviceId: "catalog-service-1",
+    locationNameSnapshot: "Klinik Sehat",
+    locationTypeSnapshot: "practice",
+    priceSnapshot: 150000,
+    serviceDurationMinutesSnapshot: 60,
+    practitionerUidSnapshot: "nurse-1",
+    ...overrides
+  });
+}
+test("patient can book a published catalog service with verified location and price snapshot", async () => {
+  await seedCatalogBookingTarget();
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(setDoc(doc(collection(db, "bookingRequests"), "catalog-booking"), validCatalogBooking()));
+});
+test("catalog booking rejects changed price and unpublished service or location", async () => {
+  await seedCatalogBookingTarget();
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(setDoc(doc(collection(db, "bookingRequests"), "tampered-price"), validCatalogBooking({ priceSnapshot: 1 })));
+  await seedCatalogBookingTarget("published", "draft");
+  await assertFails(setDoc(doc(collection(db, "bookingRequests"), "draft-service"), validCatalogBooking()));
+  await seedCatalogBookingTarget("draft", "published");
+  await assertFails(setDoc(doc(collection(db, "bookingRequests"), "draft-location"), validCatalogBooking()));
+});
+test("catalog booking rejects incomplete selection fields and unverified practitioner snapshots", async () => {
+  await seedCatalogBookingTarget();
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  const missing = validCatalogBooking(); delete missing.serviceId;
+  await assertFails(setDoc(doc(collection(db, "bookingRequests"), "missing-selection"), missing));
+  await assertFails(setDoc(doc(collection(db, "bookingRequests"), "spoofed-owner"), validCatalogBooking({ practitionerUidSnapshot: "nurse-2" })));
+});
