@@ -546,5 +546,46 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
       allow update, delete: if false;
     }
+  
+    // Profil publik berisi informasi profesional saja; kontak, alamat rumah, dan STR tetap privat.
+    match /practitionerPublicProfiles/{practitionerUid} {
+      allow get: if isAdmin()
+        || isCompletePatient()
+        || (signedIn() && request.auth.uid == practitionerUid
+          && isVerifiedPractitioner(practitionerUid));
+      allow list: if false;
+
+      function validPublicProfile() {
+        return request.resource.data.keys().hasAll([
+          'ownerUid', 'name', 'experienceYears', 'specialization',
+          'bio', 'serviceArea', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'name', 'experienceYears', 'specialization',
+          'bio', 'serviceArea', 'updatedAt'
+        ])
+        && request.resource.data.ownerUid == practitionerUid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.experienceYears is int
+        && request.resource.data.experienceYears >= 0
+        && request.resource.data.experienceYears <= 80
+        && request.resource.data.specialization is string
+        && request.resource.data.specialization.size() <= 200
+        && request.resource.data.bio is string
+        && request.resource.data.bio.size() <= 1000
+        && request.resource.data.serviceArea is string
+        && request.resource.data.serviceArea.size() <= 200
+        && request.resource.data.updatedAt == request.time;
+      }
+
+      allow create, update: if signedIn()
+        && request.auth.uid == practitionerUid
+        && isVerifiedPractitioner(practitionerUid)
+        && validPublicProfile();
+      allow delete: if false;
+    }
+
   }
 }
