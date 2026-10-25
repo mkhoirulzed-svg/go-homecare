@@ -3,62 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f766e">
 <title>Profil Pasien - Go Homecare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--primary:#0d9488;--dark:#0f766e;--bg:#f1f5f9;--text:#0f172a;--muted:#64748b;--border:#e2e8f0}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--text);padding:20px}
-main{max-width:520px;margin:0 auto;background:#fff;border-radius:20px;padding:24px;box-shadow:0 8px 28px #0f172a12}
-h1{font-size:22px;margin:0 0 6px} .muted{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 22px}
-label{display:block;font-size:13px;font-weight:700;margin:15px 0 7px}
-input,select,textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font:inherit;background:#fff;color:var(--text)}
-textarea{min-height:80px;resize:vertical}
-.actions{display:flex;gap:10px;margin-top:22px}.btn{border:0;border-radius:10px;padding:13px 16px;font-weight:700;font-size:14px;cursor:pointer;flex:1}.primary{background:var(--primary);color:#fff}.secondary{background:#e2e8f0;color:var(--text)}button:disabled{opacity:.6}
-#message{font-size:13px;margin-top:14px;line-height:1.5}.error{color:#b91c1c}.success{color:#047857}
+:root{--primary:#0d9488;--dark:#0f766e;--deep:#115e59;--bg:#f1f5f9;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--white:#fff;--soft:#f0fdfa}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);font-family:Inter,Arial,sans-serif;color:var(--text);min-height:100vh;padding:0 0 28px}
+.page{max-width:560px;margin:0 auto;min-height:100vh;background:#f8fafc;overflow:hidden}
+.hero{position:relative;padding:24px 22px 68px;color:#fff;background:linear-gradient(145deg,#115e59 0%,#0d9488 62%,#2dd4bf 130%);border-radius:0 0 30px 30px}
+.topline{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.back-btn{width:40px;height:40px;display:grid;place-items:center;border:1px solid #ffffff45;border-radius:13px;background:#ffffff1c;color:#fff;cursor:pointer}
+.back-btn svg{width:20px;height:20px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;opacity:.8}
+.hero h1{font-size:25px;line-height:1.2;margin:5px 0 7px;font-weight:800;letter-spacing:-.6px}
+.hero-copy{font-size:13px;line-height:1.6;max-width:350px;color:#e6fffb}
+.profile-card{position:relative;margin:-44px 16px 0;padding:20px;background:#fff;border:1px solid #e8eef2;border-radius:22px;box-shadow:0 12px 32px #0f172a0d}
+.identity{display:flex;align-items:center;gap:14px;min-width:0}
+.avatar{flex:0 0 62px;width:62px;height:62px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#ccfbf1,#99f6e4);color:#115e59;font-size:23px;font-weight:800;letter-spacing:-1px;border:1px solid #99f6e4}
+.identity-text{min-width:0;flex:1}
+.identity-text h2{font-size:18px;line-height:1.35;overflow-wrap:anywhere;margin:0 0 5px;font-weight:800}
+.identity-text p{font-size:12px;line-height:1.5;color:var(--muted);margin:0;overflow-wrap:anywhere}
+.verified-label{display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:5px 8px;border-radius:999px;background:#ecfdf5;color:#047857;font-size:10px;font-weight:700}
+.card-divider{height:1px;background:#eef2f6;margin:18px 0}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 20px 12px}
+.section-heading h3{font-size:15px;margin:0;font-weight:800}
+.section-heading p{font-size:11px;color:var(--muted);margin:4px 0 0}
+.edit-btn,.save-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 15px;background:var(--primary);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 5px 12px #0d948826;transition:transform .15s,opacity .15s}
+.edit-btn:active,.save-btn:active{transform:scale(.98)}
+.edit-btn svg{width:16px;height:16px}
+.info-card{margin:0 16px;background:#fff;border:1px solid #e8eef2;border-radius:18px;padding:4px 16px;box-shadow:0 4px 14px #0f172a05}
+.info-row{display:flex;align-items:flex-start;gap:13px;padding:15px 0;border-bottom:1px solid #f1f5f9}
+.info-row:last-child{border-bottom:0}
+.info-icon{width:36px;height:36px;flex:0 0 36px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--dark)}
+.info-icon svg{width:18px;height:18px}
+.info-copy{min-width:0;flex:1}
+.info-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.info-value{font-size:13px;line-height:1.55;font-weight:600;overflow-wrap:anywhere;white-space:pre-wrap}
+.empty-value{color:#94a3b8;font-weight:500;font-style:italic}
+.form-panel{display:none;margin:0 16px;background:#fff;border:1px solid #e8eef2;border-radius:20px;padding:20px;box-shadow:0 8px 24px #0f172a08}
+.form-panel.visible{display:block;animation:fadeUp .22s ease-out}
+.form-intro{font-size:12px;color:var(--muted);line-height:1.6;margin:-5px 0 18px}
+label{display:block;font-size:12px;font-weight:700;margin:16px 0 7px}
+input,select,textarea{display:block;width:100%;min-height:46px;border:1px solid #dbe4eb;border-radius:12px;padding:12px 13px;font:inherit;font-size:14px;background:#fff;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+textarea{min-height:88px;resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px #0d94881c}
+.form-actions{display:flex;gap:10px;margin-top:22px}
+.form-actions button{flex:1;min-height:46px}
+.cancel-btn{border:1px solid var(--border);border-radius:12px;background:#f8fafc;color:#334155;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+#message{margin:14px 0 0;font-size:12px;line-height:1.5;padding:0}
+#message:not(:empty){padding:11px 12px;border-radius:10px}
+#message.error{color:#991b1b;background:#fef2f2}
+#message.success{color:#065f46;background:#ecfdf5}
+.privacy-note{display:flex;gap:10px;align-items:flex-start;margin:18px 20px 0;color:var(--muted);font-size:11px;line-height:1.6}
+.privacy-note svg{width:17px;height:17px;flex:0 0 17px;color:var(--dark);margin-top:1px}
+.loading{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:600px){body{padding:20px 0}.page{min-height:calc(100vh - 40px);border-radius:26px;box-shadow:0 12px 45px #0f172a12}.hero{border-radius:26px 26px 30px 30px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<main>
-<h1>Profil Saya</h1>
-<p class="muted">Perbarui informasi kontak dan alamat agar perawat dapat menggunakan data yang benar saat menindaklanjuti pemesanan Anda.</p>
-<form id="profileForm">
-<label for="nama">Nama lengkap *</label><input id="nama" required maxlength="100" autocomplete="name">
-<label for="phone">Nomor telepon *</label><input id="phone" required maxlength="30" type="tel" autocomplete="tel">
-<label for="birthDate">Tanggal lahir</label><input id="birthDate" type="date">
-<label for="gender">Jenis kelamin</label><select id="gender"><option value="">Pilih (opsional)</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option><option value="Tidak ingin menyebutkan">Tidak ingin menyebutkan</option></select>
-<label for="address">Alamat lengkap *</label><textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
-<label for="emergencyContact">Kontak darurat</label><input id="emergencyContact" maxlength="100" placeholder="Nama dan nomor kontak">
-<div class="actions"><button type="button" class="btn secondary" id="backBtn">Kembali</button><button class="btn primary" id="saveBtn" type="submit">Simpan Profil</button></div>
-<div id="message" role="status" aria-live="polite"></div>
-</form>
-</main>
+<div class="page">
+  <header class="hero">
+    <div class="topline">
+      <button type="button" class="back-btn" id="backBtn" aria-label="Kembali ke dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/><path d="M9 12h12"/></svg>
+      </button>
+      <div><div class="eyebrow">Go Homecare</div><div style="font-size:13px;font-weight:600;margin-top:3px">Area Pasien</div></div>
+    </div>
+    <h1>Profil Saya</h1>
+    <p class="hero-copy">Informasi diri dan kontak untuk membantu layanan homecare berjalan lebih lancar.</p>
+  </header>
+
+  <main>
+    <section class="profile-card" aria-label="Ringkasan profil">
+      <div class="identity">
+        <div class="avatar" id="avatarInitials" aria-hidden="true">GH</div>
+        <div class="identity-text">
+          <h2 id="displayName">Memuat profil…</h2>
+          <p id="displayEmail">Memuat informasi akun</p>
+          <span class="verified-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5v6c0 5.25 3.4 9.7 8 11 4.6-1.3 8-5.75 8-11V5l-8-3zm-1.1 14.2-3.2-3.2 1.4-1.4 1.8 1.8 4-4 1.4 1.4-5.4 5.4z"/></svg>Data profil pasien</span>
+        </div>
+      </div>
+      <div class="card-divider"></div>
+      <button type="button" class="edit-btn" id="editBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+        Edit Profil
+      </button>
+    </section>
+
+    <section id="profileView">
+      <div class="section-heading"><div><h3>Informasi Pribadi</h3><p>Ringkasan data yang tersimpan</p></div></div>
+      <div class="info-card">
+        <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></div><div class="info-copy"><div class="info-label">Nama lengkap</div><div class="info-value" id="viewNama">—</div></div></div>
+        <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.7L7.5 9.5a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 1.7-.6l2.7.4a2 2 0 0 1 1.7 2z"/></svg></div><div class="info-copy"><div class="info-label">Nomor telepon</div><div class="info-value" id="viewPhone">—</div></div></div>
+        <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></div><div class="info-copy"><div class="info-label">Tanggal lahir</div><div class="info-value" id="viewBirthDate">—</div></div></div>
+        <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></div><div class="info-copy"><div class="info-label">Jenis kelamin</div><div class="info-value" id="viewGender">—</div></div></div>
+        <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div class="info-copy"><div class="info-label">Alamat lengkap</div><div class="info-value" id="viewAddress">—</div></div></div>
+        <div class="info-row"><div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M9 12h6M12 9v6"/></svg></div><div class="info-copy"><div class="info-label">Kontak darurat</div><div class="info-value" id="viewEmergencyContact">—</div></div></div>
+      </div>
+      <p class="privacy-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg><span>Pastikan nomor telepon dan alamat selalu benar agar tim homecare dapat menghubungi Anda terkait pesanan.</span></p>
+    </section>
+
+    <section class="form-panel" id="formPanel" aria-labelledby="formTitle">
+      <div class="section-heading" style="margin:0 0 14px"><div><h3 id="formTitle">Edit Informasi Profil</h3><p>Perbarui data Anda di bawah ini</p></div></div>
+      <p class="form-intro">Kolom bertanda * wajib diisi. Perubahan akan disimpan ke profil akun Anda.</p>
+      <form id="profileForm">
+        <label for="nama">Nama lengkap *</label><input id="nama" required maxlength="100" autocomplete="name">
+        <label for="phone">Nomor telepon *</label><input id="phone" required maxlength="30" type="tel" autocomplete="tel">
+        <label for="birthDate">Tanggal lahir</label><input id="birthDate" type="date">
+        <label for="gender">Jenis kelamin</label><select id="gender"><option value="">Pilih (opsional)</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option><option value="Tidak ingin menyebutkan">Tidak ingin menyebutkan</option></select>
+        <label for="address">Alamat lengkap *</label><textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
+        <label for="emergencyContact">Kontak darurat</label><input id="emergencyContact" maxlength="100" placeholder="Nama dan nomor kontak">
+        <div class="form-actions"><button type="button" class="cancel-btn" id="cancelBtn">Batal</button><button class="save-btn" id="saveBtn" type="submit">Simpan Perubahan</button></div>
+        <div id="message" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+</div>
 <script type="module">
 import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import {getFirestore,doc,getDoc,updateDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:123940961680:web:bb842fd8925e2432230715"};
 const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-const form=document.getElementById("profileForm"),message=document.getElementById("message"),saveBtn=document.getElementById("saveBtn");
-let activeUser=null;
+const form=document.getElementById("profileForm"),formPanel=document.getElementById("formPanel"),profileView=document.getElementById("profileView"),message=document.getElementById("message"),saveBtn=document.getElementById("saveBtn");
+let activeUser=null,profileData={};
+const fieldIds=["nama","phone","birthDate","gender","address","emergencyContact"];
 const setMessage=(text,type="")=>{message.textContent=text;message.className=type;};
+const displayValue=value=>value&&String(value).trim()?String(value).trim():"Belum diisi";
+function renderProfile(){
+ const name=profileData.nama||activeUser?.displayName||"Pasien";
+ document.getElementById("displayName").textContent=name;
+ document.getElementById("displayEmail").textContent=activeUser?.email||"Akun pasien Go Homecare";
+ const initials=name.trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join("").toUpperCase();
+ document.getElementById("avatarInitials").textContent=initials||"GH";
+ const labels={nama:profileData.nama,phone:profileData.phone,birthDate:profileData.birthDate,gender:profileData.gender,address:profileData.address,emergencyContact:profileData.emergencyContact};
+ for(const key of fieldIds){
+  const target=document.getElementById("view"+key.charAt(0).toUpperCase()+key.slice(1));
+  const value=displayValue(labels[key]);
+  target.textContent=value;
+  target.classList.toggle("empty-value",value==="Belum diisi");
+ }
+}
+function openEditor(){
+ for(const key of fieldIds)document.getElementById(key).value=profileData[key]||"";
+ setMessage("");
+ profileView.hidden=true;
+ formPanel.classList.add("visible");
+ document.getElementById("editBtn").hidden=true;
+ document.getElementById("formTitle").scrollIntoView({behavior:"smooth",block:"start"});
+ document.getElementById("nama").focus({preventScroll:true});
+}
+function closeEditor(){
+ formPanel.classList.remove("visible");
+ profileView.hidden=false;
+ document.getElementById("editBtn").hidden=false;
+ setMessage("");
+}
 onAuthStateChanged(auth,async user=>{
  if(!user){location.replace("index.html");return;}
  activeUser=user;
  try{
   const snap=await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()||snap.data().role!=="pasien"){setMessage("Akun ini tidak memiliki akses ke profil pasien.","error");form.hidden=true;return;}
-  const p=snap.data();
-  for(const key of ["nama","phone","birthDate","gender","address","emergencyContact"])document.getElementById(key).value=p[key]||"";
- }catch(e){console.error(e);setMessage("Profil gagal dimuat. Periksa koneksi atau izin Firestore.","error");}
+  if(!snap.exists()||snap.data().role!=="pasien"){setMessage("Akun ini tidak memiliki akses ke profil pasien.","error");formPanel.classList.add("visible");form.hidden=true;return;}
+  profileData=snap.data();
+  renderProfile();
+ }catch(e){console.error(e);document.getElementById("displayName").textContent="Profil belum dapat dimuat";setMessage("Profil gagal dimuat. Periksa koneksi atau izin Firestore.","error");formPanel.classList.add("visible");}
 });
 document.getElementById("backBtn").addEventListener("click",()=>location.href="patient.html");
+document.getElementById("editBtn").addEventListener("click",openEditor);
+document.getElementById("cancelBtn").addEventListener("click",closeEditor);
 form.addEventListener("submit",async event=>{
  event.preventDefault();if(!activeUser)return;
  const data={nama:document.getElementById("nama").value.trim(),phone:document.getElementById("phone").value.trim(),birthDate:document.getElementById("birthDate").value,gender:document.getElementById("gender").value,address:document.getElementById("address").value.trim(),emergencyContact:document.getElementById("emergencyContact").value.trim()};
  if(!data.nama||!data.phone||!data.address){setMessage("Nama, nomor telepon, dan alamat wajib diisi.","error");return;}
  saveBtn.disabled=true;saveBtn.textContent="Menyimpan…";setMessage("");
- try{await updateDoc(doc(db,"users",activeUser.uid),{...data,profileComplete:true,updatedAt:serverTimestamp()});setMessage("Profil berhasil disimpan.","success");setTimeout(()=>location.href="patient.html",700);}
- catch(e){console.error(e);setMessage("Profil gagal disimpan. Periksa aturan Firestore dan koneksi internet.","error");}
- finally{saveBtn.disabled=false;saveBtn.textContent="Simpan Profil";}
+ try{
+  await updateDoc(doc(db,"users",activeUser.uid),{...data,profileComplete:true,updatedAt:serverTimestamp()});
+  profileData={...profileData,...data};
+  renderProfile();
+  closeEditor();
+  const notice=document.createElement("div");notice.id="saveNotice";notice.setAttribute("role","status");notice.textContent="Profil berhasil diperbarui.";
+  notice.style.cssText="margin:14px 16px 0;padding:12px 14px;border-radius:12px;background:#ecfdf5;color:#065f46;font-size:12px;font-weight:700;border:1px solid #a7f3d0";
+  document.querySelector("#profileView .section-heading")?.before(notice);
+  window.setTimeout(()=>notice.remove(),3500);
+ }catch(e){console.error(e);setMessage("Profil gagal disimpan. Periksa aturan Firestore dan koneksi internet.","error");}
+ finally{saveBtn.disabled=false;saveBtn.textContent="Simpan Perubahan";}
 });
 </script>
 </body>
