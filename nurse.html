@@ -45,6 +45,32 @@
     .profile-footnote{font-size:11px;color:#94a3b8;text-align:center;margin:12px 0 0}
     @media(max-width:380px){.profile-main{padding-left:15px;padding-right:15px}.profile-avatar,.profile-avatar-fallback{width:74px;height:74px;flex-basis:74px;border-radius:20px}.profile-name{font-size:18px}.profile-stat{padding:11px 10px}}
     .task{border:1px solid #e2e8f0;border-radius:14px;padding:15px;margin:12px 0}.task h3{font-size:16px;margin:0 0 10px}.task p{font-size:13px;overflow-wrap:anywhere}.task button{background:var(--primary);color:#fff;margin:5px 5px 0 0}.task button:disabled{opacity:.6}.empty{padding:14px;background:#f8fafc;border-radius:12px;color:var(--muted);font-size:13px}
+    main{padding:20px 18px calc(104px + env(safe-area-inset-bottom))}
+    [hidden]{display:none!important}
+    .tab-panel{animation:panelIn .18s ease-out}
+    @keyframes panelIn{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+    .home-welcome{background:linear-gradient(145deg,#f0fdfa,#fff);border-color:#ccfbf1}
+    .home-eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;color:#0f766e;margin:0 0 9px}
+    .home-welcome h2,.panel-intro h2{font-size:23px;letter-spacing:-.5px;margin:0 0 7px}
+    .home-intro,.section-help{font-size:13px;color:#64748b;line-height:1.6;margin:0}
+    .home-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+    .home-stat{background:#fff;border:1px solid #dbeafe;border-radius:14px;padding:14px}
+    .home-stat-label{display:block;color:#64748b;font-size:11px;margin-bottom:8px}
+    .home-stat strong{font-size:25px;color:#0f766e}
+    .section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .section-heading h2{font-size:17px;margin:0}
+    .text-button{background:#ccfbf1;color:#115e59;padding:9px 11px;font-size:12px}
+    .secondary-button{background:#ecfeff;color:#155e75;margin-top:14px}
+    .schedule-item{border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:10px 0;background:#fff}
+    .schedule-item h3{font-size:14px;margin:0 0 6px}
+    .schedule-item p{font-size:12px;color:#64748b;margin:0;line-height:1.6}
+    .schedule-status{display:inline-flex;margin-top:9px;padding:5px 8px;border-radius:99px;background:#ccfbf1;color:#115e59;font-size:11px;font-weight:700}
+    .bottom-nav{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,600px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:#ffffffed;backdrop-filter:blur(16px);border-top:1px solid #e2e8f0;box-shadow:0 -6px 22px #0f172a0a}
+    .nav-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:7px 2px;background:transparent;color:#64748b;font-size:10px;font-weight:650;border-radius:12px;min-width:0}
+    .nav-item.active{background:#f0fdfa;color:#0f766e}
+    .nav-icon{font-size:21px;line-height:1.1;font-weight:500}
+    .nav-count{position:absolute;top:2px;left:calc(50% + 12px);min-width:17px;height:17px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:99px;background:#dc2626;color:#fff;font-size:10px}
+    @media(min-width:600px){body{padding:0 12px}.wrap{box-shadow:0 0 40px #0f172a14}.bottom-nav{border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0}}
   </style>
 </head>
 <body>
@@ -61,7 +87,40 @@
         </div>
       </header>
       <main>
-        <section class="card profile-card" aria-labelledby="profileName">
+        <section class="tab-panel" id="panel-home" aria-labelledby="homeTitle">
+          <section class="card home-welcome">
+            <p class="home-eyebrow">GO HOMECARE · AREA PRAKTISI</p>
+            <h2 id="homeTitle">Beranda</h2>
+            <p class="home-intro">Pantau penugasan dan kunjungan layanan Anda dari satu tempat.</p>
+            <div class="home-stats">
+              <div class="home-stat"><span class="home-stat-label">Tugas aktif</span><strong id="homeActiveCount">—</strong></div>
+              <div class="home-stat"><span class="home-stat-label">Kunjungan mendatang</span><strong id="homeUpcomingCount">—</strong></div>
+            </div>
+          </section>
+          <section class="card">
+            <div class="section-heading"><h2>Agenda terdekat</h2><button type="button" class="text-button" data-go-tab="schedule">Lihat jadwal</button></div>
+            <p id="homeScheduleStatus" class="section-help">Memuat agenda…</p>
+            <div id="homeUpcomingPreview"><div class="empty">Memuat agenda…</div></div>
+          </section>
+          <section class="card">
+            <div class="section-heading"><h2>Ringkasan pesanan</h2><button type="button" class="text-button" data-go-tab="orders">Lihat pesanan</button></div>
+            <p class="section-help">Kelola penugasan yang diberikan kepada akun Anda dan perbarui status layanan sesuai tahap pengerjaan.</p>
+          </section>
+        </section>
+
+        <section class="tab-panel" id="panel-orders" hidden aria-labelledby="ordersTitle">
+          <section class="card panel-intro"><p class="home-eyebrow">PENUGASAN</p><h2 id="ordersTitle">Pesanan</h2><p class="section-help">Daftar pesanan yang ditugaskan kepada Anda beserta status dan detail layanan.</p></section>
+          <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:18px;margin:0">Tugas Homecare</h2><button id="refreshTasks" type="button" style="background:#ccfbf1;color:#115e59">Muat ulang</button></div><p id="taskStatus" class="muted" style="color:#64748b;margin:8px 0 12px" role="status">Memuat tugas…</p><div id="tasks"><div class="empty">Memuat tugas…</div></div></section>
+        </section>
+
+        <section class="tab-panel" id="panel-schedule" hidden aria-labelledby="scheduleTitle">
+          <section class="card panel-intro"><p class="home-eyebrow">RENCANA KUNJUNGAN</p><h2 id="scheduleTitle">Jadwal</h2><p class="section-help">Jadwal ditampilkan dari pesanan yang sudah ditugaskan. Tidak ada jadwal terpisah yang perlu diinput ulang.</p><button id="refreshSchedule" type="button" class="secondary-button">Muat ulang jadwal</button></section>
+          <section class="card"><div id="scheduleList"><div class="empty">Memuat jadwal…</div></div></section>
+        </section>
+
+        <section class="tab-panel" id="panel-profile" hidden aria-labelledby="profileTitle">
+          <section class="card panel-intro"><p class="home-eyebrow">AKUN ANDA</p><h2 id="profileTitle">Profil</h2><p class="section-help">Pastikan informasi profesional dan tarif layanan selalu terbaru.</p></section>
+          <section class="card profile-card" aria-labelledby="profileName">
           <div class="profile-cover" aria-hidden="true"></div>
           <div class="profile-main">
             <div class="profile-head">
@@ -96,8 +155,15 @@
             <p class="profile-footnote">Pastikan informasi pengalaman, keahlian, dan tarif selalu terbaru.</p>
           </div>
         </section>
-                <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:18px;margin:0">Tugas Homecare</h2><button id="refreshTasks" type="button" style="background:#ccfbf1;color:#115e59">Muat ulang</button></div><p id="taskStatus" class="muted" style="color:#64748b;margin:8px 0 12px" role="status">Memuat tugas…</p><div id="tasks"><div class="empty">Memuat tugas…</div></div></section><div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
+          <div class="notice">Data pasien hanya ditampilkan untuk pesanan yang ditugaskan kepada akun ini. Gunakan informasi hanya untuk menindaklanjuti layanan. Jangan gunakan dashboard ini untuk kondisi gawat darurat.</div>
+        </section>
       </main>
+      <nav class="bottom-nav" aria-label="Navigasi dashboard praktisi">
+        <button class="nav-item active" type="button" data-tab="home" aria-current="page"><span class="nav-icon" aria-hidden="true">⌂</span><span>Beranda</span></button>
+        <button class="nav-item" type="button" data-tab="orders"><span class="nav-icon" aria-hidden="true">▤</span><span>Pesanan</span><span class="nav-count" id="navActiveCount" hidden>0</span></button>
+        <button class="nav-item" type="button" data-tab="schedule"><span class="nav-icon" aria-hidden="true">▦</span><span>Jadwal</span></button>
+        <button class="nav-item" type="button" data-tab="profile"><span class="nav-icon" aria-hidden="true">♙</span><span>Profil</span></button>
+      </nav>
     </div>
   </div>
   <script type="module">
@@ -187,9 +253,15 @@
         const rows = [];
         snapshot.forEach((item) => rows.push({ id: item.id, data: item.data() }));
         rows.sort((a,b) => (b.data.updatedAt?.toMillis?.() || b.data.createdAt?.toMillis?.() || 0) - (a.data.updatedAt?.toMillis?.() || a.data.createdAt?.toMillis?.() || 0));
+        taskCache.splice(0, taskCache.length, ...rows);
         host.replaceChildren();
         const active = rows.filter(row => ["accepted","in_progress"].includes(row.data.status));
         status.textContent = active.length + " tugas aktif · " + rows.length + " total penugasan";
+        document.getElementById("homeActiveCount").textContent = active.length;
+        const navCount = document.getElementById("navActiveCount");
+        navCount.textContent = active.length;
+        navCount.hidden = active.length === 0;
+        renderSchedule(rows);
         if (!rows.length) { host.innerHTML = '<div class="empty">Belum ada pesanan yang ditugaskan kepada Anda.</div>'; return; }
         for (const row of rows) {
           const x = row.data;
@@ -224,6 +296,59 @@
         status.textContent = "Gagal memuat tugas";
         host.innerHTML = '<div class="empty error">Tidak dapat memuat tugas. Pastikan Firestore Rules mengizinkan praktisi membaca pesanan yang ditugaskan kepadanya.</div>';
       }
+    }
+
+    const taskCache = [];
+    const tabButtons = [...document.querySelectorAll("[data-tab]")];
+    const panels = [...document.querySelectorAll(".tab-panel")];
+
+    function showTab(tab) {
+      panels.forEach(panel => { panel.hidden = panel.id !== "panel-" + tab; });
+      tabButtons.forEach(button => {
+        const active = button.dataset.tab === tab;
+        button.classList.toggle("active", active);
+        if (active) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    tabButtons.forEach(button => button.addEventListener("click", () => showTab(button.dataset.tab)));
+    document.querySelectorAll("[data-go-tab]").forEach(button => button.addEventListener("click", () => showTab(button.dataset.goTab)));
+    document.getElementById("refreshSchedule").addEventListener("click", loadTasks);
+
+    function getScheduledDate(row) {
+      const value = row.data.scheduledAt;
+      const date = value?.toDate ? value.toDate() : new Date(value);
+      return Number.isFinite(date.getTime()) ? date : null;
+    }
+    function statusLabel(status) {
+      return ({ accepted:"Diterima · Siap dilayani", in_progress:"Sedang berlangsung", completed:"Selesai", rejected:"Ditolak", cancelled:"Dibatalkan", pending:"Menunggu konfirmasi" })[status] || status || "Status belum tersedia";
+    }
+    function renderSchedule(rows) {
+      const scheduleHost = document.getElementById("scheduleList");
+      const previewHost = document.getElementById("homeUpcomingPreview");
+      const today = new Date(); today.setHours(0,0,0,0);
+      const scheduled = rows
+        .filter(row => ["accepted","in_progress"].includes(row.data.status) && getScheduledDate(row))
+        .sort((a,b) => getScheduledDate(a) - getScheduledDate(b));
+      const upcoming = scheduled.filter(row => getScheduledDate(row) >= today);
+      document.getElementById("homeUpcomingCount").textContent = upcoming.length;
+      document.getElementById("homeScheduleStatus").textContent = upcoming.length ? "Ada " + upcoming.length + " kunjungan aktif yang dijadwalkan mulai hari ini." : "Belum ada kunjungan mendatang yang terjadwal.";
+      const makeItem = (row) => {
+        const x = row.data; const date = getScheduledDate(row);
+        const item = document.createElement("article"); item.className = "schedule-item";
+        const heading = document.createElement("h3"); heading.textContent = x.serviceName || "Layanan homecare";
+        const details = document.createElement("p");
+        details.textContent = (date ? date.toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"}) : "Jadwal tidak tersedia") + " · " + (x.patientName || "Nama pasien tidak tersedia");
+        const badge = document.createElement("span"); badge.className = "schedule-status"; badge.textContent = statusLabel(x.status);
+        item.append(heading,details,badge); return item;
+      };
+      scheduleHost.replaceChildren();
+      if (!scheduled.length) scheduleHost.innerHTML = '<div class="empty">Belum ada pesanan aktif dengan jadwal kunjungan. Jadwal akan muncul di sini saat penugasan tersedia.</div>';
+      else scheduled.forEach(row => scheduleHost.appendChild(makeItem(row)));
+      previewHost.replaceChildren();
+      if (!upcoming.length) previewHost.innerHTML = '<div class="empty">Belum ada agenda terdekat. Periksa menu Pesanan untuk melihat seluruh penugasan.</div>';
+      else upcoming.slice(0,2).forEach(row => previewHost.appendChild(makeItem(row)));
     }
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
