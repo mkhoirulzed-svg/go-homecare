@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>Katalog Praktisi & Layanan - Go Homecare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--teal:#0f766e;--mint:#ccfbf1;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f1f5f9}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink)}
+    .app{max-width:720px;min-height:100vh;margin:auto;background:white}
+    header{padding:22px 20px 28px;background:linear-gradient(140deg,#115e59,#0d9488);color:#fff;border-radius:0 0 24px 24px}
+    .back{display:inline-block;color:white;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:22px}
+    h1{font-size:25px;letter-spacing:-.6px;margin:0 0 8px}.sub{font-size:13px;line-height:1.6;color:#d1fae5;margin:0}
+    main{padding:18px 16px 40px}.tools{display:grid;gap:10px;margin-bottom:16px}
+    input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
+    .notice{font-size:12px;color:var(--muted);line-height:1.6;padding:12px;border-radius:12px;background:#f8fafc;margin-bottom:14px}
+    .status{padding:14px;border-radius:12px;background:#f8fafc;color:#475569;font-size:13px;line-height:1.5}
+    .card{border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0;box-shadow:0 5px 20px #0f172a08}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.type{font-size:10px;letter-spacing:.08em;font-weight:800;text-transform:uppercase;color:var(--teal);margin:0 0 7px}
+    h2{font-size:18px;line-height:1.35;margin:0 0 7px;overflow-wrap:anywhere}.muted{font-size:12px;line-height:1.6;color:var(--muted);margin:5px 0}
+    .tag{font-size:10px;font-weight:800;color:#065f46;background:#d1fae5;border-radius:99px;padding:6px 8px;white-space:nowrap}
+    .service{border-top:1px solid var(--line);padding-top:12px;margin-top:13px}.service-title{font-weight:800;font-size:14px}.price{font-weight:800;color:var(--teal);font-size:15px;margin-top:5px}
+    .duration{font-size:11px;color:var(--muted);margin-top:4px}.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+    .book{display:block;text-align:center;text-decoration:none;background:var(--teal);color:white;padding:12px;border-radius:11px;font-weight:800;font-size:13px;margin-top:12px}
+    @media(min-width:600px){.tools{grid-template-columns:1fr 190px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header><a class="back" href="patient.html">← Kembali ke dashboard</a><h1>Praktisi & Layanan</h1><p class="sub">Temukan lokasi praktik, layanan, tarif, dan durasi sebelum membuat pesanan.</p></header>
+  <main>
+    <div class="tools"><input id="search" type="search" placeholder="Cari layanan, lokasi, kota, atau area…" aria-label="Cari katalog"><select id="typeFilter" aria-label="Jenis lokasi"><option value="">Semua jenis lokasi</option><option value="practice">Klinik / tempat praktik</option><option value="home_visit">Layanan kunjungan rumah</option></select></div>
+    <div class="notice">Katalog hanya menampilkan lokasi dan layanan yang telah dipublikasikan. Tarif dan ketersediaan perlu dikonfirmasi kembali sebelum pemesanan. Penilaian bintang belum ditampilkan karena fitur ulasan belum tersedia.</div>
+    <div id="status" class="status" role="status">Memeriksa sesi dan memuat katalog…</div>
+    <div id="catalog"></div>
+  </main>
+</div>
+<script type="module">
+import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,collection,query,where,getDocs} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:940961680:web:bb842fd8925e2432230715"};
+const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);let rows=[];
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function rupiah(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v)||0);}
+function render(){
+ const term=$("search").value.trim().toLocaleLowerCase("id-ID"),type=$("typeFilter").value;
+ const filtered=rows.filter(r=>(!type||r.location.locationType===type)&&(!term||[r.location.name,r.location.area,r.location.city,r.location.province,r.location.address,...r.services.map(s=>s.name+" "+s.description)].join(" ").toLocaleLowerCase("id-ID").includes(term)));
+ $("catalog").replaceChildren();
+ if(!filtered.length){$("catalog").innerHTML='<div class="empty">Belum ada lokasi atau layanan yang cocok. Coba kata kunci lain atau periksa kembali nanti.</div>';return;}
+ for(const row of filtered){
+  const x=row.location,card=document.createElement("article");card.className="card";
+  const services=row.services.map(s=>'<div class="service"><div class="service-title">'+escapeHtml(s.name)+'</div>'+(s.description?'<p class="muted">'+escapeHtml(s.description)+'</p>':'')+'<div class="price">'+rupiah(s.price)+'</div><div class="duration">Estimasi durasi '+escapeHtml(s.durationMinutes)+' menit</div><a class="book" href="booking.html?service='+encodeURIComponent(s.name)+'">Pesan layanan ini</a></div>').join("");
+  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">Terverifikasi & terbit</span></div><p class="muted">📍 '+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+'<p class="muted">Profil nama praktisi dan rating akan ditambahkan setelah profil publik dan sistem ulasan tersedia.</p>'+services;
+  $("catalog").append(card);
+ }
+}
+async function loadCatalog(){
+ $("status").textContent="Memuat lokasi dan layanan yang dipublikasikan…";
+ try{
+  const locSnap=await getDocs(query(collection(db,"practitionerLocations"),where("status","==","published")));
+  const locations=locSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const loaded=await Promise.all(locations.map(async location=>{
+   const ss=await getDocs(query(collection(db,"practitionerLocations",location.id,"services"),where("status","==","published")));
+   return {location,services:ss.docs.map(d=>({id:d.id,...d.data()}))};
+  }));
+  rows=loaded.filter(r=>r.services.length>0);
+  $("status").textContent=rows.length?("Ditemukan "+rows.length+" lokasi dengan layanan yang telah dipublikasikan."):"Belum ada lokasi dengan layanan yang dipublikasikan.";
+  render();
+ }catch(error){console.error("Gagal memuat katalog:",error);$("status").textContent="Katalog belum dapat dimuat. Pastikan sesi pasien aktif dan Firestore Rules yang sesuai sudah tersedia. ("+(error.code||"kesalahan")+")";}
+}
+$("search").addEventListener("input",render);$("typeFilter").addEventListener("change",render);
+onAuthStateChanged(auth,async user=>{
+ if(!user){$("status").textContent="Silakan masuk ke akun pasien untuk melihat katalog.";return;}
+ try{const snap=await getDoc(doc(db,"users",user.uid));if(!snap.exists()||snap.data().role!=="pasien"||snap.data().profileComplete!==true){$("status").textContent="Katalog ini tersedia untuk akun pasien dengan profil lengkap.";return;}await loadCatalog();}
+ catch(error){console.error(error);$("status").textContent="Tidak dapat memverifikasi akun pasien.";}
+});
+</script>
+</body>
+</html>
