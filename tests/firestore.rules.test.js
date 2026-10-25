@@ -515,3 +515,139 @@ test("practitioner cannot publish or edit a location after submission", async ()
     updatedAt: serverTimestamp()
   }));
 });
+
+
+// Location service and pricing rules tests.
+function validPractitionerService(overrides = {}) {
+  return {
+    name: "Perawatan Luka",
+    description: "Perawatan luka dasar",
+    price: 150000,
+    durationMinutes: 60,
+    status: "draft",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...overrides
+  };
+}
+
+async function seedPractitionerService(locationId, serviceId, status = "draft") {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "practitionerLocations", locationId), {
+      ownerUid: "nurse-1",
+      name: "Lokasi Layanan Uji",
+      locationType: "practice",
+      address: "Jalan Contoh No. 1",
+      area: "Palangka Raya",
+      city: "Palangka Raya",
+      province: "Kalimantan Tengah",
+      status: "published",
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+    await setDoc(doc(context.firestore(), "practitionerLocations", locationId, "services", serviceId), {
+      name: "Perawatan Luka",
+      description: "Perawatan luka dasar",
+      price: 150000,
+      durationMinutes: 60,
+      status,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+  });
+}
+
+test("verified location owner can create a draft service with a valid integer price", async () => {
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await seedPractitionerLocation("service-parent", "nurse-1", "published");
+  await assertSucceeds(setDoc(
+    doc(db, "practitionerLocations", "service-parent", "services", "service-new"),
+    validPractitionerService()
+  ));
+});
+
+test("service creation rejects invalid price, unexpected fields, and unverified owners", async () => {
+  const verifiedDb = testEnv.authenticatedContext("nurse-1").firestore();
+  await seedPractitionerLocation("service-parent", "nurse-1", "published");
+  await assertFails(setDoc(
+    doc(verifiedDb, "practitionerLocations", "service-parent", "services", "negative-price"),
+    validPractitionerService({ price: -1 })
+  ));
+  await assertFails(setDoc(
+    doc(verifiedDb, "practitionerLocations", "service-parent", "services", "spoofed-status"),
+    validPractitionerService({ status: "published" })
+  ));
+  const unverifiedDb = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(setDoc(
+    doc(unverifiedDb, "practitionerLocations", "service-parent", "services", "unverified"),
+    validPractitionerService()
+  ));
+});
+
+test("practitioner cannot manage services under another practitioner's location", async () => {
+  await seedPractitionerLocation("service-parent", "nurse-1", "published");
+  const db = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "service-parent", "services", "foreign-service"),
+    validPractitionerService()
+  ));
+});
+
+test("owner can edit a draft service and submit it for review", async () => {
+  await seedPractitionerService("service-parent", "service-1", "draft");
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  const ref = doc(db, "practitionerLocations", "service-parent", "services", "service-1");
+  await assertSucceeds(updateDoc(ref, {
+    price: 175000,
+    updatedAt: serverTimestamp()
+  }));
+  await assertSucceeds(updateDoc(ref, {
+    status: "pending_review",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("patient can read only published services under a published location", async () => {
+  await seedPractitionerService("published-parent", "published-service", "published");
+  await seedPractitionerService("published-parent-2", "draft-service", "draft");
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(getDoc(doc(db, "practitionerLocations", "published-parent", "services", "published-service")));
+  await assertFails(getDoc(doc(db, "practitionerLocations", "published-parent-2", "services", "draft-service")));
+});
+
+test("admin can publish a submitted service but cannot publish it under an unpublished location", async () => {
+  await seedPractitionerService("published-parent", "pending-service", "pending_review");
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertSucceeds(updateDoc(
+    doc(db, "practitionerLocations", "published-parent", "services", "pending-service"),
+    {
+      status: "published",
+      reviewedBy: ADMIN_UID,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }
+  ));
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "practitionerLocations", "draft-parent"), {
+      ownerUid: "nurse-1", name: "Lokasi Draft", locationType: "practice",
+      address: "Jalan Contoh", area: "Palangka Raya", city: "Palangka Raya",
+      province: "Kalimantan Tengah", status: "draft",
+      createdAt: Timestamp.now(), updatedAt: Timestamp.now()
+    });
+    await setDoc(doc(context.firestore(), "practitionerLocations", "draft-parent", "services", "pending-service"), {
+      name: "Perawatan Luka", description: "Perawatan luka dasar", price: 150000,
+      durationMinutes: 60, status: "pending_review",
+      createdAt: Timestamp.now(), updatedAt: Timestamp.now()
+    });
+  });
+  await assertFails(updateDoc(
+    doc(db, "practitionerLocations", "draft-parent", "services", "pending-service"),
+    {
+      status: "published",
+      reviewedBy: ADMIN_UID,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }
+  ));
+});
+
