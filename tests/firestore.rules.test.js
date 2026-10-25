@@ -651,3 +651,98 @@ test("admin can publish a submitted service but cannot publish it under an unpub
   ));
 });
 
+
+
+// Weekly schedule tests: schedule documents are scoped to the owning location.
+function validWeeklySchedule(overrides = {}) {
+  return {
+    dayOfWeek: 1,
+    startTime: "08:00",
+    endTime: "12:00",
+    active: true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...overrides
+  };
+}
+
+async function seedWeeklySchedule(locationId, scheduleId, overrides = {}) {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "practitionerLocations", locationId), {
+      ownerUid: "nurse-1",
+      name: "Lokasi Jadwal Uji",
+      locationType: "practice",
+      address: "Jalan Contoh No. 1",
+      area: "Palangka Raya",
+      city: "Palangka Raya",
+      province: "Kalimantan Tengah",
+      status: "published",
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+    await setDoc(doc(context.firestore(), "practitionerLocations", locationId, "weeklySchedule", scheduleId), {
+      dayOfWeek: 1,
+      startTime: "08:00",
+      endTime: "12:00",
+      active: true,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      ...overrides
+    });
+  });
+}
+
+test("verified location owner can create and update a valid weekly schedule", async () => {
+  await seedPractitionerLocation("schedule-parent", "nurse-1", "published");
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  const ref = doc(db, "practitionerLocations", "schedule-parent", "weeklySchedule", "slot-1");
+  await assertSucceeds(setDoc(ref, validWeeklySchedule()));
+  await assertSucceeds(updateDoc(ref, {
+    startTime: "09:00",
+    endTime: "13:00",
+    updatedAt: serverTimestamp()
+  }));
+});
+
+test("weekly schedule rejects invalid day, time format, and end time before start", async () => {
+  await seedPractitionerLocation("schedule-parent", "nurse-1", "published");
+  const db = testEnv.authenticatedContext("nurse-1").firestore();
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "schedule-parent", "weeklySchedule", "bad-day"),
+    validWeeklySchedule({ dayOfWeek: 7 })
+  ));
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "schedule-parent", "weeklySchedule", "bad-format"),
+    validWeeklySchedule({ startTime: "8 AM" })
+  ));
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "schedule-parent", "weeklySchedule", "bad-range"),
+    validWeeklySchedule({ startTime: "15:00", endTime: "12:00" })
+  ));
+});
+
+test("practitioner cannot create a schedule for another owner's location", async () => {
+  await seedPractitionerLocation("schedule-parent", "nurse-1", "published");
+  const db = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "schedule-parent", "weeklySchedule", "foreign-slot"),
+    validWeeklySchedule()
+  ));
+});
+
+test("patient can read active schedule for published location but not inactive schedule", async () => {
+  await seedWeeklySchedule("published-schedule-parent", "active-slot", { active: true });
+  await seedWeeklySchedule("published-schedule-parent", "inactive-slot", { active: false });
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(getDoc(doc(db, "practitionerLocations", "published-schedule-parent", "weeklySchedule", "active-slot")));
+  await assertFails(getDoc(doc(db, "practitionerLocations", "published-schedule-parent", "weeklySchedule", "inactive-slot")));
+});
+
+test("unverified practitioner cannot create a weekly schedule", async () => {
+  await seedPractitionerLocation("schedule-parent", "nurse-1", "published");
+  const db = testEnv.authenticatedContext("nurse-2").firestore();
+  await assertFails(setDoc(
+    doc(db, "practitionerLocations", "schedule-parent", "weeklySchedule", "unverified-slot"),
+    validWeeklySchedule()
+  ));
+});
