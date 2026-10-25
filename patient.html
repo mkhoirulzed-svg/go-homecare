@@ -718,7 +718,7 @@
           const actions = status === "pending"
             ? '<div class="booking-actions"><button type="button" data-booking-action="edit" data-booking-id="' + escapeHtml(item.id) + '">Edit pesanan</button><button type="button" class="cancel-booking" data-booking-action="cancel" data-booking-id="' + escapeHtml(item.id) + '">Batalkan</button></div>'
             : ["accepted", "in_progress"].includes(status)
-              ? '<div class="booking-actions"><button type="button" data-chat-booking="' + escapeHtml(item.id) + '">Buka chat praktisi</button></div>'
+              ? '<div class="booking-actions"><button type="button" data-booking-action="chat" data-booking-id="' + escapeHtml(item.id) + '" data-chat-booking="' + escapeHtml(item.id) + '">Buka chat praktisi</button></div>'
               : '';
           return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Praktisi: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
         }).join("");
@@ -756,7 +756,7 @@
           const actions = status === "pending"
             ? '<div class="booking-actions"><button type="button" data-booking-action="edit" data-booking-id="' + escapeHtml(item.id) + '">Edit pesanan</button><button type="button" class="cancel-booking" data-booking-action="cancel" data-booking-id="' + escapeHtml(item.id) + '">Batalkan</button></div>'
             : status === "completed"
-              ? '<div class="booking-actions"><button type="button" data-chat-booking="' + escapeHtml(item.id) + '">Lihat riwayat chat</button></div>'
+              ? '<div class="booking-actions"><button type="button" data-booking-action="chat" data-booking-id="' + escapeHtml(item.id) + '" data-chat-booking="' + escapeHtml(item.id) + '">Lihat riwayat chat</button></div>'
               : '';
           return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Perawat: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
         }).join("");
