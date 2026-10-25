@@ -92,7 +92,6 @@ service cloud.firestore {
         || (
           isCompletePatient()
           && resource.data.status == 'published'
-          && isVerifiedPractitioner(resource.data.ownerUid)
         );
 
       allow create: if signedIn()
@@ -172,6 +171,8 @@ service cloud.firestore {
         && request.resource.data.status in [
           'pending_review', 'published', 'rejected', 'paused'
         ]
+        && (request.resource.data.status != 'published'
+          || isVerifiedPractitioner(resource.data.ownerUid))
         && request.resource.data.updatedAt == request.time
       );
 
