@@ -88,6 +88,7 @@
               <option value="Wali/Pendamping">Wali/Pendamping</option>
             </select>
           </div>
+          <div id="catalogSelection" class="notice hidden" aria-live="polite"></div>
           <div class="field">
             <label for="serviceName">Jenis layanan *</label>
             <select id="serviceName" required>
@@ -168,6 +169,7 @@
     let submitting = false;
     let editingBookingId = null;
     let existingBooking = null;
+    let selectedCatalog = null;
 
     function showError(message) {
       $("loading").classList.add("hidden");
@@ -219,9 +221,55 @@
     $("scheduledAt").min = localDateTimeMinimum();
     const params = new URLSearchParams(window.location.search);
     const requestedService = params.get("service");
+    const requestedLocationId = params.get("locationId");
+    const requestedServiceId = params.get("serviceId");
     editingBookingId = params.get("bookingId");
     const allowedServices = ["Rawat Luka", "Pasang Infus", "Pasang NGT", "Pasang DC", "Perawatan Lansia", "Lainnya"];
     if (allowedServices.includes(requestedService)) $("serviceName").value = requestedService;
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+    }
+    function showCatalogSelection(selection) {
+      selectedCatalog = selection;
+      const select = $("serviceName");
+      if (![...select.options].some(option => option.value === selection.serviceName)) {
+        const option = document.createElement("option");
+        option.value = selection.serviceName;
+        option.textContent = selection.serviceName;
+        select.append(option);
+      }
+      select.value = selection.serviceName;
+      select.disabled = true;
+      $("catalogSelection").innerHTML =
+        "<strong>Ringkasan layanan terpilih</strong><br>" +
+        escapeHtml(selection.locationName) + " · " +
+        escapeHtml(selection.locationType === "practice" ? "Klinik / tempat praktik" : "Kunjungan rumah") +
+        "<br>" + escapeHtml(selection.serviceName) +
+        "<br>Tarif saat dipilih: <strong>" +
+        new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(selection.price) +
+        "</strong> · " + escapeHtml(selection.durationMinutes) + " menit" +
+        "<br><span>Harga disimpan sebagai snapshot; ketersediaan akhir tetap menunggu konfirmasi praktisi.</span>";
+      $("catalogSelection").classList.remove("hidden");
+    }
+    async function loadCatalogSelection(locationId, serviceId) {
+      const [locationSnap, serviceSnap] = await Promise.all([
+        getDoc(doc(db, "practitionerLocations", locationId)),
+        getDoc(doc(db, "practitionerLocations", locationId, "services", serviceId))
+      ]);
+      if (!locationSnap.exists() || !serviceSnap.exists()) throw new Error("Lokasi atau layanan tidak lagi tersedia di katalog.");
+      const location = locationSnap.data(), service = serviceSnap.data();
+      if (location.status !== "published" || service.status !== "published") {
+        throw new Error("Lokasi atau layanan tidak lagi dipublikasikan. Silakan pilih dari katalog terbaru.");
+      }
+      if (requestedService && requestedService !== service.name) throw new Error("Nama layanan pada tautan tidak sesuai dengan data katalog.");
+      return {
+        locationId, serviceId, locationName: location.name, locationType: location.locationType,
+        serviceName: service.name, price: service.price, durationMinutes: service.durationMinutes,
+        practitionerUid: location.ownerUid
+      };
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -251,6 +299,15 @@
         updateBookingFor();
         $("patientAddress").value = profile.address || "";
 
+        if (!editingBookingId && requestedLocationId && requestedServiceId) {
+          try {
+            showCatalogSelection(await loadCatalogSelection(requestedLocationId, requestedServiceId));
+          } catch (selectionError) {
+            showError(selectionError.message || "Layanan katalog belum dapat dimuat.");
+            return;
+          }
+        }
+
         if (editingBookingId) {
           const bookingSnap = await getDoc(doc(db, "bookingRequests", editingBookingId));
           if (!bookingSnap.exists()) {
@@ -270,6 +327,16 @@
           updateBookingFor();
           $("relationship").value = existingBooking.relationship || "";
           $("serviceName").value = existingBooking.serviceName || "";
+          if (existingBooking.locationId && existingBooking.serviceId) {
+            showCatalogSelection({
+              locationId: existingBooking.locationId, serviceId: existingBooking.serviceId,
+              locationName: existingBooking.locationNameSnapshot || "Lokasi terpilih",
+              locationType: existingBooking.locationTypeSnapshot || "practice",
+              serviceName: existingBooking.serviceName || "", price: existingBooking.priceSnapshot ?? 0,
+              durationMinutes: existingBooking.serviceDurationMinutesSnapshot ?? 0,
+              practitionerUid: existingBooking.practitionerUidSnapshot || ""
+            });
+          }
           $("patientName").value = existingBooking.patientName || "";
           $("patientPhone").value = existingBooking.patientPhone || "";
           $("patientAddress").value = existingBooking.patientAddress || "";
@@ -375,6 +442,15 @@
             patientPhone,
             patientAddress,
             serviceName,
+            ...(selectedCatalog ? {
+              locationId: selectedCatalog.locationId,
+              serviceId: selectedCatalog.serviceId,
+              locationNameSnapshot: selectedCatalog.locationName,
+              locationTypeSnapshot: selectedCatalog.locationType,
+              priceSnapshot: selectedCatalog.price,
+              serviceDurationMinutesSnapshot: selectedCatalog.durationMinutes,
+              practitionerUidSnapshot: selectedCatalog.practitionerUid
+            } : {}),
             scheduledAt: Timestamp.fromDate(scheduledDate),
             area,
             notes,
