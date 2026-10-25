@@ -270,6 +270,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Tanda baca pesan hanya dapat dikelola oleh peserta chat untuk akun mereka sendiri.
+    match /bookingChats/{bookingId}/reads/{userId} {
+      allow get: if signedIn() && request.auth.uid == userId
+        && isChatParticipant(bookingId) && isChatReadable(bookingId);
+      allow list: if false;
+      allow create, update: if signedIn() && request.auth.uid == userId
+        && isChatParticipant(bookingId) && isChatReadable(bookingId)
+        && request.resource.data.keys().hasOnly(['lastReadAt'])
+        && request.resource.data.keys().hasAll(['lastReadAt'])
+        && request.resource.data.lastReadAt == request.time;
+      allow delete: if false;
+    }
+
     // Percakapan memakai ID pesanan. Riwayat tetap dapat dibaca setelah layanan selesai.
     match /bookingChats/{bookingId}/messages/{messageId} {
       allow get, list: if isChatParticipant(bookingId) && isChatReadable(bookingId);
