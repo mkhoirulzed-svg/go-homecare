@@ -13,7 +13,7 @@ function ensureBadgeStyles() {
   if (document.getElementById("gh-unread-chat-styles")) return;
   const style = document.createElement("style");
   style.id = "gh-unread-chat-styles";
-  style.textContent = ".gh-unread-nav-badge{position:absolute;top:1px;left:calc(50% + 10px);min-width:18px;height:18px;padding:0 5px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:18px;box-shadow:0 0 0 2px #fff}.gh-unread-chat-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:7px;border-radius:999px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:18px;vertical-align:middle}.gh-unread-nav-item{position:relative}";
+  style.textContent = ".gh-unread-nav-badge{position:absolute;top:1px;left:calc(50% + 10px);min-width:18px;height:18px;padding:0 5px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:18px;box-shadow:0 0 0 2px #fff}.gh-unread-chat-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;margin-left:7px;border-radius:999px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;line-height:18px;vertical-align:middle}.gh-unread-nav-item{position:relative}.gh-unread-nav-badge[hidden],.gh-unread-chat-badge[hidden]{display:none!important}";
   document.head.appendChild(style);
 }
 
