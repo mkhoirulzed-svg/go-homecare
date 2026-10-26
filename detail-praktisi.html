@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f766e">
+<title>Profil Praktisi & Rincian Layanan - Go Homecare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#0f766e;--dark:#115e59;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f3f7f8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.app{max-width:780px;min-height:100vh;margin:auto;background:#fbfdfd;box-shadow:0 0 44px #0f172a08}
+header{padding:18px 20px 27px;background:radial-gradient(circle at 100% 0%,#2dd4bf55,transparent 38%),linear-gradient(145deg,#134e4a,#0f766e 65%,#0d9488);color:#fff;border-radius:0 0 28px 28px}
+.back{display:inline-flex;align-items:center;gap:7px;color:#ecfdf5;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:24px;padding:8px 0}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#99f6e4;margin:0 0 8px}
+h1{font-size:clamp(24px,5vw,30px);letter-spacing:-.8px;margin:0 0 7px;font-weight:800}.sub{font-size:13px;line-height:1.65;color:#d1fae5;margin:0;max-width:480px}
+main{padding:18px 15px 44px}.status{padding:12px 2px;color:#64748b;font-size:12px;line-height:1.6}
+.profile{overflow:hidden;border:1px solid #dbe7e8;background:#fff;border-radius:22px;box-shadow:0 7px 24px #0f172a08;margin-bottom:22px}
+.cover{height:84px;background:radial-gradient(circle at 85% 10%,#99f6e4,transparent 32%),linear-gradient(120deg,#115e59,#0d9488)}
+.profile-body{padding:0 18px 20px}.profile-top{display:flex;align-items:flex-end;gap:14px;margin-top:-35px;position:relative}
+.avatar,.photo{width:78px;height:78px;flex:0 0 78px;border-radius:22px;object-fit:cover;border:4px solid #fff;background:#ccfbf1;box-shadow:0 5px 16px #0f172a20}
+.avatar{display:grid;place-items:center;color:#115e59;font-size:28px;font-weight:800}
+.name{font-size:22px;letter-spacing:-.5px;line-height:1.3;margin:0 0 5px;overflow-wrap:anywhere}.specialty{font-size:12px;line-height:1.6;color:#64748b;margin:0}
+.bio{font-size:13px;line-height:1.75;color:#475569;margin:16px 0 0;white-space:pre-line}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.stat{border:1px solid #e2e8f0;border-radius:14px;padding:13px;background:#fbfdfd;min-width:0}.stat-label{display:block;font-size:11px;color:#64748b;margin-bottom:6px}.stat-value{font-size:13px;line-height:1.5;font-weight:750;overflow-wrap:anywhere}.stat-value.price{font-size:16px;color:#0f766e}
+.section-title{font-size:18px;letter-spacing:-.3px;margin:25px 0 5px}.section-sub{font-size:12px;line-height:1.65;color:#64748b;margin:0 0 13px}
+.location{border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;background:#fff;margin:13px 0 16px;box-shadow:0 4px 16px #0f172a05}
+.location-head{padding:14px 15px;display:flex;align-items:flex-start;gap:10px}.location-head.practice{background:#eff6ff;border-bottom:1px solid #bfdbfe;color:#1d4ed8}.location-head.home{background:#fff7ed;border-bottom:1px solid #fed7aa;color:#9a3412}
+.location-icon{width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;border-radius:11px;background:#ffffffb8;font-size:18px}.location-name{font-size:14px;font-weight:800;line-height:1.45;margin:0}.location-kind{font-size:10px;font-weight:700;opacity:.85;margin-top:3px}
+.location-address{font-size:12px;color:#64748b;line-height:1.65;padding:12px 14px 0;margin:0}
+.service{padding:15px 14px;border-bottom:1px solid #edf1f2}.service:last-child{border-bottom:0}
+.service-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.service-name{font-size:14px;line-height:1.5;font-weight:800;margin:0}.duration{white-space:nowrap;background:#f1f5f9;color:#475569;border-radius:99px;padding:5px 8px;font-size:10px;font-weight:700}
+.description{font-size:12px;line-height:1.7;color:#64748b;margin:7px 0 0;white-space:pre-line}
+.price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:12px}.price-label{font-size:10px;color:#64748b}.price{font-size:19px;font-weight:800;letter-spacing:-.4px;color:#0f766e;margin-top:3px}
+.book{display:block;text-align:center;text-decoration:none;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;padding:12px 14px;border-radius:12px;font-weight:800;font-size:12px;margin-top:13px;box-shadow:0 4px 10px #0f766e1a}
+.empty{padding:22px 16px;text-align:center;color:#64748b;font-size:13px;line-height:1.7;background:#fff;border:1px dashed #cbdada;border-radius:16px;margin:12px 0}
+@media(min-width:600px){main{padding:24px 24px 48px}.profile-body{padding:0 22px 22px}.service{padding:17px}.location-head{padding:15px 17px}}
+</style>
+</head>
+<body><div class="app">
+<header><a class="back" href="katalog-praktisi.html"><span aria-hidden="true">←</span> Kembali ke daftar praktisi</a><p class="eyebrow">Go-Homecare · Profil profesional</p><h1>Profil Praktisi</h1><p class="sub">Kenali praktisi, lokasi layanan, dan tarif sebelum melakukan pemesanan.</p></header>
+<main><div id="status" class="status" role="status">Memeriksa sesi dan memuat profil…</div><div id="profileHost"></div><section id="servicesSection" hidden><h2 class="section-title">Layanan dan tarif</h2><p class="section-sub">Pilih layanan sesuai kebutuhan. Jenis lokasi ditandai dengan warna berbeda agar mudah dikenali.</p><div id="locations"></div></section></main>
+</div>
+<script type="module">
+import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,collection,query,where,getDocs}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:123940961680:web:bb842fd8925e2432230715"};
+const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id),params=new URLSearchParams(location.search);
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function rupiah(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v)||0);}
+async function loadDetail(){
+ const ownerUid=params.get("ownerUid"),locationId=params.get("locationId");
+ if(!ownerUid&&!locationId){$("status").textContent="Profil tidak ditemukan. Silakan kembali ke katalog praktisi.";return;}
+ try{
+  let locationDocs=[];
+  if(ownerUid){
+   const snap=await getDocs(query(collection(db,"practitionerLocations"),where("ownerUid","==",ownerUid)));
+   locationDocs=snap.docs.filter(d=>d.data().status==="published");
+  }else{
+   const snap=await getDoc(doc(db,"practitionerLocations",locationId));
+   if(snap.exists()&&snap.data().status==="published")locationDocs=[snap];
+  }
+  const loaded=await Promise.all(locationDocs.map(async d=>{
+   const x={id:d.id,...d.data()};
+   const ss=await getDocs(query(collection(db,"practitionerLocations",d.id,"services"),where("status","==","published")));
+   return {location:x,services:ss.docs.map(s=>({id:s.id,...s.data()}))};
+  }));
+  const rows=loaded.filter(r=>r.services.length);
+  if(!rows.length){$("status").textContent="Profil atau layanan ini belum tersedia untuk publik. Silakan kembali ke katalog.";return;}
+  const uid=ownerUid||rows[0].location.ownerUid||"";
+  let profile={};
+  if(uid){const pSnap=await getDoc(doc(db,"practitionerPublicProfiles",uid));if(pSnap.exists())profile=pSnap.data();}
+  const name=profile.name||profile.nama||"Praktisi kesehatan",specialty=profile.specialization||profile.jenisPraktisi||"Praktisi kesehatan",experience=profile.experienceYears??profile.experience;
+  const photo=profile.photoURL||profile.photoUrl||profile.photo||profile.foto||profile.avatarUrl||"",prices=rows.flatMap(r=>r.services.map(s=>Number(s.price))).filter(n=>Number.isFinite(n)&&n>=0),min=prices.length?Math.min(...prices):null;
+  const locations=[...new Map(rows.map(r=>[r.location.id,r.location])).values()],home=locations.some(x=>x.locationType==="home_visit"),practice=locations.filter(x=>x.locationType==="practice");
+  const avatar=photo?'<img class="photo" src="'+esc(photo)+'" alt="Foto '+esc(name)+'">':'<div class="avatar" aria-hidden="true">'+esc((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
+  $("profileHost").innerHTML='<section class="profile"><div class="cover"></div><div class="profile-body"><div class="profile-top">'+avatar+'<div><h2 class="name">'+esc(name)+'</h2><p class="specialty">'+esc(specialty)+(experience!==undefined&&experience!==null&&String(experience).trim()!==""?' · '+esc(experience)+' tahun pengalaman':'')+'</p></div></div>'+(profile.bio?'<p class="bio">'+esc(profile.bio)+'</p>':'')+'<div class="stats"><div class="stat"><span class="stat-label">Tarif layanan</span><div class="stat-value price">'+(min===null?"Konfirmasi tarif":"Mulai dari "+rupiah(min))+'</div></div><div class="stat"><span class="stat-label">Pilihan lokasi</span><div class="stat-value">'+(practice.length?'Klinik / tempat praktik':'')+(practice.length&&home?' dan ':'')+(home?'Kunjungan rumah':'')+'</div></div></div>'+(profile.serviceArea?'<p class="bio">Area layanan: '+esc(profile.serviceArea)+'</p>':'')+'</div></section>';
+  const host=$("locations");host.replaceChildren();
+  for(const row of rows){
+   const x=row.location,isHome=x.locationType==="home_visit",section=document.createElement("section");section.className="location";
+   const title=isHome?"Kunjungan rumah":(x.name||"Klinik / tempat praktik"),area=[x.address,x.area,x.city,x.province].filter(Boolean).join(", ");
+   section.innerHTML='<div class="location-head '+(isHome?"home":"practice")+'"><div class="location-icon" aria-hidden="true">'+(isHome?"⌂":"✚")+'</div><div><h3 class="location-name">'+esc(title)+'</h3><div class="location-kind">'+(isHome?"LAYANAN KUNJUNGAN RUMAH":"KLINIK / TEMPAT PRAKTIK")+'</div></div></div>'+(area?'<p class="location-address">'+esc(area)+'</p>':'');
+   for(const s of row.services){
+    const item=document.createElement("article");item.className="service";
+    item.innerHTML='<div class="service-top"><h4 class="service-name">'+esc(s.name||"Layanan kesehatan")+'</h4><span class="duration">'+(Number(s.durationMinutes)>0?esc(s.durationMinutes)+" menit":"Durasi sesuai konfirmasi")+'</span></div>'+(s.description?'<p class="description">'+esc(s.description)+'</p>':'')+'<div class="price-row"><div><div class="price-label">Tarif layanan</div><div class="price">'+rupiah(s.price)+'</div></div></div><a class="book" href="booking.html?service='+encodeURIComponent(s.name||"")+'&locationId='+encodeURIComponent(x.id)+'&serviceId='+encodeURIComponent(s.id)+'">Pesan layanan ini</a>';
+    section.append(item);
+   }
+   host.append(section);
+  }
+  $("status").textContent="";$("servicesSection").hidden=false;
+  const photoEl=$("profileHost").querySelector(".photo");if(photoEl)photoEl.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="avatar";fallback.setAttribute("aria-hidden","true");fallback.textContent=(name.trim().charAt(0)||"P").toUpperCase();photoEl.replaceWith(fallback);},{once:true});
+ }catch(error){console.error("Gagal memuat rincian praktisi:",error);$("status").textContent="Rincian belum dapat dimuat. Periksa koneksi atau aturan akses Firestore ("+(error.code||"kesalahan")+").";}
+}
+onAuthStateChanged(auth,async user=>{if(!user){$("status").textContent="Silakan masuk ke akun pasien untuk melihat profil praktisi.";return;}try{const snap=await getDoc(doc(db,"users",user.uid));if(!snap.exists()||snap.data().role!=="pasien"||snap.data().profileComplete!==true){$("status").textContent="Halaman ini tersedia untuk akun pasien dengan profil lengkap.";return;}await loadDetail();}catch(error){console.error(error);$("status").textContent="Tidak dapat memverifikasi akun pasien.";}})
+</script>
+</body></html>
