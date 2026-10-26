@@ -127,7 +127,7 @@ function render(){
    return '<span class="location-badge '+(isHome?"home":"practice")+'"><span class="dot" aria-hidden="true"></span>'+escapeHtml(label)+'</span>';
   }).join("");
   const firstLocation=locations[0];
-  const ownerUid=firstLocation?.ownerUid||p.uid||key;
+  const ownerUid=firstLocation?.ownerUid||p.uid||"";
   const detailUrl="detail-praktisi.html?"+(ownerUid?"ownerUid="+encodeURIComponent(ownerUid):"locationId="+encodeURIComponent(firstLocation?.id||""));
   const card=document.createElement("article");card.className="card profile-card";
   const avatar=photo?'<img class="profile-photo" src="'+escapeHtml(photo)+'" alt="Foto '+escapeHtml(name)+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="profile-avatar" aria-hidden="true">'+escapeHtml((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
