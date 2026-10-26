@@ -52,7 +52,7 @@
   .location-badge.practice{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8}
   .location-badge.home{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
   .location-badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
-  .details-toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:13px;padding:13px 14px;margin-top:14px;background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;font:800 13px Inter,sans-serif;cursor:pointer}
+  .details-toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:13px;padding:13px 14px;margin-top:14px;background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;font:800 13px Inter,sans-serif;cursor:pointer;text-decoration:none}
   .details-toggle:focus-visible{outline:3px solid #99f6e4;outline-offset:2px}
   .details-panel{border-top:1px solid #e7eeee;margin-top:17px;padding:16px 18px 18px;background:#fbfdfd}
   .details-heading{font-size:13px;font-weight:800;margin:0 0 12px}
@@ -112,7 +112,7 @@ function render(){
  }
  for(const [key,group] of groups){
   const p=group.profile||{}, entries=group.rows;
-  const services=entries.flatMap(row=>row.services.map(s=>({service:s,location:row.location})));
+  const services=entries.flatMap(row=>row.services.map(item=>({service:item,location:row.location})));
   const prices=services.map(item=>Number(item.service.price)).filter(price=>Number.isFinite(price)&&price>=0);
   const minPrice=prices.length?Math.min(...prices):null;
   const name=p.name||p.nama||"Praktisi kesehatan";
@@ -123,22 +123,17 @@ function render(){
   const locations=[...new Map(entries.map(row=>[row.location.id,row.location])).values()];
   const badgeHtml=locations.map(x=>{
    const isHome=x.locationType==="home_visit";
-   const label=isHome?"Kunjungan rumah":("Klinik / tempat praktik · "+(x.name||"Lokasi praktik"));
+   const label=isHome?"Kunjungan rumah":("Klinik · "+(x.name||"Tempat praktik"));
    return '<span class="location-badge '+(isHome?"home":"practice")+'"><span class="dot" aria-hidden="true"></span>'+escapeHtml(label)+'</span>';
   }).join("");
-  const details=locations.map(x=>{
-   const isHome=x.locationType==="home_visit",locServices=entries.filter(row=>row.location.id===x.id).flatMap(row=>row.services);
-   const area=[x.address,x.area,x.city,x.province].filter(Boolean).join(", ");
-   const serviceHtml=locServices.map(s=>'<div class="detail-service"><div class="detail-service-title">'+escapeHtml(s.name||"Layanan")+'</div>'+(s.description?'<p class="muted">'+escapeHtml(s.description)+'</p>':'')+'<div class="detail-service-price">'+rupiah(s.price)+'</div><div class="detail-service-meta">Estimasi durasi '+escapeHtml(s.durationMinutes||"—")+' menit</div><a class="book" href="booking.html?service='+encodeURIComponent(s.name||"")+'&locationId='+encodeURIComponent(x.id)+'&serviceId='+encodeURIComponent(s.id)+'">Pesan layanan ini</a></div>').join("");
-   return '<section class="detail-location"><div class="detail-location-head '+(isHome?"home":"practice")+'">'+(isHome?"🏠 Kunjungan rumah":"🏥 Klinik / tempat praktik · "+escapeHtml(x.name||"Lokasi praktik"))+'</div><div class="detail-location-body">'+(area?'<p class="muted" style="margin-top:12px">'+escapeHtml(area)+'</p>':'')+(serviceHtml||'<p class="muted">Belum ada rincian layanan yang tersedia.</p>')+'</div></section>';
-  }).join("");
+  const firstLocation=locations[0];
+  const ownerUid=firstLocation?.ownerUid||p.uid||key;
+  const detailUrl="detail-praktisi.html?"+(ownerUid?"ownerUid="+encodeURIComponent(ownerUid):"locationId="+encodeURIComponent(firstLocation?.id||""));
   const card=document.createElement("article");card.className="card profile-card";
   const avatar=photo?'<img class="profile-photo" src="'+escapeHtml(photo)+'" alt="Foto '+escapeHtml(name)+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="profile-avatar" aria-hidden="true">'+escapeHtml((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
-  card.innerHTML='<div class="profile-main"><div class="profile-head">'+avatar+'<div><h2 class="profile-name">'+escapeHtml(name)+'</h2><p class="profile-specialty">'+escapeHtml(specialty)+(expText?' · '+escapeHtml(expText):'')+'</p></div></div>'+(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'')+'<div class="starting-price"><span class="starting-label">Harga layanan</span><span class="starting-value">'+(minPrice===null?"Konfirmasi tarif":'Mulai dari '+rupiah(minPrice))+'</span></div><div class="location-badges">'+badgeHtml+'</div><button type="button" class="details-toggle" aria-expanded="false">Lihat profil & semua layanan <span aria-hidden="true">⌄</span></button><div class="details-panel" hidden><h3 class="details-heading">Lokasi, layanan, dan tarif lengkap</h3>'+(p.bio?'<p class="muted">'+escapeHtml(p.bio)+'</p>':'')+(p.serviceArea?'<p class="muted">Area layanan: '+escapeHtml(p.serviceArea)+'</p>':'')+details+'</div></div>';
+  card.innerHTML='<div class="profile-main"><div class="profile-head">'+avatar+'<div><h2 class="profile-name">'+escapeHtml(name)+'</h2><p class="profile-specialty">'+escapeHtml(specialty)+(expText?' · '+escapeHtml(expText):'')+'</p></div></div>'+(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'')+'<div class="starting-price"><span class="starting-label">Harga layanan</span><span class="starting-value">'+(minPrice===null?"Konfirmasi tarif":'Mulai dari '+rupiah(minPrice))+'</span></div><div class="location-badges">'+badgeHtml+'</div><a class="details-toggle" href="'+detailUrl+'">Lihat profil & semua layanan <span aria-hidden="true">→</span></a></div>';
   const photoEl=card.querySelector(".profile-photo");
   if(photoEl)photoEl.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="profile-avatar";fallback.setAttribute("aria-hidden","true");fallback.textContent=(name.trim().charAt(0)||"P").toUpperCase();photoEl.replaceWith(fallback);},{once:true});
-  const toggle=card.querySelector(".details-toggle"),panel=card.querySelector(".details-panel");
-  toggle.addEventListener("click",()=>{const open=panel.hidden;panel.hidden=!open;toggle.setAttribute("aria-expanded",String(open));toggle.innerHTML=open?'Tutup rincian layanan <span aria-hidden="true">⌃</span>':'Lihat profil & semua layanan <span aria-hidden="true">⌄</span>';});
   $("catalog").append(card);
  }
 }
