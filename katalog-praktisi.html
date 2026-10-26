@@ -8,31 +8,42 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{--teal:#0f766e;--mint:#ccfbf1;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f1f5f9}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink)}
-    .app{max-width:720px;min-height:100vh;margin:auto;background:white}
-    header{padding:22px 20px 28px;background:linear-gradient(140deg,#115e59,#0d9488);color:#fff;border-radius:0 0 24px 24px}
-    .back{display:inline-block;color:white;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:22px}
-    h1{font-size:25px;letter-spacing:-.6px;margin:0 0 8px}.sub{font-size:13px;line-height:1.6;color:#d1fae5;margin:0}
-    main{padding:18px 16px 40px}.tools{display:grid;gap:10px;margin-bottom:16px}
-    input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:14px;background:#fff;color:var(--ink)}
-    .notice{font-size:12px;color:var(--muted);line-height:1.6;padding:12px;border-radius:12px;background:#f8fafc;margin-bottom:14px}
-    .status{padding:14px;border-radius:12px;background:#f8fafc;color:#475569;font-size:13px;line-height:1.5}
-    .card{border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0;box-shadow:0 5px 20px #0f172a08}
-    .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.type{font-size:10px;letter-spacing:.08em;font-weight:800;text-transform:uppercase;color:var(--teal);margin:0 0 7px}
-    h2{font-size:18px;line-height:1.35;margin:0 0 7px;overflow-wrap:anywhere}.muted{font-size:12px;line-height:1.6;color:var(--muted);margin:5px 0}
-    .tag{font-size:10px;font-weight:800;color:#065f46;background:#d1fae5;border-radius:99px;padding:6px 8px;white-space:nowrap}
-    .practitioner{display:flex;gap:12px;align-items:flex-start;background:#f8fafc;border-radius:13px;padding:12px;margin-top:12px}.avatar{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:var(--mint);color:var(--teal);font-weight:800;font-size:17px}.practitioner-name{font-size:14px;font-weight:800;margin-bottom:4px}.service{border-top:1px solid var(--line);padding-top:12px;margin-top:13px}.service-title{font-weight:800;font-size:14px}.price{font-weight:800;color:var(--teal);font-size:15px;margin-top:5px}
-    .duration{font-size:11px;color:var(--muted);margin-top:4px}.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
-    .book{display:block;text-align:center;text-decoration:none;background:var(--teal);color:white;padding:12px;border-radius:11px;font-weight:800;font-size:13px;margin-top:12px}
-    @media(min-width:600px){.tools{grid-template-columns:1fr 190px}}
+    :root{--teal:#0f766e;--teal-dark:#115e59;--mint:#ccfbf1;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f3f7f8}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+    .app{max-width:780px;min-height:100vh;margin:auto;background:#fbfdfd;box-shadow:0 0 44px #0f172a08}
+    header{padding:20px 22px 30px;background:radial-gradient(circle at 100% 0%,#2dd4bf55,transparent 38%),linear-gradient(145deg,#134e4a,#0f766e 65%,#0d9488);color:#fff;border-radius:0 0 28px 28px}
+    .back{display:inline-flex;align-items:center;gap:7px;color:#ecfdf5;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:27px;padding:8px 0}
+    .eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#99f6e4;margin:0 0 8px}
+    h1{font-size:clamp(25px,5vw,30px);letter-spacing:-.8px;margin:0 0 8px;font-weight:800}.sub{font-size:13px;line-height:1.65;color:#d1fae5;margin:0;max-width:430px}
+    main{padding:20px 16px 44px}.tools{display:grid;gap:10px;margin:0 0 20px}
+    input,select{width:100%;min-height:48px;padding:13px 14px;border:1px solid #dbe5e7;border-radius:14px;font:inherit;font-size:13px;background:#fff;color:var(--ink);outline:none;box-shadow:0 2px 8px #0f172a05;transition:border-color .18s,box-shadow .18s}
+    input:focus,select:focus{border-color:#5eead4;box-shadow:0 0 0 3px #ccfbf166}
+    input::placeholder{color:#94a3b8}
+    .status{padding:10px 2px;color:#64748b;font-size:12px;line-height:1.5;min-height:14px}
+    .card{background:#fff;border:1px solid #e4ecec;border-radius:20px;padding:17px;margin:12px 0 16px;box-shadow:0 5px 18px #0f172a06;transition:box-shadow .2s,border-color .2s}
+    .card:hover{border-color:#c5e8e3;box-shadow:0 10px 26px #0f766e0d}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.type{font-size:10px;letter-spacing:.09em;font-weight:800;text-transform:uppercase;color:var(--teal);margin:0 0 8px}
+    h2{font-size:18px;line-height:1.35;letter-spacing:-.3px;margin:0 0 8px;overflow-wrap:anywhere}.muted{font-size:12px;line-height:1.65;color:var(--muted);margin:5px 0}
+    .tag{font-size:10px;font-weight:700;color:#0f766e;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:99px;padding:6px 9px;white-space:nowrap}
+    .location-line{display:flex;align-items:flex-start;gap:7px;color:#64748b;font-size:12px;line-height:1.6;margin:0}
+    .location-line span:first-child{font-size:14px;line-height:1.4}
+    .practitioner{display:flex;gap:12px;align-items:flex-start;background:#f6faf9;border:1px solid #edf4f3;border-radius:15px;padding:13px;margin-top:14px}.avatar{width:46px;height:46px;flex:0 0 46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#ccfbf1,#e6fffb);color:var(--teal);font-weight:800;font-size:18px}.practitioner-name{font-size:13px;font-weight:800;margin:1px 0 4px}.service{border-top:1px solid #e8eeee;padding-top:15px;margin-top:16px}.service-title{font-weight:800;font-size:14px;line-height:1.45}.price{font-weight:800;color:var(--teal-dark);font-size:17px;letter-spacing:-.3px;margin-top:7px}
+    .duration{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:4px}
+    .empty{padding:30px 18px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7;background:#fff;border:1px dashed #cbdada;border-radius:17px;margin:12px 0}
+    .book{display:block;text-align:center;text-decoration:none;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;padding:13px 14px;border-radius:12px;font-weight:800;font-size:13px;margin-top:14px;box-shadow:0 4px 10px #0f766e1a;transition:transform .15s,box-shadow .15s}
+    .book:hover{box-shadow:0 7px 15px #0f766e24}.book:active{transform:scale(.99)}
+    .request-card{margin-top:24px;padding:18px;border:1px solid #dcebea;border-radius:20px;background:linear-gradient(145deg,#f0fdfa,#fff 70%);box-shadow:0 5px 18px #0f172a05}
+    .request-title{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;margin-bottom:7px}.request-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#ccfbf1;color:#0f766e;font-size:18px}
+    .request-card p{font-size:12px;line-height:1.65;color:var(--muted);margin:0 0 14px}
+    .request-link{display:block;text-align:center;text-decoration:none;background:#fff;border:1px solid #99d8d0;color:#0f766e;padding:12px;border-radius:12px;font-size:13px;font-weight:800}
+    @media(min-width:600px){main{padding:24px 24px 48px}.tools{grid-template-columns:minmax(0,1fr) 220px}.card{padding:20px}.practitioner{padding:14px}}
   </style>
 </head>
 <body>
 <div class="app">
-  <header><a class="back" href="patient.html">← Kembali ke dashboard</a><h1>Praktisi & Layanan</h1><p class="sub">Temukan lokasi praktik, layanan, tarif, dan durasi sebelum membuat pesanan.</p></header>
+  <header><a class="back" href="patient.html"><span aria-hidden="true">←</span> Kembali ke dashboard</a><p class="eyebrow">Go-Homecare · Layanan kesehatan</p><h1>Praktisi & Layanan</h1><p class="sub">Temukan perawatan yang tepat, dekat dengan kebutuhan Anda.</p></header>
   <main>
-    <div class="tools"><input id="search" type="search" placeholder="Cari layanan, lokasi, kota, atau area…" aria-label="Cari katalog"><select id="typeFilter" aria-label="Jenis lokasi"><option value="">Semua jenis lokasi</option><option value="practice">Klinik / tempat praktik</option><option value="home_visit">Layanan kunjungan rumah</option></select></div>
+    <div class="tools"><input id="search" type="search" placeholder="⌕  Cari layanan, praktisi, atau lokasi…" aria-label="Cari katalog"><select id="typeFilter" aria-label="Jenis lokasi"><option value="">Semua jenis lokasi</option><option value="practice">Klinik / tempat praktik</option><option value="home_visit">Kunjungan ke rumah</option></select></div>
     <div id="status" class="status" role="status">Memeriksa sesi dan memuat katalog…</div>
     <div id="catalog"></div>
     <section aria-label="Bantuan pemesanan" style="margin-top:18px;padding:16px;border:1px solid #e2e8f0;border-radius:15px;background:#f8fafc">
@@ -61,7 +72,7 @@ function render(){
   const services=row.services.map(s=>'<div class="service"><div class="service-title">'+escapeHtml(s.name)+'</div>'+(s.description?'<p class="muted">'+escapeHtml(s.description)+'</p>':'')+'<div class="price">'+rupiah(s.price)+'</div><div class="duration">Estimasi durasi '+escapeHtml(s.durationMinutes)+' menit</div><a class="book" href="booking.html?service='+encodeURIComponent(s.name)+'&locationId='+encodeURIComponent(x.id)+'&serviceId='+encodeURIComponent(s.id)+'">Pesan layanan ini</a></div>').join("");
   const p=row.profile;
   const practitioner=p?'<div class="practitioner"><div class="avatar" aria-hidden="true">'+escapeHtml((p.name||"P").trim().charAt(0).toUpperCase())+'</div><div><div class="practitioner-name">'+escapeHtml(p.name)+'</div><div class="muted">'+escapeHtml(p.specialization||"Praktisi kesehatan")+(Number.isInteger(p.experienceYears)?" · "+p.experienceYears+" tahun pengalaman":"")+'</div>'+(p.bio?'<p class="muted">'+escapeHtml(p.bio)+'</p>':'')+(p.serviceArea?'<p class="muted">Area layanan: '+escapeHtml(p.serviceArea)+'</p>':'')+'</div></div>':'<p class="muted">Profil profesional praktisi belum dilengkapi.</p>';
-  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">Dipublikasikan</span></div><p class="muted">📍 '+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+practitioner+''+services;
+  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">'+(x.locationType==="practice"?"Tempat praktik":"Home visit")+'</span></div><p class="location-line"><span aria-hidden="true">⌖</span><span>'+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</span></p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+practitioner+services;
   $("catalog").append(card);
  }
 }
