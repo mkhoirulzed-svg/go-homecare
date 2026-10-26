@@ -33,7 +33,6 @@
   <header><a class="back" href="patient.html">← Kembali ke dashboard</a><h1>Praktisi & Layanan</h1><p class="sub">Temukan lokasi praktik, layanan, tarif, dan durasi sebelum membuat pesanan.</p></header>
   <main>
     <div class="tools"><input id="search" type="search" placeholder="Cari layanan, lokasi, kota, atau area…" aria-label="Cari katalog"><select id="typeFilter" aria-label="Jenis lokasi"><option value="">Semua jenis lokasi</option><option value="practice">Klinik / tempat praktik</option><option value="home_visit">Layanan kunjungan rumah</option></select></div>
-    <div class="notice">Katalog hanya menampilkan lokasi dan layanan yang telah dipublikasikan. Tarif dan ketersediaan perlu dikonfirmasi kembali sebelum pemesanan. Penilaian bintang belum ditampilkan karena fitur ulasan belum tersedia.</div>
     <div id="status" class="status" role="status">Memeriksa sesi dan memuat katalog…</div>
     <div id="catalog"></div>
     <section aria-label="Bantuan pemesanan" style="margin-top:18px;padding:16px;border:1px solid #e2e8f0;border-radius:15px;background:#f8fafc">
@@ -62,7 +61,7 @@ function render(){
   const services=row.services.map(s=>'<div class="service"><div class="service-title">'+escapeHtml(s.name)+'</div>'+(s.description?'<p class="muted">'+escapeHtml(s.description)+'</p>':'')+'<div class="price">'+rupiah(s.price)+'</div><div class="duration">Estimasi durasi '+escapeHtml(s.durationMinutes)+' menit</div><a class="book" href="booking.html?service='+encodeURIComponent(s.name)+'&locationId='+encodeURIComponent(x.id)+'&serviceId='+encodeURIComponent(s.id)+'">Pesan layanan ini</a></div>').join("");
   const p=row.profile;
   const practitioner=p?'<div class="practitioner"><div class="avatar" aria-hidden="true">'+escapeHtml((p.name||"P").trim().charAt(0).toUpperCase())+'</div><div><div class="practitioner-name">'+escapeHtml(p.name)+'</div><div class="muted">'+escapeHtml(p.specialization||"Praktisi kesehatan")+(Number.isInteger(p.experienceYears)?" · "+p.experienceYears+" tahun pengalaman":"")+'</div>'+(p.bio?'<p class="muted">'+escapeHtml(p.bio)+'</p>':'')+(p.serviceArea?'<p class="muted">Area layanan: '+escapeHtml(p.serviceArea)+'</p>':'')+'</div></div>':'<p class="muted">Profil profesional praktisi belum dilengkapi.</p>';
-  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">Dipublikasikan</span></div><p class="muted">📍 '+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+practitioner+'<p class="muted">Penilaian bintang belum tersedia karena sistem ulasan belum dibuat.</p>'+services;
+  card.innerHTML='<div class="top"><div><p class="type">'+(x.locationType==="practice"?"Klinik / tempat praktik":"Layanan kunjungan rumah")+'</p><h2>'+escapeHtml(x.name)+'</h2></div><span class="tag">Dipublikasikan</span></div><p class="muted">📍 '+escapeHtml([x.area,x.city,x.province].filter(Boolean).join(", "))+'</p>'+(x.locationType==="practice"&&x.address?'<p class="muted">'+escapeHtml(x.address)+'</p>':'')+practitioner+''+services;
   $("catalog").append(card);
  }
 }
@@ -83,7 +82,7 @@ async function loadCatalog(){
    };
   }));
   rows=loaded.filter(r=>r.services.length>0);
-  $("status").textContent=rows.length?("Ditemukan "+rows.length+" lokasi dengan layanan yang telah dipublikasikan."):"Belum ada lokasi dengan layanan yang dipublikasikan.";
+  $("status").textContent=rows.length?"":"Belum ada lokasi atau layanan yang tersedia saat ini.";
   render();
  }catch(error){console.error("Gagal memuat katalog:",error);$("status").textContent="Katalog belum dapat dimuat. Pastikan sesi pasien aktif dan Firestore Rules yang sesuai sudah tersedia. ("+(error.code||"kesalahan")+")";}
 }
