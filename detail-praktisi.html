@@ -56,8 +56,8 @@ async function loadDetail(){
  try{
   let locationDocs=[];
   if(ownerUid){
-   const snap=await getDocs(query(collection(db,"practitionerLocations"),where("ownerUid","==",ownerUid),where("status","==","published")));
-   locationDocs=snap.docs;
+   const snap=await getDocs(query(collection(db,"practitionerLocations"),where("ownerUid","==",ownerUid)));
+   locationDocs=snap.docs.filter(d=>d.data().status==="published");
   }else{
    const snap=await getDoc(doc(db,"practitionerLocations",locationId));
    if(snap.exists()&&snap.data().status==="published")locationDocs=[snap];
