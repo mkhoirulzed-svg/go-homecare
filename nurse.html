@@ -110,12 +110,6 @@
             <div class="section-heading"><h2>Ringkasan pesanan</h2><button type="button" class="text-button" data-go-tab="orders">Lihat pesanan</button></div>
             <p class="section-help">Kelola penugasan yang diberikan kepada akun Anda dan perbarui status layanan sesuai tahap pengerjaan.</p>
           </section>
-          <section class="card" aria-labelledby="serviceSummaryTitle">
-            <div class="section-heading"><h2 id="serviceSummaryTitle">Layanan & tarif per lokasi</h2><button id="refreshPractitionerServices" type="button" class="text-button">Muat ulang</button></div>
-            <p class="section-help">Daftar ini menampilkan tarif yang Anda buat untuk setiap lokasi praktik, beserta status tinjauannya.</p>
-            <div id="practitionerServices"><div class="empty">Memuat layanan dan tarif…</div></div>
-            <a class="location-manage" href="lokasi-praktisi.html">Kelola lokasi & tambah layanan</a>
-          </section>
         </section>
 
         <section class="tab-panel" id="panel-orders" hidden aria-labelledby="ordersTitle">
@@ -160,10 +154,6 @@
               <a class="profile-edit" href="edit-profil-praktisi.html">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
                 Edit profil profesional
-              </a>
-              <a class="location-manage" href="lokasi-praktisi.html">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-                Kelola lokasi praktik
               </a>
             </div>
             <p class="profile-footnote">Pastikan informasi pengalaman, keahlian, dan tarif selalu terbaru.</p>
@@ -260,7 +250,6 @@
         else showFallback();
         loading.style.display = "none";
         contentBox.style.display = "block";
-        await loadPractitionerServices();
         await loadTasks();
         startChatNotifications({ db, user, role: "praktisi" });
       } catch (error) {
@@ -272,45 +261,6 @@
 
     document.getElementById("refreshTasks").addEventListener("click", loadTasks);
 
-
-    async function loadPractitionerServices() {
-      const host = document.getElementById("practitionerServices");
-      if (!currentPractitioner) return;
-      host.replaceChildren();
-      const loadingItem = document.createElement("div");
-      loadingItem.className = "empty"; loadingItem.textContent = "Memuat layanan dan tarif…"; host.appendChild(loadingItem);
-      try {
-        const locationSnap = await getDocs(query(collection(db, "practitionerLocations"), where("ownerUid", "==", currentPractitioner.uid)));
-        const rows = [];
-        for (const locationDoc of locationSnap.docs) {
-          const location = locationDoc.data();
-          const serviceSnap = await getDocs(collection(db, "practitionerLocations", locationDoc.id, "services"));
-          serviceSnap.forEach(serviceDoc => rows.push({ id: serviceDoc.id, locationId: locationDoc.id, location, service: serviceDoc.data() }));
-        }
-        rows.sort((a, b) => (a.location.name || "").localeCompare(b.location.name || "", "id") || (a.service.name || "").localeCompare(b.service.name || "", "id"));
-        host.replaceChildren();
-        if (!rows.length) {
-          const empty = document.createElement("div"); empty.className = "empty";
-          empty.textContent = "Belum ada layanan. Buka Kelola lokasi & tambah layanan untuk membuat tarif per lokasi."; host.appendChild(empty); return;
-        }
-        const labels = { draft: "Draft", pending_review: "Menunggu tinjauan admin", published: "Dipublikasikan", rejected: "Perlu perbaikan", paused: "Dijeda" };
-        rows.forEach(row => {
-          const item = document.createElement("article"); item.className = "schedule-item";
-          const title = document.createElement("h3"); title.textContent = row.service.name || "Layanan tanpa nama";
-          const price = document.createElement("p");
-          price.textContent = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(row.service.price) || 0) + " · " + (Number(row.service.durationMinutes) || "—") + " menit";
-          const location = document.createElement("p"); location.textContent = "Lokasi: " + (row.location.name || "Tanpa nama") + " · " + (row.location.city || row.location.area || "Area belum diisi");
-          const status = document.createElement("span"); status.className = "schedule-status"; status.textContent = labels[row.service.status] || "Status tidak diketahui";
-          const manage = document.createElement("a"); manage.className = "location-manage"; manage.href = "layanan-praktisi.html?locationId=" + encodeURIComponent(row.locationId); manage.textContent = "Kelola layanan di lokasi ini";
-          item.append(title, price, location, status, manage); host.appendChild(item);
-        });
-      } catch (error) {
-        console.error("Gagal memuat tarif layanan:", error);
-        host.replaceChildren();
-        const err = document.createElement("div"); err.className = "empty error"; err.textContent = "Tarif layanan belum dapat dimuat. Muat ulang halaman atau periksa akses Firestore."; host.appendChild(err);
-      }
-    }
-    document.getElementById("refreshPractitionerServices").addEventListener("click", loadPractitionerServices);
 
     async function loadTasks() {
       if (!currentPractitioner) return;
