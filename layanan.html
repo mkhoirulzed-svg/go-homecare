@@ -35,7 +35,15 @@
     .empty{padding:15px;border-radius:12px;background:#f8fafc;color:var(--muted);font-size:12px;line-height:1.6}
     .bottom-note{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:12px;padding:13px;font-size:12px;line-height:1.65}
     [hidden]{display:none!important}
-    @media(max-width:420px){.quick-grid{grid-template-columns:1fr}.location-head{display:block}.pill{margin-top:7px}.actions a{flex:1}}
+    main{padding:20px 18px calc(104px + env(safe-area-inset-bottom))}
+    .bottom-nav{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,680px);height:calc(70px + env(safe-area-inset-bottom));padding:0 8px env(safe-area-inset-bottom);display:flex;justify-content:space-around;align-items:center;background:#fff;box-shadow:0 -4px 20px #0000000d;border-top:1px solid #e2e8f0;border-top-left-radius:20px;border-top-right-radius:20px}
+    .nav-item{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 3px;border:0;border-radius:12px;background:transparent;color:#94a3b8;text-decoration:none;cursor:pointer;font-size:11px;font-weight:500;transition:color .2s ease}
+    .nav-item svg{width:23px;height:23px;display:block;flex:none}
+    .nav-item span{font-size:10px;line-height:1.2;white-space:nowrap}
+    .nav-item.active{color:#0d9488;font-weight:800}
+    .nav-item:focus-visible{outline:2px solid #0d9488;outline-offset:2px}
+    @media(min-width:600px){body{padding:0 12px}.wrap{box-shadow:0 0 40px #0f172a14}.bottom-nav{border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0}}
+    @media(max-width:420px){.quick-grid{grid-template-columns:1fr}.location-head{display:block}.pill{margin-top:7px}.actions a{flex:1}.nav-item{padding-left:1px;padding-right:1px}.nav-item svg{width:21px;height:21px}.nav-item span{font-size:9px}}
   </style>
 </head>
 <body>
@@ -43,10 +51,13 @@
   <div id="loading" style="padding:60px 20px;text-align:center;color:#64748b">Memeriksa akun praktisi…</div>
   <div id="app" hidden>
     <header>
-      <a class="back" href="nurse.html">← Kembali ke dashboard</a>
-      <p class="eyebrow">PENGELOLAAN PRAKTIK</p>
-      <h1>Layanan</h1>
-      <p class="subtitle">Kelola lokasi praktik, tambahkan layanan, dan periksa rincian serta tarif yang Anda tawarkan.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+          <h1 style="font-size:23px;margin:0 0 8px">Layanan</h1>
+          <p class="subtitle" style="margin:0">Go Homecare · Area praktisi</p>
+        </div>
+      </div>
+      <p class="subtitle" style="margin-top:14px">Kelola lokasi praktik, tambahkan layanan, dan periksa rincian serta tarif yang Anda tawarkan.</p>
     </header>
     <main>
       <section class="card">
@@ -69,6 +80,23 @@
       <div class="bottom-note">Layanan yang diajukan akan ditinjau admin sebelum ditampilkan kepada pasien. Pastikan tarif, durasi, dan deskripsi sesuai kompetensi serta kewenangan praktik Anda. Jangan masukkan data pasien ke deskripsi layanan.</div>
     </main>
   </div>
+  <nav class="bottom-nav" aria-label="Navigasi dashboard praktisi">
+    <a class="nav-item" href="nurse.html" aria-label="Beranda">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span>
+    </a>
+    <a class="nav-item" href="nurse.html?tab=orders" aria-label="Pesanan">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3h-4.18A3 3 0 0 0 9.18 3H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM12 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM7 8h10v2H7Zm0 4h10v2H7Zm0 4h7v2H7Z"/></svg><span>Pesanan</span>
+    </a>
+    <a class="nav-item" href="nurse.html?tab=schedule" aria-label="Jadwal">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 15H5V9h14ZM7 11h4v3H7Zm6 0h4v3h-4Z"/></svg><span>Jadwal</span>
+    </a>
+    <a class="nav-item active" href="layanan.html" aria-current="page" aria-label="Layanan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="3"/><path d="M18 15.5v3M16.5 17h3"/></svg><span>Layanan</span>
+    </a>
+    <a class="nav-item" href="nurse.html?tab=profile" aria-label="Profil">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Z"/></svg><span>Profil</span>
+    </a>
+  </nav>
 </div>
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
