@@ -84,6 +84,32 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Katalog layanan baku dikelola admin dan dapat dibaca pengguna yang login.
+    match /serviceCatalog/{catalogId} {
+      function validCatalogFields() {
+        return request.resource.data.keys().hasAll(['name', 'description', 'active', 'createdAt', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['name', 'description', 'active', 'createdAt', 'updatedAt', 'createdBy'])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.description is string
+          && request.resource.data.description.size() <= 300
+          && request.resource.data.active is bool;
+      }
+
+      allow get, list: if signedIn();
+      allow create: if isAdmin()
+        && validCatalogFields()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAdmin()
+        && validCatalogFields()
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
     // Lokasi praktisi: aturan aditif untuk fondasi multi-lokasi.
     // Dokumen lokasi tidak menyimpan data pasien atau nomor telepon pribadi.
     match /practitionerLocations/{locationId} {
@@ -273,7 +299,7 @@ service cloud.firestore {
         ])
         && request.resource.data.keys().hasOnly([
           'name', 'description', 'price', 'durationMinutes',
-          'status', 'createdAt', 'updatedAt', 'reviewedBy', 'reviewedAt', 'reviewNote'
+          'status', 'createdAt', 'updatedAt', 'reviewedBy', 'reviewedAt', 'reviewNote', 'catalogId', 'isCustom'
         ])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
@@ -285,7 +311,9 @@ service cloud.firestore {
         && request.resource.data.price <= 100000000
         && request.resource.data.durationMinutes is int
         && request.resource.data.durationMinutes >= 5
-        && request.resource.data.durationMinutes <= 1440;
+        && request.resource.data.durationMinutes <= 1440
+        && (!request.resource.data.keys().hasAny(['catalogId']) || request.resource.data.catalogId is string)
+        && (!request.resource.data.keys().hasAny(['isCustom']) || request.resource.data.isCustom is bool);
       }
 
       allow get, list: if isAdmin()
@@ -324,7 +352,7 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'name', 'description', 'price', 'durationMinutes', 'status', 'updatedAt'
+          'name', 'description', 'price', 'durationMinutes', 'status', 'updatedAt', 'catalogId', 'isCustom'
         ])
       ) || (
         isAdmin()
