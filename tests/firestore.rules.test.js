@@ -887,3 +887,44 @@ test("patient cannot change catalog service or price snapshot while editing pend
     updatedAt: serverTimestamp()
   }));
 });
+
+
+test("admin can edit and delete standard service catalog entries", async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "serviceCatalog", "admin-catalog-edit"), {
+      name: "Layanan Lama",
+      description: "Keterangan lama",
+      active: true,
+      createdAt: Timestamp.fromDate(new Date("2026-01-01T00:00:00Z")),
+      updatedAt: Timestamp.fromDate(new Date("2026-01-01T00:00:00Z")),
+      createdBy: ADMIN_UID
+    });
+  });
+
+  const db = testEnv.authenticatedContext(ADMIN_UID).firestore();
+  await assertSucceeds(updateDoc(doc(db, "serviceCatalog", "admin-catalog-edit"), {
+    name: "Layanan Baru",
+    description: "Keterangan baru",
+    active: true,
+    createdAt: Timestamp.fromDate(new Date("2026-01-01T00:00:00Z")),
+    updatedAt: serverTimestamp(),
+    createdBy: ADMIN_UID
+  }));
+  await assertSucceeds(deleteDoc(doc(db, "serviceCatalog", "admin-catalog-edit")));
+});
+
+test("non-admin cannot delete standard service catalog entries", async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "serviceCatalog", "patient-catalog-delete"), {
+      name: "Layanan Uji",
+      description: "Uji penghapusan",
+      active: true,
+      createdAt: Timestamp.fromDate(new Date("2026-01-01T00:00:00Z")),
+      updatedAt: Timestamp.fromDate(new Date("2026-01-01T00:00:00Z")),
+      createdBy: ADMIN_UID
+    });
+  });
+
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertFails(deleteDoc(doc(db, "serviceCatalog", "patient-catalog-delete")));
+});
