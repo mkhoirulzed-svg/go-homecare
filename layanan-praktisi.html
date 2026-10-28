@@ -131,7 +131,13 @@
     if(!custom) $("name").value="";
     clearMessage();
   }
-  $("catalogService").addEventListener("change",updateServiceChoice);
+  $("catalogService").addEventListener("change",()=>{
+    updateServiceChoice();
+    // Ambil deskripsi dari katalog admin saat praktisi memilih layanan baku.
+    // Untuk layanan khusus, kosongkan agar deskripsi lama tidak ikut terbawa.
+    const selected=catalogItems.find(item=>item.id===$("catalogService").value);
+    $("description").value=selected?(selected.description||""):"";
+  });
   function formData(){
     const custom=isCustomSelected();
     const selected=catalogItems.find(item=>item.id===$("catalogService").value);
