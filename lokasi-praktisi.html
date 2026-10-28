@@ -193,6 +193,11 @@
     $("stepDetails").querySelectorAll("[data-scope]").forEach(b=>b.classList.toggle("selected",b.dataset.scope===scope));
     clearMessage();
   }
+  // Aktifkan tombol pilihan cakupan wilayah layanan.
+  $("stepDetails").querySelectorAll("[data-scope]").forEach(button => {
+    button.addEventListener("click", () => chooseScope(button.dataset.scope));
+  });
+
   function populateKelurahan(selected = "") {
     const select=$("kelurahan"), kec=$("area").value;
     select.replaceChildren();
