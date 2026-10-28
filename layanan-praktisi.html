@@ -244,7 +244,7 @@
     titleWrap.append(title,description);
     const pill=document.createElement("span"); pill.className="pill "+(x.status||"draft"); pill.textContent=statusLabels[x.status]||"Status tidak diketahui";
     top.append(titleWrap,pill); card.append(top);
-    const detail=document.createElement("p"); detail.textContent=(x.isCustom?"Layanan khusus · ":"")+formatRupiah(x.price)+" · Perkiraan "+(x.durationMinutes||"—")+" menit;
+    const detail=document.createElement("p"); detail.textContent=(x.isCustom?"Layanan khusus · ":"")+formatRupiah(x.price)+" · Perkiraan "+(x.durationMinutes||"—")+" menit";
     card.append(detail);
     if(x.status==="rejected"){
       const reason=document.createElement("p"); reason.textContent=x.reviewNote?"Catatan admin: "+x.reviewNote:"Silakan periksa kembali informasi layanan lalu ajukan ulang."; card.append(reason);
