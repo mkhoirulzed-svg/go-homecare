@@ -32,6 +32,15 @@
     .empty{padding:15px;border-radius:12px;background:#f8fafc;color:var(--muted);font-size:12px;line-height:1.6}
     .mini-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.mini-actions button{padding:9px 11px;font-size:11px}
     .notice{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:12px;padding:13px;font-size:12px;line-height:1.6}
+    .stepbar{display:flex;gap:7px;margin:0 0 18px}.stepdot{height:5px;flex:1;border-radius:99px;background:#e2e8f0}.stepdot.active{background:var(--teal)}
+    .choice-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:18px 0}
+    .choice-card{display:flex;align-items:center;gap:14px;width:100%;padding:16px;text-align:left;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--ink)}
+    .choice-card.selected{border:2px solid var(--teal);background:#f0fdfa;padding:15px}
+    .choice-icon{display:flex;align-items:center;justify-content:center;flex:0 0 48px;height:48px;border-radius:13px;background:#ccfbf1;color:#115e59;font-size:23px}
+    .choice-copy{flex:1}.choice-copy strong{display:block;font-size:14px;margin-bottom:5px}.choice-copy span{display:block;color:var(--muted);font-size:12px;line-height:1.5;font-weight:500}
+    .step-actions{display:flex;gap:9px;margin-top:20px}.step-actions button{flex:1}
+    .fixed-field{background:#f8fafc;color:#475569}.review-row{padding:10px 0;border-bottom:1px solid var(--line)}
+    .review-row:last-child{border-bottom:0}.review-label{font-size:11px;color:var(--muted);margin-bottom:4px}.review-value{font-size:14px;font-weight:700;overflow-wrap:anywhere}
     [hidden]{display:none!important}@media(max-width:420px){.grid{grid-template-columns:1fr}.location-top{display:block}.pill{margin-top:7px}}
   </style>
 </head>
@@ -51,39 +60,30 @@
         <h2 id="formTitle">Tambah lokasi</h2>
         <p class="help">Masukkan alamat tempat praktik atau pilih layanan kunjungan ke rumah. Lokasi yang diajukan perlu ditinjau admin sebelum tampil di katalog pasien.</p>
         <div id="message" class="status" role="status" hidden></div>
-        <form id="locationForm">
-          <label for="name">Nama lokasi *</label>
-          <input id="name" maxlength="120" required placeholder="Contoh: Klinik Sehat Bersama">
-          <div class="grid">
-            <div>
-              <label for="locationType">Jenis lokasi *</label>
-              <select id="locationType" required>
-                <option value="practice">Tempat praktik / klinik</option>
-                <option value="home_visit">Layanan kunjungan ke rumah</option>
-              </select>
-            </div>
-            <div>
-              <label for="area">Area layanan *</label>
-              <input id="area" maxlength="200" required placeholder="Contoh: Kecamatan Jekan Raya">
-            </div>
+        <div id="stepType">
+          <div class="stepbar"><span class="stepdot active"></span><span class="stepdot"></span><span class="stepdot"></span></div>
+          <p class="help">Pilih jenis layanan terlebih dahulu. Formulir berikutnya akan menyesuaikan pilihan Anda.</p>
+          <div class="choice-grid">
+            <button type="button" class="choice-card" data-type="home_visit"><span class="choice-icon">⌂</span><span class="choice-copy"><strong>Kunjungan Rumah</strong><span>Saya datang ke rumah pasien. Tidak perlu mencantumkan alamat klinik.</span></span><span>›</span></button>
+            <button type="button" class="choice-card" data-type="practice"><span class="choice-icon">⌂</span><span class="choice-copy"><strong>Klinik / Tempat Praktik</strong><span>Pasien datang ke alamat praktik yang Anda daftarkan.</span></span><span>›</span></button>
           </div>
-          <label for="address">Alamat lengkap <span id="addressRequired">*</span></label>
-          <textarea id="address" maxlength="500" placeholder="Nama jalan, nomor, patokan lokasi"></textarea>
-          <div class="grid">
-            <div>
-              <label for="city">Kota / kabupaten *</label>
-              <input id="city" maxlength="100" required value="Palangka Raya">
-            </div>
-            <div>
-              <label for="province">Provinsi *</label>
-              <input id="province" maxlength="100" required value="Kalimantan Tengah">
-            </div>
+          <div class="buttons"><button id="cancelEdit" class="quiet" type="button" hidden>Batal edit</button></div>
+        </div>
+        <form id="locationForm" hidden>
+          <input id="locationType" type="hidden" value="">
+          <div id="stepDetails" hidden>
+            <div class="stepbar"><span class="stepdot active"></span><span class="stepdot active"></span><span class="stepdot"></span></div>
+            <p id="formIntro" class="help"></p>
+            <div id="nameField"><label for="name">Nama klinik / tempat praktik *</label><input id="name" maxlength="120" placeholder="Contoh: Klinik Sehat Bersama"></div>
+            <div id="addressField"><label for="address">Alamat lengkap tempat praktik *</label><textarea id="address" maxlength="500" placeholder="Nama jalan, nomor, patokan lokasi"></textarea></div>
+            <label for="area">Kecamatan layanan *</label>
+            <select id="area" required><option value="">Pilih kecamatan</option><option>Pahandut</option><option>Jekan Raya</option><option>Sabangau</option><option>Bukit Batu</option><option>Rakumpit</option></select>
+            <label for="kelurahan">Kelurahan *</label><select id="kelurahan" required disabled><option value="">Pilih kecamatan terlebih dahulu</option></select>
+            <p class="help">Kecamatan menjadi area layanan untuk pencarian pasien. Kelurahan digunakan sebagai rincian wilayah.</p>
+            <div class="grid"><div><label for="city">Kota / kabupaten</label><input id="city" class="fixed-field" readonly value="Palangka Raya"></div><div><label for="province">Provinsi</label><input id="province" class="fixed-field" readonly value="Kalimantan Tengah"></div></div>
+            <div class="step-actions"><button id="backToType" class="quiet" type="button">← Kembali</button><button id="toReview" class="primary" type="button">Lanjutkan →</button></div>
           </div>
-          <div class="buttons">
-            <button id="saveDraft" class="secondary" type="button">Simpan draft</button>
-            <button id="submitReview" class="primary" type="button">Simpan & ajukan tinjauan</button>
-            <button id="cancelEdit" class="quiet" type="button" hidden>Batal edit</button>
-          </div>
+          <div id="stepReview" hidden><div class="stepbar"><span class="stepdot active"></span><span class="stepdot active"></span><span class="stepdot active"></span></div><h3 style="margin:0 0 6px">Periksa informasi layanan</h3><p class="help">Pastikan jenis layanan dan wilayah sudah benar sebelum disimpan.</p><div id="reviewSummary" class="location"></div><div class="buttons"><button id="backToDetails" class="quiet" type="button">← Perbaiki</button><button id="saveDraft" class="secondary" type="button">Simpan draft</button><button id="submitReview" class="primary" type="button">Ajukan tinjauan</button></div></div>
         </form>
       </section>
       <section class="card">
@@ -121,6 +121,14 @@
     draft: "Draft", pending_review: "Menunggu tinjauan", published: "Dipublikasikan",
     rejected: "Perlu perbaikan", paused: "Dijeda"
   };
+  const kelurahanByKecamatan = {
+    "Pahandut":["Pahandut","Panarung","Langkai","Tumbang Rungan","Tanjung Pinang","Pahandut Seberang"],
+    "Jekan Raya":["Menteng","Palangka","Bukit Tunggal","Petuk Katimpun"],
+    "Sabangau":["Kereng Bangkirai","Sabaru","Kalampangan","Kameloh Baru","Bereng Bengkel","Danau Tundai"],
+    "Bukit Batu":["Marang","Tumbang Tahai","Banturung","Tangkiling","Sei Gohong","Kanarakan","Habaring Hurung"],
+    "Rakumpit":["Petuk Bukit","Pager","Panjehang","Gaung Baru","Petuk Barunai","Mungku Baru","Bukit Sua"]
+  };
+  let selectedType = "";
 
   function showMessage(text, type = "") {
     const el = $("message");
@@ -130,25 +138,57 @@
   }
   function clearMessage() { $("message").hidden = true; $("message").textContent = ""; }
   function formData() {
+    const locationType = $("locationType").value;
+    const area = $("area").value;
+    const enteredName = $("name").value.trim();
     return {
-      name: $("name").value.trim(),
-      locationType: $("locationType").value,
-      address: $("address").value.trim(),
-      area: $("area").value.trim(),
-      city: $("city").value.trim(),
-      province: $("province").value.trim()
+      name: enteredName || (locationType === "home_visit" ? "Kunjungan Rumah — " + area : ""),
+      locationType,
+      address: locationType === "home_visit" ? "" : $("address").value.trim(),
+      area,
+      kelurahan: $("kelurahan").value,
+      city: "Palangka Raya",
+      province: "Kalimantan Tengah"
     };
   }
+  function showStep(step) {
+    $("stepType").hidden = step !== 1;
+    $("locationForm").hidden = step === 1;
+    $("stepDetails").hidden = step !== 2;
+    $("stepReview").hidden = step !== 3;
+    if (step === 1) $("formTitle").textContent = editingId ? "Edit layanan" : "Tambah layanan";
+    if (step === 2) $("formTitle").textContent = selectedType === "home_visit" ? "Detail kunjungan rumah" : "Detail klinik / tempat praktik";
+    if (step === 3) { $("formTitle").textContent = "Konfirmasi layanan"; renderReview(); }
+    clearMessage();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function chooseType(type) {
+    selectedType = type; $("locationType").value = type;
+    $("stepType").querySelectorAll("[data-type]").forEach(b=>b.classList.toggle("selected",b.dataset.type===type));
+    $("nameField").hidden = type === "home_visit";
+    $("addressField").hidden = type === "home_visit";
+    $("name").required = type === "practice"; $("address").required = type === "practice";
+    $("formIntro").textContent = type === "home_visit" ? "Tentukan wilayah yang bersedia Anda layani. Alamat klinik tidak diperlukan." : "Masukkan identitas dan alamat tempat praktik Anda.";
+    showStep(2);
+  }
+  function populateKelurahan(selected = "") {
+    const select=$("kelurahan"), kec=$("area").value;
+    select.replaceChildren();
+    const placeholder=document.createElement("option"); placeholder.value=""; placeholder.textContent=kec?"Pilih kelurahan":"Pilih kecamatan terlebih dahulu"; select.appendChild(placeholder);
+    (kelurahanByKecamatan[kec]||[]).forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;select.appendChild(o);});
+    select.disabled=!kec; select.value=selected;
+  }
+  function renderReview() {
+    const x=formData(), host=$("reviewSummary"); host.replaceChildren();
+    const rows=[["Jenis layanan",x.locationType==="home_visit"?"Kunjungan Rumah":"Klinik / Tempat Praktik"],
+      ...(x.locationType==="practice"?[["Nama tempat praktik",x.name],["Alamat",x.address]]:[["Nama layanan",x.name]]),
+      ["Kecamatan / area pencarian",x.area],["Kelurahan",x.kelurahan],["Kota","Palangka Raya"],["Provinsi","Kalimantan Tengah"]];
+    rows.forEach(([label,value])=>{const row=document.createElement("div");row.className="review-row";const l=document.createElement("div");l.className="review-label";l.textContent=label;const v=document.createElement("div");v.className="review-value";v.textContent=value||"—";row.append(l,v);host.appendChild(row);});
+  }
   function validateForm() {
-    const x = formData();
-    if (!x.name || !x.area || !x.city || !x.province) {
-      showMessage("Lengkapi nama lokasi, area layanan, kota/kabupaten, dan provinsi.", "error");
-      return null;
-    }
-    if (x.locationType === "practice" && !x.address) {
-      showMessage("Alamat lengkap wajib diisi untuk tempat praktik/klinik.", "error");
-      return null;
-    }
+    const x=formData();
+    if(!x.locationType||!x.area||!x.kelurahan){showMessage("Pilih kecamatan dan kelurahan untuk wilayah layanan.","error");return null;}
+    if(x.locationType==="practice"&&(!x.name||!x.address)){showMessage("Nama tempat praktik dan alamat lengkap wajib diisi.","error");return null;}
     return x;
   }
   function setSaving(value) {
@@ -158,22 +198,16 @@
   function resetForm() {
     editingId = null;
     $("locationForm").reset();
-    $("city").value = "Palangka Raya";
-    $("province").value = "Kalimantan Tengah";
-    $("formTitle").textContent = "Tambah lokasi";
-    $("cancelEdit").hidden = true;
-    $("submitReview").textContent = "Simpan & ajukan tinjauan";
-    updateAddressRequirement();
-    clearMessage();
+    $("city").value="Palangka Raya"; $("province").value="Kalimantan Tengah"; $("area").value=""; populateKelurahan();
+    $("stepType").querySelectorAll("[data-type]").forEach(b=>b.classList.remove("selected"));
+    selectedType=""; $("cancelEdit").hidden=true; showStep(1);
   }
-  function updateAddressRequirement() {
-    const homeVisit = $("locationType").value === "home_visit";
-    $("address").required = !homeVisit;
-    $("addressRequired").textContent = homeVisit ? "(opsional untuk layanan kunjungan)" : "*";
-    $("address").placeholder = homeVisit ? "Opsional: titik awal / alamat basis layanan" : "Nama jalan, nomor, patokan lokasi";
-  }
-  $("locationType").addEventListener("change", updateAddressRequirement);
-  $("cancelEdit").addEventListener("click", resetForm);
+  $("stepType").querySelectorAll("[data-type]").forEach(b=>b.addEventListener("click",()=>chooseType(b.dataset.type)));
+  $("area").addEventListener("change",()=>populateKelurahan());
+  $("backToType").addEventListener("click",()=>showStep(1));
+  $("toReview").addEventListener("click",()=>{clearMessage();if(validateForm())showStep(3);});
+  $("backToDetails").addEventListener("click",()=>showStep(2));
+  $("cancelEdit").addEventListener("click",resetForm);
 
   async function saveLocation(submitForReview) {
     if (saving || !currentUser) return;
@@ -221,18 +255,11 @@
   function beginEdit(location) {
     editingId = location.id;
     const x = location.data;
-    $("name").value = x.name || "";
-    $("locationType").value = x.locationType || "practice";
-    $("address").value = x.address || "";
-    $("area").value = x.area || "";
-    $("city").value = x.city || "";
-    $("province").value = x.province || "";
-    $("formTitle").textContent = "Edit lokasi";
-    $("cancelEdit").hidden = false;
-    $("submitReview").textContent = "Simpan & ajukan tinjauan";
-    updateAddressRequirement();
-    clearMessage();
-    window.scrollTo({top: 0, behavior: "smooth"});
+    $("name").value=x.name||""; $("locationType").value=x.locationType||"practice"; $("address").value=x.address||"";
+    $("area").value=x.area||""; $("city").value="Palangka Raya"; $("province").value="Kalimantan Tengah";
+    selectedType=x.locationType||"practice"; $("nameField").hidden=selectedType==="home_visit"; $("addressField").hidden=selectedType==="home_visit";
+    $("name").required=selectedType==="practice"; $("address").required=selectedType==="practice"; populateKelurahan(x.kelurahan||"");
+    $("cancelEdit").hidden=false; $("stepType").querySelectorAll("[data-type]").forEach(b=>b.classList.toggle("selected",b.dataset.type===selectedType)); showStep(2);
   }
 
   function makeLocationCard(location) {
@@ -252,7 +279,7 @@
     pill.textContent = statusLabels[x.status] || "Status tidak diketahui";
     top.append(titleWrap, pill);
     const address = document.createElement("p");
-    address.textContent = [x.address, x.area, x.city, x.province].filter(Boolean).join(" · ") || "Alamat belum tersedia";
+    address.textContent = [x.address, x.kelurahan, x.area, x.city || "Palangka Raya", x.province || "Kalimantan Tengah"].filter(Boolean).join(" · ") || "Alamat belum tersedia";
     card.append(top, address);
     if (x.status === "rejected") {
       const reason = document.createElement("p");
@@ -363,7 +390,8 @@
       currentUser = user;
       $("loading").hidden = true;
       $("app").hidden = false;
-      updateAddressRequirement();
+      populateKelurahan();
+      showStep(1);
       await loadLocations();
     } catch (error) {
       console.error("Gagal memeriksa akun:", error);
