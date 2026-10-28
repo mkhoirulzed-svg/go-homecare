@@ -107,7 +107,7 @@ service cloud.firestore {
         && validCatalogFields()
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
 
     // Lokasi praktisi: aturan aditif untuk fondasi multi-lokasi.
