@@ -102,7 +102,7 @@ service cloud.firestore {
         ])
         && request.resource.data.keys().hasOnly([
           'ownerUid', 'name', 'locationType', 'address', 'area',
-          'kelurahan', 'city', 'province', 'status', 'createdAt', 'updatedAt'
+          'kelurahan', 'areaScope', 'areas', 'city', 'province', 'status', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.name is string
@@ -116,6 +116,12 @@ service cloud.firestore {
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
         && request.resource.data.area.size() <= 200
+        && (!request.resource.data.keys().hasAny(['areaScope'])
+          || request.resource.data.areaScope in ['district', 'citywide'])
+        && (!request.resource.data.keys().hasAny(['areas'])
+          || (request.resource.data.areas is list
+            && request.resource.data.areas.size() >= 1
+            && request.resource.data.areas.size() <= 5))
         && (!request.resource.data.keys().hasAny(['kelurahan'])
           || (request.resource.data.kelurahan is string
             && request.resource.data.kelurahan.size() > 0
@@ -145,7 +151,7 @@ service cloud.firestore {
         ])
         && request.resource.data.keys().hasOnly([
           'ownerUid', 'name', 'locationType', 'address', 'area',
-          'kelurahan', 'city', 'province', 'status', 'createdAt', 'updatedAt'
+          'kelurahan', 'areaScope', 'areas', 'city', 'province', 'status', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
@@ -158,6 +164,12 @@ service cloud.firestore {
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
         && request.resource.data.area.size() <= 200
+        && (!request.resource.data.keys().hasAny(['areaScope'])
+          || request.resource.data.areaScope in ['district', 'citywide'])
+        && (!request.resource.data.keys().hasAny(['areas'])
+          || (request.resource.data.areas is list
+            && request.resource.data.areas.size() >= 1
+            && request.resource.data.areas.size() <= 5))
         && (!request.resource.data.keys().hasAny(['kelurahan'])
           || (request.resource.data.kelurahan is string
             && request.resource.data.kelurahan.size() > 0
