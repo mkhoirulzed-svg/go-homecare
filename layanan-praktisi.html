@@ -51,11 +51,18 @@
       <section class="card">
         <p class="eyebrow">FORM LAYANAN</p>
         <h2 id="formTitle">Tambah layanan</h2>
-        <p class="help">Tarif dimasukkan dalam rupiah tanpa titik atau simbol. Layanan yang diajukan menunggu tinjauan admin. Layanan hanya bisa dipublikasikan jika lokasi induknya sudah dipublikasikan.</p>
+        <p class="help">Pilih layanan baku agar nama seragam. Jika tidak tersedia, ajukan layanan khusus; admin meninjau sebelum layanan ditampilkan. Tarif dimasukkan dalam rupiah tanpa titik atau simbol. Layanan hanya bisa dipublikasikan jika lokasi induknya sudah dipublikasikan.</p>
         <div id="message" class="status" role="status" hidden></div>
         <form id="serviceForm">
-          <label for="name">Nama layanan *</label>
-          <input id="name" maxlength="120" required placeholder="Contoh: Perawatan luka">
+          <label for="catalogService">Pilih layanan baku *</label>
+          <select id="catalogService" required>
+            <option value="">Memuat katalog layanan…</option>
+          </select>
+          <div id="customServiceFields" hidden>
+            <label for="name">Nama layanan khusus yang diajukan *</label>
+            <input id="name" maxlength="120" placeholder="Tulis nama layanan yang belum tersedia">
+            <p class="help">Layanan khusus akan ditinjau admin sebelum dapat ditampilkan kepada pasien.</p>
+          </div>
           <label for="description">Deskripsi layanan</label>
           <textarea id="description" maxlength="1000" placeholder="Jelaskan cakupan layanan secara singkat, tanpa data pasien."></textarea>
           <div class="grid">
@@ -109,23 +116,69 @@
   let locationData = null;
   let editingId = null;
   let saving = false;
+  let catalogItems = [];
   const statusLabels = {draft:"Draft",pending_review:"Menunggu tinjauan",published:"Dipublikasikan",rejected:"Perlu perbaikan",paused:"Dijeda"};
 
   function showMessage(text,type="") {
     const el=$("message"); el.textContent=text; el.className="status"+(type?" "+type:""); el.hidden=false;
   }
   function clearMessage(){ $("message").hidden=true; $("message").textContent=""; }
+  function isCustomSelected(){ return $("catalogService").value === "__custom__"; }
+  function updateServiceChoice(){
+    const custom=isCustomSelected();
+    $("customServiceFields").hidden=!custom;
+    $("name").required=custom;
+    if(!custom) $("name").value="";
+    clearMessage();
+  }
+  $("catalogService").addEventListener("change",updateServiceChoice);
   function formData(){
+    const custom=isCustomSelected();
+    const selected=catalogItems.find(item=>item.id===$("catalogService").value);
     return {
-      name:$("name").value.trim(),
+      name:custom?$("name").value.trim():(selected?.name||""),
       description:$("description").value.trim(),
       price:Number($("price").value),
-      durationMinutes:Number($("duration").value)
+      durationMinutes:Number($("duration").value),
+      catalogId:custom?"":(selected?.id||""),
+      isCustom:custom
     };
+  }
+  async function loadServiceCatalog(selectedId=""){
+    const select=$("catalogService");
+    select.replaceChildren();
+    const placeholder=document.createElement("option");
+    placeholder.value="";placeholder.textContent="Pilih layanan…";select.appendChild(placeholder);
+    try{
+      const snap=await getDocs(collection(db,"serviceCatalog"));
+      catalogItems=snap.docs.map(d=>({id:d.id,...d.data()}))
+        .filter(x=>x.active===true)
+        .sort((a,b)=>(a.name||"").localeCompare(b.name||"","id"));
+      catalogItems.forEach(item=>{
+        const option=document.createElement("option");
+        option.value=item.id;option.textContent=item.name;
+        select.appendChild(option);
+      });
+      const custom=document.createElement("option");custom.value="__custom__";custom.textContent="+ Ajukan layanan khusus";select.appendChild(custom);
+      select.value=selectedId||"";
+      updateServiceChoice();
+      if(!catalogItems.length){
+        const note=document.createElement("p");note.className="help";
+        note.textContent="Katalog awal belum tersedia. Admin perlu mengisi katalog di panel admin terlebih dahulu.";
+        select.insertAdjacentElement("afterend",note);
+      }
+    }catch(error){
+      console.error("Gagal memuat katalog layanan:",error);
+      select.replaceChildren();
+      const option=document.createElement("option");option.value="";option.textContent="Katalog belum dapat dimuat";select.appendChild(option);
+      showMessage("Katalog layanan belum dapat dimuat. Periksa koneksi dan Firestore Rules.","error");
+    }
   }
   function validateForm(){
     const x=formData();
-    if(!x.name){showMessage("Nama layanan wajib diisi.","error");return null;}
+    if(!x.isCustom&&!x.catalogId){showMessage("Pilih layanan dari katalog atau pilih layanan khusus.","error");return null;}
+    if(x.isCustom&&!x.name){showMessage("Nama layanan khusus wajib diisi.","error");return null;}
+    if(x.isCustom&&x.description.length<10){showMessage("Jelaskan layanan khusus minimal 10 karakter agar admin dapat meninjaunya.","error");return null;}
     if($("price").value.trim()===""||!Number.isInteger(x.price)||x.price<0||x.price>100000000){showMessage("Tarif harus berupa bilangan rupiah bulat dari Rp0 sampai Rp100.000.000.","error");return null;}
     if($("duration").value.trim()===""||!Number.isInteger(x.durationMinutes)||x.durationMinutes<5||x.durationMinutes>1440){showMessage("Durasi harus berupa bilangan bulat 5–1.440 menit.","error");return null;}
     return x;
@@ -134,7 +187,7 @@
     saving=value; ["saveDraft","submitReview","refresh"].forEach(id=>$(id).disabled=value);
   }
   function resetForm(){
-    editingId=null; $("serviceForm").reset(); $("duration").value="60";
+    editingId=null; $("serviceForm").reset(); $("duration").value="60"; $("catalogService").value=""; $("name").value=""; updateServiceChoice();
     $("formTitle").textContent="Tambah layanan"; $("cancelEdit").hidden=true; clearMessage();
   }
   $("cancelEdit").addEventListener("click",resetForm);
@@ -174,10 +227,10 @@
 
   function beginEdit(row){
     editingId=row.id; const x=row.data;
-    $("name").value=x.name||""; $("description").value=x.description||"";
+    $("name").value=x.isCustom||!x.catalogId?(x.name||""):""; $("description").value=x.description||"";
     $("price").value=Number.isInteger(x.price)?String(x.price):"";
     $("duration").value=Number.isInteger(x.durationMinutes)?String(x.durationMinutes):"60";
-    $("formTitle").textContent="Edit layanan"; $("cancelEdit").hidden=false; clearMessage();
+    $("catalogService").value=x.isCustom||!x.catalogId?"__custom__":x.catalogId; updateServiceChoice(); $("formTitle").textContent="Edit layanan"; $("cancelEdit").hidden=false; clearMessage();
     window.scrollTo({top:0,behavior:"smooth"});
   }
   function formatRupiah(value){
@@ -191,7 +244,7 @@
     titleWrap.append(title,description);
     const pill=document.createElement("span"); pill.className="pill "+(x.status||"draft"); pill.textContent=statusLabels[x.status]||"Status tidak diketahui";
     top.append(titleWrap,pill); card.append(top);
-    const detail=document.createElement("p"); detail.textContent=formatRupiah(x.price)+" · Perkiraan "+(x.durationMinutes||"—")+" menit";
+    const detail=document.createElement("p"); detail.textContent=(x.isCustom?"Layanan khusus · ":"")+formatRupiah(x.price)+" · Perkiraan "+(x.durationMinutes||"—")+" menit;
     card.append(detail);
     if(x.status==="rejected"){
       const reason=document.createElement("p"); reason.textContent=x.reviewNote?"Catatan admin: "+x.reviewNote:"Silakan periksa kembali informasi layanan lalu ajukan ulang."; card.append(reason);
@@ -254,6 +307,7 @@
         const warning=document.createElement("p");warning.className="help";warning.style.margin="8px 0 0";warning.textContent="Lokasi ini belum dipublikasikan. Layanan dapat disiapkan, tetapi admin hanya dapat memublikasikan layanan setelah lokasi induk dipublikasikan.";
         $("locationSummary").appendChild(warning);
       }
+      await loadServiceCatalog();
       await loadServices();
     }catch(error){
       console.error("Gagal memeriksa akun/lokasi:",error);
