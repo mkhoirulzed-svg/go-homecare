@@ -76,10 +76,19 @@
             <p id="formIntro" class="help"></p>
             <div id="nameField"><label for="name">Nama klinik / tempat praktik *</label><input id="name" maxlength="120" placeholder="Contoh: Klinik Sehat Bersama"></div>
             <div id="addressField"><label for="address">Alamat lengkap tempat praktik *</label><textarea id="address" maxlength="500" placeholder="Nama jalan, nomor, patokan lokasi"></textarea></div>
-            <label for="area">Kecamatan layanan *</label>
-            <select id="area" required><option value="">Pilih kecamatan</option><option>Pahandut</option><option>Jekan Raya</option><option>Sabangau</option><option>Bukit Batu</option><option>Rakumpit</option></select>
-            <label for="kelurahan">Kelurahan *</label><select id="kelurahan" required disabled><option value="">Pilih kecamatan terlebih dahulu</option></select>
-            <p class="help">Kecamatan menjadi area layanan untuk pencarian pasien. Kelurahan digunakan sebagai rincian wilayah.</p>
+            <label>Cakupan wilayah layanan *</label>
+            <div class="choice-grid" style="margin:8px 0 14px">
+              <button type="button" class="choice-card selected" data-scope="district"><span class="choice-icon">⌖</span><span class="choice-copy"><strong>Kecamatan tertentu</strong><span>Pilih kecamatan dan kelurahan yang Anda layani.</span></span><span>›</span></button>
+              <button type="button" class="choice-card" data-scope="citywide"><span class="choice-icon">⌂</span><span class="choice-copy"><strong>Seluruh Palangka Raya</strong><span>Bersedia melayani pasien dari semua kecamatan.</span></span><span>›</span></button>
+            </div>
+            <input id="areaScope" type="hidden" value="district">
+            <div id="districtFields">
+              <label for="area">Kecamatan layanan *</label>
+              <select id="area" required><option value="">Pilih kecamatan</option><option>Pahandut</option><option>Jekan Raya</option><option>Sabangau</option><option>Bukit Batu</option><option>Rakumpit</option></select>
+              <label for="kelurahan">Kelurahan *</label><select id="kelurahan" required disabled><option value="">Pilih kecamatan terlebih dahulu</option></select>
+              <p class="help">Kecamatan menjadi area layanan untuk pencarian pasien. Kelurahan digunakan sebagai rincian wilayah.</p>
+            </div>
+            <div id="citywideNote" class="notice" hidden>Wilayah layanan mencakup seluruh Kota Palangka Raya. Anda tidak perlu memilih kecamatan atau kelurahan.</div>
             <div class="grid"><div><label for="city">Kota / kabupaten</label><input id="city" class="fixed-field" readonly value="Palangka Raya"></div><div><label for="province">Provinsi</label><input id="province" class="fixed-field" readonly value="Kalimantan Tengah"></div></div>
             <div class="step-actions"><button id="backToType" class="quiet" type="button">← Kembali</button><button id="toReview" class="primary" type="button">Lanjutkan →</button></div>
           </div>
@@ -141,12 +150,16 @@
     const locationType = $("locationType").value;
     const area = $("area").value;
     const enteredName = $("name").value.trim();
+    const areaScope = $("areaScope").value || "district";
+    const districts = ["Pahandut", "Jekan Raya", "Sabangau", "Bukit Batu", "Rakumpit"];
     return {
-      name: enteredName || (locationType === "home_visit" ? "Kunjungan Rumah — " + area : ""),
+      name: enteredName || (locationType === "home_visit" ? "Kunjungan Rumah — " + (areaScope === "citywide" ? "Seluruh Palangka Raya" : area) : ""),
       locationType,
       address: locationType === "home_visit" ? "" : $("address").value.trim(),
-      area,
-      kelurahan: $("kelurahan").value,
+      areaScope,
+      areas: areaScope === "citywide" ? districts : [area],
+      area: areaScope === "citywide" ? "Seluruh Palangka Raya" : area,
+      kelurahan: areaScope === "citywide" ? "" : $("kelurahan").value,
       city: "Palangka Raya",
       province: "Kalimantan Tengah"
     };
@@ -171,6 +184,15 @@
     $("formIntro").textContent = type === "home_visit" ? "Tentukan wilayah yang bersedia Anda layani. Alamat klinik tidak diperlukan." : "Masukkan identitas dan alamat tempat praktik Anda.";
     showStep(2);
   }
+  function chooseScope(scope) {
+    $("areaScope").value = scope;
+    $("districtFields").hidden = scope === "citywide";
+    $("citywideNote").hidden = scope !== "citywide";
+    $("area").required = scope !== "citywide";
+    $("kelurahan").required = scope !== "citywide";
+    $("stepDetails").querySelectorAll("[data-scope]").forEach(b=>b.classList.toggle("selected",b.dataset.scope===scope));
+    clearMessage();
+  }
   function populateKelurahan(selected = "") {
     const select=$("kelurahan"), kec=$("area").value;
     select.replaceChildren();
@@ -182,12 +204,15 @@
     const x=formData(), host=$("reviewSummary"); host.replaceChildren();
     const rows=[["Jenis layanan",x.locationType==="home_visit"?"Kunjungan Rumah":"Klinik / Tempat Praktik"],
       ...(x.locationType==="practice"?[["Nama tempat praktik",x.name],["Alamat",x.address]]:[["Nama layanan",x.name]]),
-      ["Kecamatan / area pencarian",x.area],["Kelurahan",x.kelurahan],["Kota","Palangka Raya"],["Provinsi","Kalimantan Tengah"]];
+      ["Cakupan wilayah",x.areaScope==="citywide"?"Seluruh Palangka Raya":"Kecamatan tertentu"],
+      ["Kecamatan / area pencarian",x.area],
+      ...(x.areaScope==="district"?[["Kelurahan",x.kelurahan]]:[]),
+      ["Kota","Palangka Raya"],["Provinsi","Kalimantan Tengah"]];
     rows.forEach(([label,value])=>{const row=document.createElement("div");row.className="review-row";const l=document.createElement("div");l.className="review-label";l.textContent=label;const v=document.createElement("div");v.className="review-value";v.textContent=value||"—";row.append(l,v);host.appendChild(row);});
   }
   function validateForm() {
     const x=formData();
-    if(!x.locationType||!x.area||!x.kelurahan){showMessage("Pilih kecamatan dan kelurahan untuk wilayah layanan.","error");return null;}
+    if(!x.locationType||(x.areaScope==="district"&&(!x.area||!x.kelurahan))){showMessage("Pilih kecamatan dan kelurahan untuk wilayah layanan.","error");return null;}
     if(x.locationType==="practice"&&(!x.name||!x.address)){showMessage("Nama tempat praktik dan alamat lengkap wajib diisi.","error");return null;}
     return x;
   }
@@ -198,7 +223,7 @@
   function resetForm() {
     editingId = null;
     $("locationForm").reset();
-    $("city").value="Palangka Raya"; $("province").value="Kalimantan Tengah"; $("area").value=""; populateKelurahan();
+    $("city").value="Palangka Raya"; $("province").value="Kalimantan Tengah"; $("area").value=""; populateKelurahan(); chooseScope("district");
     $("stepType").querySelectorAll("[data-type]").forEach(b=>b.classList.remove("selected"));
     selectedType=""; $("cancelEdit").hidden=true; showStep(1);
   }
@@ -256,9 +281,9 @@
     editingId = location.id;
     const x = location.data;
     $("name").value=x.name||""; $("locationType").value=x.locationType||"practice"; $("address").value=x.address||"";
-    $("area").value=x.area||""; $("city").value="Palangka Raya"; $("province").value="Kalimantan Tengah";
+    $("area").value=x.areaScope==="citywide"?"":(x.area||""); $("city").value="Palangka Raya"; $("province").value="Kalimantan Tengah";
     selectedType=x.locationType||"practice"; $("nameField").hidden=selectedType==="home_visit"; $("addressField").hidden=selectedType==="home_visit";
-    $("name").required=selectedType==="practice"; $("address").required=selectedType==="practice"; populateKelurahan(x.kelurahan||"");
+    $("name").required=selectedType==="practice"; $("address").required=selectedType==="practice"; populateKelurahan(x.kelurahan||""); chooseScope(x.areaScope==="citywide"?"citywide":"district");
     $("cancelEdit").hidden=false; $("stepType").querySelectorAll("[data-type]").forEach(b=>b.classList.toggle("selected",b.dataset.type===selectedType)); showStep(2);
   }
 
@@ -279,7 +304,7 @@
     pill.textContent = statusLabels[x.status] || "Status tidak diketahui";
     top.append(titleWrap, pill);
     const address = document.createElement("p");
-    address.textContent = [x.address, x.kelurahan, x.area, x.city || "Palangka Raya", x.province || "Kalimantan Tengah"].filter(Boolean).join(" · ") || "Alamat belum tersedia";
+    address.textContent = [x.address, x.areaScope==="citywide"?"Melayani seluruh Palangka Raya":x.kelurahan, x.area, x.city || "Palangka Raya", x.province || "Kalimantan Tengah"].filter(Boolean).join(" · ") || "Alamat belum tersedia";
     card.append(top, address);
     if (x.status === "rejected") {
       const reason = document.createElement("p");
@@ -391,6 +416,7 @@
       $("loading").hidden = true;
       $("app").hidden = false;
       populateKelurahan();
+      chooseScope("district");
       showStep(1);
       await loadLocations();
     } catch (error) {
