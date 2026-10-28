@@ -1,7 +1,7 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Go-Homecare</title><style>*{box-sizing:border-box}body{font:16px system-ui;background:#f1f5f9;color:#0f172a;margin:0;padding:18px}main{max-width:800px;margin:auto}.card{background:white;border-radius:14px;padding:20px;margin:12px 0}button{padding:11px 14px;border:0;border-radius:8px;background:#0d9488;color:white;margin:5px;cursor:pointer}.item{padding:14px;border:1px solid #ddd;border-radius:10px;margin:12px 0}.muted{color:#64748b;font-size:13px}.hidden{display:none}#status{padding:12px;background:#f8fafc;white-space:pre-wrap}</style></head><body><main><section class="card"><h1>Admin Go-Homecare</h1><p>Panel peninjauan permohonan praktisi.</p><div id="status">Memeriksa sesi…</div><button id="login" class="hidden">Login Google</button><button id="reload" class="hidden">Muat ulang</button><button id="logout" class="hidden">Keluar</button></section><section id="panel" class="card hidden"><h2>Permohonan baru menunggu verifikasi</h2><div id="apps">Memuat…</div><hr><h2>Lokasi praktik menunggu verifikasi</h2><p class="muted">Lokasi yang diajukan praktisi muncul di sini. Setujui lokasi sebelum meninjau tarif layanan di dalamnya.</p><div id="locationReviews">Memuat lokasi…</div><hr><h2>Katalog layanan baku</h2><p class="muted">Layanan baku muncul sebagai pilihan praktisi. Layanan khusus yang diajukan praktisi tetap masuk ke antrean tinjauan tarif layanan.</p><div class="item"><label for="catalogName">Nama layanan</label><input id="catalogName" maxlength="120" placeholder="Contoh: Perawatan Luka" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><label for="catalogDescription">Keterangan singkat (opsional)</label><input id="catalogDescription" maxlength="300" placeholder="Cakupan layanan" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><button id="addCatalog">Tambah ke katalog</button><button id="seedCatalog" style="background:#475569">Isi katalog awal</button></div><div id="catalogStatus" class="muted" role="status"></div><div id="serviceCatalogAdmin">Memuat katalog…</div><hr><h2>Tarif layanan menunggu tinjauan</h2><p class="muted">Layanan hanya dapat dipublikasikan jika lokasi induknya sudah dipublikasikan.</p><div id="serviceReviews">Memuat layanan…</div><hr><h2>Akun praktisi lama belum terverifikasi</h2><p class="muted">Akun dengan role praktisi yang dibuat sebelum fitur pengajuan. Periksa data yang tersedia sebelum menyetujui.</p><div id="legacy">Memuat akun lama…</div><hr><h2>Operasional Pesanan Homecare</h2><p class="muted">Tinjau permintaan baru. Pesanan yang diterima harus ditugaskan kepada praktisi terverifikasi.</p><div id="bookingStatus" class="muted" role="status">Memuat pesanan…</div><div id="bookings">Memuat pesanan…</div></section><p><a href="index.html">Kembali ke halaman utama</a></p></main><script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import{getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import{getFirestore,collection,query,where,getDocs,doc,getDoc,addDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getFirestore,collection,query,where,getDocs,doc,getDoc,addDoc,updateDoc,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const ADMIN_UID="Vsl0uEluR5TCOdqVY7UPX2wfw6y1";
 const app=initializeApp({apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomain:"gocare-c94bc.firebaseapp.com",projectId:"gocare-c94bc",storageBucket:"gocare-c94bc.firebasestorage.app",messagingSenderId:"123940961680",appId:"1:123940961680:web:bb842fd8925e2432230715"}),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
 const $=id=>document.getElementById(id);function msg(t){$("status").textContent=t}function esc(v){return String(v??"-").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -59,12 +59,38 @@ async function loadServiceCatalogAdmin(){
     if(!rows.length){host.textContent="Katalog masih kosong. Gunakan tombol Isi katalog awal untuk menambahkan 11 layanan awal.";return}
     rows.forEach(({id,x})=>{
       const el=document.createElement("article");el.className="item";
-      el.innerHTML="<h3>"+esc(x.name)+"</h3><p>"+esc(x.description||"Tanpa keterangan")+"</p><p class='muted'>"+(x.active===true?"Aktif · tersedia untuk praktisi":"Nonaktif · tidak ditawarkan pada formulir baru")+"</p><button>"+(x.active===true?"Nonaktifkan":"Aktifkan")+"</button>";
-      el.querySelector("button").onclick=async()=>{
+      el.innerHTML="<h3>"+esc(x.name)+"</h3><p>"+esc(x.description||"Tanpa keterangan")+"</p><p class='muted'>"+(x.active===true?"Aktif · tersedia untuk praktisi":"Nonaktif · tidak ditawarkan pada formulir baru")+"</p><button class='toggle'>"+(x.active===true?"Nonaktifkan":"Aktifkan")+"</button><button class='edit' style='background:#334155'>Edit</button><button class='delete' style='background:#b91c1c'>Hapus</button>";
+      el.querySelector(".toggle").onclick=async()=>{
         if(!confirm((x.active===true?"Nonaktifkan":"Aktifkan")+" layanan katalog "+x.name+"?"))return;
         try{await updateDoc(doc(db,"serviceCatalog",id),{active:x.active!==true,updatedAt:serverTimestamp()});await loadServiceCatalogAdmin()}
         catch(e){alert("Gagal memperbarui katalog: "+e.message)}
-      };host.appendChild(el);
+      };
+      el.querySelector(".edit").onclick=async()=>{
+        const nextName=prompt("Nama layanan:",x.name||"");
+        if(nextName===null)return;
+        const name=nextName.trim();
+        if(!name){alert("Nama layanan wajib diisi.");return}
+        const nextDescription=prompt("Keterangan singkat:",x.description||"");
+        if(nextDescription===null)return;
+        const description=nextDescription.trim();
+        if(name.length>120||description.length>300){alert("Nama maksimal 120 karakter dan keterangan maksimal 300 karakter.");return}
+        try{
+          const duplicate=await getDocs(collection(db,"serviceCatalog"));
+          if(duplicate.docs.some(d=>d.id!==id&&(d.data().name||"").trim().toLocaleLowerCase("id-ID")===name.toLocaleLowerCase("id-ID"))){alert("Nama layanan tersebut sudah ada.");return}
+          await updateDoc(doc(db,"serviceCatalog",id),{name,description,updatedAt:serverTimestamp()});
+          $("catalogStatus").textContent="Perubahan katalog berhasil disimpan.";
+          await loadServiceCatalogAdmin();
+        }catch(e){alert("Gagal mengedit layanan katalog: "+e.message)}
+      };
+      el.querySelector(".delete").onclick=async()=>{
+        if(!confirm("Hapus layanan katalog '"+x.name+"'?\n\nLayanan yang sudah tersimpan pada profil praktisi tidak ikut terhapus. Nama layanan ini tidak akan muncul lagi sebagai pilihan katalog baru."))return;
+        try{
+          await deleteDoc(doc(db,"serviceCatalog",id));
+          $("catalogStatus").textContent="Layanan katalog berhasil dihapus.";
+          await loadServiceCatalogAdmin();
+        }catch(e){alert("Gagal menghapus layanan katalog: "+e.message+"\nPastikan Firestore Rules terbaru sudah dipublikasikan.")}
+      };
+      host.appendChild(el);
     });
   }catch(e){host.textContent="Gagal memuat katalog: "+e.message}
 }
