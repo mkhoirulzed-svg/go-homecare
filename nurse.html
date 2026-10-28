@@ -68,7 +68,7 @@
     .schedule-status{display:inline-flex;margin-top:9px;padding:5px 8px;border-radius:99px;background:#ccfbf1;color:#115e59;font-size:11px;font-weight:700}
     .bottom-nav{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,600px);height:calc(70px + env(safe-area-inset-bottom));padding:0 8px env(safe-area-inset-bottom);display:flex;justify-content:space-around;align-items:center;background:#fff;box-shadow:0 -4px 20px #0000000d;border-top-left-radius:20px;border-top-right-radius:20px}
     .nav-item{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 4px;border:0;border-radius:12px;background:transparent;color:#94a3b8;cursor:pointer;font-size:11px;font-weight:500;transition:color .25s ease,transform .25s ease}
-    .nav-item svg{width:24px;height:24px;display:block;flex:none;transition:transform .25s ease}
+    .nav-item svg{width:24px;height:24px;display:block;flex:none;transition:transform .25s ease}\n    .bottom-nav a{text-decoration:none}
     .nav-item span{font-size:11px;line-height:1.2;white-space:nowrap}
     .nav-item.active{color:var(--primary);font-weight:700;background:transparent}
     .nav-item.active svg{transform:translateY(-2px)}
@@ -183,6 +183,9 @@
         <button class="nav-item" type="button" data-tab="schedule" aria-label="Jadwal">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 15H5V9h14ZM7 11h4v3H7Zm6 0h4v3h-4Z"/></svg><span>Jadwal</span>
         </button>
+        <a class="nav-item" href="layanan.html" aria-label="Layanan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="3"/><path d="M18 15.5v3M16.5 17h3"/></svg><span>Layanan</span>
+        </a>
         <button class="nav-item" type="button" data-tab="profile" aria-label="Profil">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Z"/></svg><span>Profil</span>
         </button>
