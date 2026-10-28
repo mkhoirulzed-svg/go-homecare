@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>Layanan Praktisi - Go Homecare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--teal:#0f766e;--mint:#ccfbf1;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f1f5f9}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+    .wrap{max-width:680px;min-height:100vh;margin:auto;background:#fff}
+    header{padding:22px 20px 27px;background:linear-gradient(140deg,#115e59,#0d9488);color:#fff;border-radius:0 0 24px 24px}
+    .back{display:inline-flex;align-items:center;gap:7px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:22px}
+    .eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--teal);margin:0 0 8px}
+    header .eyebrow{color:#99f6e4}h1{font-size:25px;letter-spacing:-.6px;margin:0 0 8px}.subtitle{font-size:13px;line-height:1.65;color:#d1fae5;margin:0}
+    main{padding:20px 16px 42px}.card{border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 5px 20px #0f172a08}
+    h2{font-size:18px;margin:0 0 7px}.help{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 15px}
+    .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+    .quick{display:flex;flex-direction:column;gap:9px;min-height:120px;padding:15px;border:1px solid #ccfbf1;border-radius:15px;background:#f0fdfa;color:#115e59;text-decoration:none}
+    .quick strong{font-size:13px;line-height:1.4}.quick span{font-size:11px;line-height:1.55;color:#476c69}
+    .quick-icon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;background:#ccfbf1;font-size:18px}
+    .status{padding:12px 13px;border-radius:11px;background:#f8fafc;color:#475569;font-size:12px;line-height:1.6;margin-bottom:14px;white-space:pre-wrap}
+    .status.error{background:#fef2f2;color:#991b1b}.location{border:1px solid var(--line);border-radius:15px;padding:15px;margin-top:12px}
+    .location-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.location h3{font-size:15px;line-height:1.4;margin:0 0 5px;overflow-wrap:anywhere}
+    .location p{font-size:12px;color:var(--muted);line-height:1.6;margin:5px 0;overflow-wrap:anywhere}
+    .pill{display:inline-flex;align-items:center;border-radius:99px;padding:5px 8px;font-size:10px;font-weight:800;white-space:nowrap;background:#f1f5f9;color:#475569}
+    .pill.published{background:#dcfce7;color:#166534}.pill.pending_review{background:#fef3c7;color:#92400e}.pill.rejected{background:#fee2e2;color:#991b1b}.pill.paused{background:#e2e8f0;color:#334155}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions a,.button{display:inline-flex;align-items:center;justify-content:center;padding:10px 12px;border:0;border-radius:10px;font:700 11px Inter,sans-serif;text-decoration:none;cursor:pointer}
+    .primary{background:var(--teal);color:#fff}.secondary{background:var(--mint);color:#115e59}.quiet{background:#f1f5f9;color:#334155}
+    .service{border-top:1px solid #e2e8f0;margin-top:13px;padding-top:13px}.service:first-of-type{margin-top:10px}
+    .service h4{font-size:13px;line-height:1.5;margin:0 0 4px}.service p{font-size:12px;color:#64748b;line-height:1.6;margin:4px 0;overflow-wrap:anywhere}
+    .service-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.price{font-weight:800;color:#0f766e!important}
+    .empty{padding:15px;border-radius:12px;background:#f8fafc;color:var(--muted);font-size:12px;line-height:1.6}
+    .bottom-note{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:12px;padding:13px;font-size:12px;line-height:1.65}
+    [hidden]{display:none!important}
+    @media(max-width:420px){.quick-grid{grid-template-columns:1fr}.location-head{display:block}.pill{margin-top:7px}.actions a{flex:1}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading" style="padding:60px 20px;text-align:center;color:#64748b">Memeriksa akun praktisi…</div>
+  <div id="app" hidden>
+    <header>
+      <a class="back" href="nurse.html">← Kembali ke dashboard</a>
+      <p class="eyebrow">PENGELOLAAN PRAKTIK</p>
+      <h1>Layanan</h1>
+      <p class="subtitle">Kelola lokasi praktik, tambahkan layanan, dan periksa rincian serta tarif yang Anda tawarkan.</p>
+    </header>
+    <main>
+      <section class="card">
+        <p class="eyebrow">AKSES CEPAT</p>
+        <h2>Kelola praktik Anda</h2>
+        <p class="help">Lokasi menjadi dasar pengaturan layanan dan tarif. Setiap lokasi dapat memiliki daftar layanan yang berbeda.</p>
+        <div class="quick-grid">
+          <a class="quick" href="lokasi-praktisi.html"><span class="quick-icon">⌖</span><strong>Tambah / edit lokasi</strong><span>Tambah lokasi baru atau edit lokasi berstatus draft/perlu perbaikan.</span></a>
+          <a class="quick" href="#daftarLokasi"><span class="quick-icon">＋</span><strong>Tambah layanan</strong><span>Pilih lokasi di bawah, lalu tambahkan layanan dan atur tarifnya.</span></a>
+        </div>
+      </section>
+      <section class="card" id="daftarLokasi">
+        <p class="eyebrow">RINCIAN LAYANAN</p>
+        <h2>Lokasi dan layanan Anda</h2>
+        <p class="help">Periksa nama layanan, deskripsi, tarif, durasi, serta status tinjauan admin. Gunakan tombol pengelolaan pada setiap lokasi untuk menambah atau mengedit rincian.</p>
+        <div id="message" class="status" role="status" hidden></div>
+        <div id="locations"><div class="empty">Memuat lokasi dan rincian layanan…</div></div>
+        <div class="actions"><button id="refresh" class="button quiet" type="button">Muat ulang</button><a class="secondary" href="lokasi-praktisi.html">+ Tambah lokasi</a></div>
+      </section>
+      <div class="bottom-note">Layanan yang diajukan akan ditinjau admin sebelum ditampilkan kepada pasien. Pastikan tarif, durasi, dan deskripsi sesuai kompetensi serta kewenangan praktik Anda. Jangan masukkan data pasien ke deskripsi layanan.</div>
+    </main>
+  </div>
+</div>
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",
+    authDomain: "gocare-c94bc.firebaseapp.com",
+    projectId: "gocare-c94bc",
+    storageBucket: "gocare-c94bc.firebasestorage.app",
+    messagingSenderId: "123940961680",
+    appId: "1:123940961680:web:bb842fd8925e2432230715"
+  };
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const $ = id => document.getElementById(id);
+  let currentUser = null;
+  const statusLabels = {draft:"Draft",pending_review:"Menunggu tinjauan",published:"Dipublikasikan",rejected:"Perlu perbaikan",paused:"Dijeda"};
+  const locationLabels = {draft:"Draft",pending_review:"Menunggu tinjauan",published:"Dipublikasikan",rejected:"Perlu perbaikan",paused:"Dijeda"};
+  const rupiah = value => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(value)||0);
+
+  function showError(message) {
+    const el=$("message"); el.textContent=message; el.className="status error"; el.hidden=false;
+  }
+  function addText(tag,className,text) {
+    const el=document.createElement(tag); if(className)el.className=className; el.textContent=text||""; return el;
+  }
+  function makeService(row,locationId) {
+    const x=row.data; const article=document.createElement("article"); article.className="service";
+    article.appendChild(addText("h4","",x.name||"Layanan tanpa nama"));
+    article.appendChild(addText("p","",x.description||"Deskripsi belum diisi."));
+    const meta=document.createElement("div");meta.className="service-meta";
+    meta.appendChild(addText("p","price",rupiah(x.price)+" · "+(Number(x.durationMinutes)||"—")+" menit"));
+    const badge=addText("span","pill "+(x.status||"draft"),statusLabels[x.status]||"Status tidak diketahui");meta.appendChild(badge);
+    article.appendChild(meta);
+    if(x.reviewNote)article.appendChild(addText("p","", "Catatan admin: "+x.reviewNote));
+    return article;
+  }
+  async function loadLocations() {
+    if(!currentUser)return;
+    const host=$("locations");host.replaceChildren(addText("div","empty","Memuat lokasi dan rincian layanan…"));
+    $("refresh").disabled=true;$("message").hidden=true;
+    try {
+      const snapshot=await getDocs(query(collection(db,"practitionerLocations"),where("ownerUid","==",currentUser.uid)));
+      const locations=snapshot.docs.map(d=>({id:d.id,data:d.data()})).sort((a,b)=>(a.data.name||"").localeCompare(b.data.name||"","id"));
+      host.replaceChildren();
+      if(!locations.length) {
+        host.appendChild(addText("div","empty","Belum ada lokasi. Tambahkan lokasi terlebih dahulu, lalu Anda dapat menambahkan layanan dan tarif."));
+        return;
+      }
+      for(const row of locations) {
+        const x=row.data;const card=document.createElement("article");card.className="location";
+        const top=document.createElement("div");top.className="location-head";
+        const titleWrap=document.createElement("div");titleWrap.appendChild(addText("h3","",x.name||"Lokasi tanpa nama"));
+        titleWrap.appendChild(addText("p","", (x.locationType==="home_visit"?"Kunjungan rumah":"Klinik / tempat praktik")+" · "+[x.area,x.city,x.province].filter(Boolean).join(", ")));
+        top.appendChild(titleWrap);top.appendChild(addText("span","pill "+(x.status||"draft"),locationLabels[x.status]||"Status tidak diketahui"));card.appendChild(top);
+        if(x.address)card.appendChild(addText("p","",x.address));
+        if(x.areaScope==="citywide")card.appendChild(addText("p","", "Cakupan: seluruh Palangka Raya"));
+        else if(x.kelurahan)card.appendChild(addText("p","", "Kelurahan: "+x.kelurahan));
+        const servicesHost=document.createElement("div");servicesHost.appendChild(addText("div","empty","Memuat rincian layanan…"));card.appendChild(servicesHost);
+        try {
+          const servicesSnap=await getDocs(collection(db,"practitionerLocations",row.id,"services"));
+          const services=servicesSnap.docs.map(d=>({id:d.id,data:d.data()})).sort((a,b)=>(a.data.name||"").localeCompare(b.data.name||"","id"));
+          servicesHost.replaceChildren();
+          if(!services.length)servicesHost.appendChild(addText("div","empty","Belum ada layanan di lokasi ini."));
+          else services.forEach(service=>servicesHost.appendChild(makeService(service,row.id)));
+        } catch(error) {
+          console.error("Gagal memuat rincian layanan",row.id,error);
+          servicesHost.replaceChildren(addText("div","empty","Rincian layanan belum dapat dimuat. Periksa akses Firestore."));
+        }
+        const actions=document.createElement("div");actions.className="actions";
+        const editLocation=document.createElement("a");editLocation.href="lokasi-praktisi.html";editLocation.className="secondary";editLocation.textContent="Edit / kelola lokasi";
+        const canManage=["draft","published"].includes(x.status);
+        const addService=document.createElement("a");addService.href="layanan-praktisi.html?locationId="+encodeURIComponent(row.id);addService.className="primary";addService.textContent="Tambah / edit layanan";
+        if(!canManage){addService.setAttribute("aria-disabled","true");addService.style.opacity=".55";addService.title="Lokasi perlu berstatus Draft atau Dipublikasikan untuk mengelola layanan.";addService.addEventListener("click",event=>{event.preventDefault();alert("Lokasi harus berstatus Draft atau Dipublikasikan sebelum layanan dapat dikelola.");});}
+        actions.append(editLocation,addService);card.appendChild(actions);host.appendChild(card);
+      }
+    } catch(error) {
+      console.error("Gagal memuat lokasi praktisi",error);
+      host.replaceChildren(addText("div","empty","Lokasi belum dapat dimuat. Periksa koneksi dan Firestore Rules."));
+      showError("Gagal memuat lokasi dan layanan. Coba muat ulang atau periksa aturan akses Firestore.");
+    } finally {$("refresh").disabled=false;}
+  }
+  $("refresh").addEventListener("click",loadLocations);
+  onAuthStateChanged(auth,async user=>{
+    if(!user){window.location.replace("index.html");return;}
+    try {
+      const snap=await getDoc(doc(db,"users",user.uid));
+      if(!snap.exists()){await signOut(auth);window.location.replace("index.html");return;}
+      const profile=snap.data();
+      if(profile.role!=="praktisi"){window.location.replace(profile.role==="pasien"?"patient.html":"index.html");return;}
+      if(profile.isVerified!==true){alert("Akun praktisi belum diverifikasi admin.");window.location.replace("nurse.html");return;}
+      currentUser=user;$("loading").hidden=true;$("app").hidden=false;await loadLocations();
+    } catch(error) {
+      console.error("Gagal memeriksa akun praktisi",error);
+      $("loading").textContent="Tidak dapat memeriksa akun. Periksa koneksi internet dan aturan akses Firestore.";
+    }
+  });
+</script>
+</body>
+</html>
