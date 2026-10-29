@@ -69,65 +69,49 @@
   .detail-service .book{margin-top:11px}
   @media(min-width:600px){main{padding:24px 24px 48px}.tools{grid-template-columns:minmax(0,1fr) 220px}.card{padding:20px}.profile-card{padding:0}.profile-main{padding:20px}.details-panel{padding:18px 20px 20px}}
   
-/* Clean & Minimal — visual-only refinement */
+/* Minimal practitioner list inspired by the reference */
 :root{--teal:#087b79;--teal-dark:#076c69;--ink:#17242d;--muted:#71808e;--line:#e7ecef;--bg:#f6f8f9}
-body{background:#f5f7f8;color:var(--ink)}
+body{background:#fff;color:var(--ink)}
 .app{background:#fff;box-shadow:none}
-header{background:#fff!important;color:var(--ink)!important;border-radius:0!important;padding:19px 22px 13px!important;border-bottom:1px solid #edf0f2}
-.back{color:#26343f!important;font-size:13px;font-weight:600;margin-bottom:17px}
+header{background:#fff!important;color:var(--ink)!important;border-radius:0!important;padding:17px 20px 12px!important;border-bottom:1px solid #edf0f2}
+.back{color:#53616c!important;font-size:12px;font-weight:600;margin-bottom:15px}
 .eyebrow{display:none}
-h1{font-size:19px!important;letter-spacing:-.35px;font-weight:700;margin:0 0 5px}
-.sub{color:#7a8791!important;font-size:12px;line-height:1.55}
-main{padding:18px 17px 45px}
-input,select{background:#f3f6f8;border:1px solid transparent;border-radius:11px;box-shadow:none;min-height:44px;font-weight:400}
+h1{font-size:20px!important;letter-spacing:-.45px;font-weight:750;margin:0}
+.sub{color:#7a8791!important;font-size:12px}
+main{padding:14px 0 36px}
+.tools{padding:0 16px;gap:8px;margin-bottom:10px}
+input,select{background:#f6f8f9;border:1px solid #e9eef0;border-radius:10px;box-shadow:none;min-height:43px;font-size:12px}
 input:focus,select:focus{background:#fff;border-color:#9bcfcb;box-shadow:0 0 0 2px #e4f4f2}
-.tools{gap:9px;margin-bottom:15px}
-.card,.profile,.location{border:1px solid #edf0f1;border-radius:16px;box-shadow:0 2px 9px #152f3a08}
-.card:hover{box-shadow:0 3px 12px #152f3a10;border-color:#dce7e7}
-.profile-card{margin:0 0 12px}
-.profile-main{padding:15px}
-.profile-head{gap:12px}
-.profile-photo,.profile-avatar{width:58px;height:58px;flex-basis:58px;border-radius:50%}
-.profile-avatar{background:#e8f4f2;color:#167d78;font-size:21px}
-.profile-name{font-size:15px;font-weight:700;letter-spacing:-.2px;margin-bottom:4px}
-.profile-specialty{font-size:11px}
-.profile-bio{font-size:11px;line-height:1.5;margin-top:9px}
-.location-badges{gap:6px;margin-top:12px}
-.location-badge{border-radius:7px;padding:5px 7px;font-size:10px;font-weight:600}
+.status{padding:8px 17px;font-size:11px}
+#catalog{display:block}
+.card.profile-card{border:0;border-top:1px solid #e8ecee;border-radius:0;box-shadow:none;margin:0;padding:0;background:#fff}
+.card.profile-card:last-child{border-bottom:1px solid #e8ecee}
+.profile-main{padding:17px 16px 14px}
+.profile-head{display:flex;align-items:flex-start;gap:13px}
+.profile-photo,.profile-avatar{width:78px;height:92px;flex:0 0 78px;border-radius:10px;object-fit:cover;background:#f0f4f5}
+.profile-avatar{height:78px;align-self:center;display:grid;place-items:center;background:#eaf4f3;color:#167d78;font-size:24px;font-weight:750}
+.profile-name{font-size:16px;font-weight:750;letter-spacing:-.35px;line-height:1.35;margin:1px 0 4px;color:#111827}
+.profile-specialty{font-size:12px;color:#7a838b;line-height:1.5;margin:0}
+.profile-specialty::first-letter{text-transform:uppercase}
+.profile-bio{font-size:11px;line-height:1.5;color:#7a838b;margin:7px 0 0}
+.starting-price{display:flex;justify-content:space-between;align-items:center;gap:10px;background:transparent;border:0;border-top:1px solid #edf0f2;border-radius:0;padding:12px 0 0;margin-top:13px}
+.starting-label{display:none}
+.starting-value{display:block;text-align:left;font-size:17px;font-weight:750;color:#27323a;letter-spacing:-.4px}
+.location-badges{gap:6px;margin-top:11px}
+.location-badge{border-radius:6px;padding:5px 7px;font-size:10px;font-weight:600}
 .location-badge .dot{width:5px;height:5px}
-.starting-price{display:block;background:transparent;border:0;border-top:1px solid #edf1f2;border-radius:0;padding:11px 0 0;margin-top:13px}
-.starting-label{display:block;color:#84919a;font-size:10px;font-weight:400;margin-bottom:4px}
-.starting-value{display:block;text-align:left;font-size:16px;font-weight:700;letter-spacing:-.3px}
-.details-toggle{width:auto;display:inline-flex;justify-content:flex-start;background:transparent;color:#087b79;font-size:12px;font-weight:650;border:0;border-radius:0;padding:10px 0 0;margin:0;box-shadow:none}
-.details-toggle:hover{text-decoration:underline}
-.cover{height:42px;background:#edf5f4}
-.profile{border-radius:15px}
-.profile-body{padding:0 16px 17px}
-.profile-top{margin-top:-25px;align-items:flex-end}
-.avatar,.photo{width:70px;height:70px;flex-basis:70px;border-radius:50%;box-shadow:none;border:3px solid #fff;background:#e8f4f2}
-.name{font-size:19px;letter-spacing:-.3px}
-.specialty{font-size:11px}
-.bio{font-size:12px;margin-top:13px}
-.stats{gap:0;border-top:1px solid #edf0f1;margin-top:16px;padding-top:12px}
-.stat{border:0;border-radius:0;background:transparent;padding:4px 8px 4px 0}
-.stat-label{font-size:10px}
-.stat-value{font-size:12px;font-weight:600}
-.stat-value.price{font-size:14px}
-.section-title{font-size:16px;font-weight:700;margin-top:22px}
-.location{border-radius:13px;box-shadow:none;margin-bottom:12px}
-.location-head{padding:12px 13px}
-.location-icon{width:29px;height:29px;flex-basis:29px;border-radius:8px;font-size:15px}
-.location-name{font-size:13px;font-weight:700}
-.location-kind{font-size:9px;font-weight:600}
-.service{padding:13px}
-.service-name{font-size:13px;font-weight:650}
-.duration{background:#f4f6f7;border-radius:6px;font-weight:500}
-.price{font-size:16px}
-.book{background:#087b79;border-radius:9px;box-shadow:none;font-weight:600}
-.book:hover{background:#066b69}
-.empty{border:1px solid #edf0f1;border-radius:12px;background:#fafbfb}
-@media(min-width:600px){main{padding:22px 24px 45px}}
-
+.details-toggle{display:inline-flex;justify-content:center;align-items:center;background:#087b79;color:#fff;font-size:12px;font-weight:700;border:0;border-radius:9px;padding:10px 15px;margin:0;box-shadow:none;text-decoration:none;white-space:nowrap}
+.details-toggle:hover{text-decoration:none;background:#066b69}
+.profile-main{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.profile-head{grid-row:1}
+.profile-bio{grid-row:2}
+.location-badges{grid-row:3}
+.starting-price{grid-row:4}
+.profile-main>.details-toggle{grid-row:5;margin-top:12px;width:100%}
+.empty{margin:12px 16px;border:1px solid #edf0f1;border-radius:12px;background:#fafbfb;padding:25px 16px}
+.request-card{margin:20px 16px 0;padding:15px;border:1px solid #e7ecee;border-radius:14px;background:#fafcfc;box-shadow:none}
+.request-link{border-color:#b8d9d6;color:#087b79;border-radius:9px}
+@media(min-width:600px){main{padding:18px 0 45px}.tools{padding:0 24px;grid-template-columns:minmax(0,1fr) 220px}.profile-main{padding:18px 24px}.profile-head{gap:15px}.profile-photo,.profile-avatar{width:84px;flex-basis:84px}.profile-photo{height:96px}.profile-avatar{height:84px}.profile-main>.details-toggle{width:auto;justify-self:start;padding:10px 20px}.request-card{margin-left:24px;margin-right:24px}}
 </style>
 </head>
 <body>
@@ -191,7 +175,7 @@ function render(){
   const detailUrl="detail-praktisi.html?"+(ownerUid?"ownerUid="+encodeURIComponent(ownerUid):"locationId="+encodeURIComponent(firstLocation?.id||""));
   const card=document.createElement("article");card.className="card profile-card";
   const avatar=photo?'<img class="profile-photo" src="'+escapeHtml(photo)+'" alt="Foto '+escapeHtml(name)+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="profile-avatar" aria-hidden="true">'+escapeHtml((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
-  card.innerHTML='<div class="profile-main"><div class="profile-head">'+avatar+'<div><h2 class="profile-name">'+escapeHtml(name)+'</h2><p class="profile-specialty">'+escapeHtml(specialty)+(expText?' · '+escapeHtml(expText):'')+'</p></div></div>'+(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'')+'<div class="starting-price"><span class="starting-label">Harga layanan</span><span class="starting-value">'+(minPrice===null?"Konfirmasi tarif":'Mulai dari '+rupiah(minPrice))+'</span></div><div class="location-badges">'+badgeHtml+'</div><a class="details-toggle" href="'+detailUrl+'">Lihat profil dan layanan <span aria-hidden="true">→</span></a></div>';
+  card.innerHTML='<div class="profile-main"><div class="profile-head">'+avatar+'<div><h2 class="profile-name">'+escapeHtml(name)+'</h2><p class="profile-specialty">'+escapeHtml(specialty)+(expText?' · '+escapeHtml(expText):'')+'</p>'+(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'')+'</div></div><div class="location-badges">'+badgeHtml+'</div><div class="starting-price"><span class="starting-label">Harga layanan</span><span class="starting-value">'+(minPrice===null?"Konfirmasi tarif":'Mulai dari '+rupiah(minPrice))+'</span></div><a class="details-toggle" href="'+detailUrl+'">Lihat profil & layanan <span aria-hidden="true">→</span></a></div>';
   const photoEl=card.querySelector(".profile-photo");
   if(photoEl)photoEl.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="profile-avatar";fallback.setAttribute("aria-hidden","true");fallback.textContent=(name.trim().charAt(0)||"P").toUpperCase();photoEl.replaceWith(fallback);},{once:true});
   $("catalog").append(card);
