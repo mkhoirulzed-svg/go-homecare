@@ -450,6 +450,7 @@ service cloud.firestore {
           'patientUid', 'bookerUid', 'bookerName', 'bookingFor', 'relationship',
           'patientName', 'patientPhone', 'patientAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
+          'district', 'kelurahan', 'city', 'province',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
           'bookingSource', 'createdAt', 'updatedAt'
         ])
@@ -460,7 +461,8 @@ service cloud.firestore {
           'nurseUid', 'nurseName', 'nursePhone', 'status',
           'bookingSource', 'createdAt', 'updatedAt',
           'locationId', 'serviceId', 'locationName', 'locationType',
-          'servicePrice', 'serviceDurationMinutes', 'practitionerUid'
+          'servicePrice', 'serviceDurationMinutes', 'practitionerUid',
+          'customServiceDescription', 'district', 'kelurahan', 'city', 'province'
         ])
         && request.resource.data.patientUid == request.auth.uid
         && request.resource.data.bookerUid == request.auth.uid
@@ -489,24 +491,43 @@ service cloud.firestore {
               'locationId', 'serviceId', 'locationName', 'locationType',
               'servicePrice', 'serviceDurationMinutes', 'practitionerUid'
             ])
-            && request.resource.data.serviceName in [
-              'Perawatan Luka',
-              'Perawatan Luka Diabetes / Dekubitus',
-              'Perawatan Luka Operasi',
-              'Pemasangan Infus',
-              'Pemberian Injeksi',
-              'Injeksi Vitamin',
-              'Perawatan Kateter',
-              'Perawatan NGT',
-              'Perawatan Kolostomi',
-              'Perawatan Lansia (Harian)',
-              'Sunat'
-            ]
+            && (
+              request.resource.data.serviceName in [
+                'Perawatan Luka',
+                'Perawatan Luka Diabetes / Dekubitus',
+                'Perawatan Luka Operasi',
+                'Pemasangan Infus',
+                'Pemberian Injeksi',
+                'Injeksi Vitamin',
+                'Perawatan Kateter',
+                'Perawatan NGT',
+                'Perawatan Kolostomi',
+                'Perawatan Lansia (Harian)',
+                'Sunat',
+                'Rawat Luka', 'Pasang Infus', 'Pasang NGT', 'Pasang DC',
+                'Perawatan Lansia', 'Lainnya'
+              ]
+              || (
+                request.resource.data.serviceName == 'Layanan di luar katalog'
+                && request.resource.data.keys().hasAny(['customServiceDescription'])
+                && request.resource.data.customServiceDescription is string
+                && request.resource.data.customServiceDescription.size() > 0
+                && request.resource.data.customServiceDescription.size() <= 500
+              )
+            )
           )
         )
         && request.resource.data.scheduledAt is timestamp
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
+        && request.resource.data.district is string
+        && request.resource.data.district in ['Pahandut', 'Jekan Raya', 'Bukit Batu', 'Sabangau', 'Rakumpit']
+        && request.resource.data.kelurahan is string
+        && request.resource.data.kelurahan.size() > 0
+        && request.resource.data.kelurahan.size() <= 100
+        && request.resource.data.area == request.resource.data.district
+        && request.resource.data.city == 'Palangka Raya'
+        && request.resource.data.province == 'Kalimantan Tengah'
         && request.resource.data.notes is string
         && request.resource.data.nurseUid == null
         && request.resource.data.nurseName == null
@@ -537,11 +558,13 @@ service cloud.firestore {
           'nurseUid', 'nurseName', 'nursePhone', 'status',
           'bookingSource', 'createdAt', 'updatedAt',
           'locationId', 'serviceId', 'locationName', 'locationType',
-          'servicePrice', 'serviceDurationMinutes', 'practitionerUid'
+          'servicePrice', 'serviceDurationMinutes', 'practitionerUid',
+          'customServiceDescription', 'district', 'kelurahan', 'city', 'province'
         ])
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'bookingFor', 'relationship', 'patientName', 'patientPhone',
-          'patientAddress', 'serviceName', 'scheduledAt', 'area', 'notes', 'updatedAt'
+          'patientAddress', 'serviceName', 'customServiceDescription',
+          'scheduledAt', 'district', 'kelurahan', 'city', 'province', 'area', 'notes', 'updatedAt'
         ])
         && request.resource.data.bookingFor in ['self', 'family']
         && request.resource.data.relationship is string
@@ -567,24 +590,43 @@ service cloud.firestore {
           )
           || (
             !resource.data.keys().hasAny(['locationId'])
-            && request.resource.data.serviceName in [
-              'Perawatan Luka',
-              'Perawatan Luka Diabetes / Dekubitus',
-              'Perawatan Luka Operasi',
-              'Pemasangan Infus',
-              'Pemberian Injeksi',
-              'Injeksi Vitamin',
-              'Perawatan Kateter',
-              'Perawatan NGT',
-              'Perawatan Kolostomi',
-              'Perawatan Lansia (Harian)',
-              'Sunat'
-            ]
+            && (
+              request.resource.data.serviceName in [
+                'Perawatan Luka',
+                'Perawatan Luka Diabetes / Dekubitus',
+                'Perawatan Luka Operasi',
+                'Pemasangan Infus',
+                'Pemberian Injeksi',
+                'Injeksi Vitamin',
+                'Perawatan Kateter',
+                'Perawatan NGT',
+                'Perawatan Kolostomi',
+                'Perawatan Lansia (Harian)',
+                'Sunat',
+                'Rawat Luka', 'Pasang Infus', 'Pasang NGT', 'Pasang DC',
+                'Perawatan Lansia', 'Lainnya'
+              ]
+              || (
+                request.resource.data.serviceName == 'Layanan di luar katalog'
+                && request.resource.data.keys().hasAny(['customServiceDescription'])
+                && request.resource.data.customServiceDescription is string
+                && request.resource.data.customServiceDescription.size() > 0
+                && request.resource.data.customServiceDescription.size() <= 500
+              )
+            )
           )
         )
         && request.resource.data.scheduledAt is timestamp
         && request.resource.data.area is string
         && request.resource.data.area.size() > 0
+        && request.resource.data.district is string
+        && request.resource.data.district in ['Pahandut', 'Jekan Raya', 'Bukit Batu', 'Sabangau', 'Rakumpit']
+        && request.resource.data.kelurahan is string
+        && request.resource.data.kelurahan.size() > 0
+        && request.resource.data.kelurahan.size() <= 100
+        && request.resource.data.area == request.resource.data.district
+        && request.resource.data.city == 'Palangka Raya'
+        && request.resource.data.province == 'Kalimantan Tengah'
         && request.resource.data.notes is string
         && request.resource.data.updatedAt == request.time
       )
