@@ -760,6 +760,7 @@
           : "Jadwal belum tersedia";
         target.innerHTML =
           '<div class="progress-service">' + escapeHtml(item.serviceName || "Layanan homecare") + '</div>' +
+          (item.customServiceDescription ? '<div class="progress-meta">Rincian layanan: ' + escapeHtml(item.customServiceDescription) + '</div>' : '') +
           '<span class="progress-status ' + escapeHtml(status) + '">' + escapeHtml(statusText(status)) + '</span>' +
           '<div class="progress-meta">Jadwal: ' + escapeHtml(dateLabel) + '</div>' +
           (item.nurseName ? '<div class="progress-meta">Perawat: ' + escapeHtml(item.nurseName) + '</div>' : '') +
@@ -799,7 +800,7 @@
             : ["accepted", "in_progress"].includes(status)
               ? '<div class="booking-actions"><button type="button" data-booking-action="chat" data-booking-id="' + escapeHtml(item.id) + '" data-chat-booking="' + escapeHtml(item.id) + '">Buka chat praktisi</button></div>'
               : '';
-          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Praktisi: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
+          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div>' + (item.customServiceDescription ? '<p><strong>Rincian layanan:</strong> ' + escapeHtml(item.customServiceDescription) + '</p>' : '') + '<p>Lokasi: ' + escapeHtml([item.kelurahan, item.district || item.area, item.city, item.province].filter(Boolean).join(", ") || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Praktisi: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
         }).join("");
       } catch (error) {
         console.error("Gagal memuat pesanan aktif:", error);
@@ -837,7 +838,7 @@
             : status === "completed"
               ? '<div class="booking-actions"><button type="button" data-booking-action="chat" data-booking-id="' + escapeHtml(item.id) + '" data-chat-booking="' + escapeHtml(item.id) + '">Lihat riwayat chat</button></div>'
               : '';
-          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div><p>Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Perawat: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
+          return '<article class="history-item"><div class="history-item-top"><div><h4>' + escapeHtml(item.serviceName || "Layanan homecare") + '</h4><p>Jadwal: ' + escapeHtml(dateLabel) + '</p></div><span class="status-pill ' + escapeHtml(status) + '">' + escapeHtml(statusLabel) + '</span></div>' + (item.customServiceDescription ? '<p><strong>Rincian layanan:</strong> ' + escapeHtml(item.customServiceDescription) + '</p>' : '') + '<p>Lokasi: ' + escapeHtml([item.kelurahan, item.district || item.area, item.city, item.province].filter(Boolean).join(", ") || "Belum dicantumkan") + '</p>' + (item.patientName ? '<p>Pasien: ' + escapeHtml(item.patientName) + '</p>' : '') + (item.nurseName ? '<p>Perawat: ' + escapeHtml(item.nurseName) + '</p>' : '') + (item.notes ? '<p>Catatan: ' + escapeHtml(item.notes) + '</p>' : '') + actions + '</article>';
         }).join("");
       } catch (error) {
         console.error("Gagal memuat riwayat pemesanan:", error);
