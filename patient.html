@@ -299,7 +299,12 @@
       background:#fff; color:#64748b;
     }
     .service-search-wrap input { width:100%; min-width:0; border:0; outline:0; background:transparent; font:inherit; font-size:13px; color:var(--text-main); }
-    .services-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:30px; }
+    .services-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:30px; }
+    .service-art { height:68px; }
+    .service-art svg { width:38px;height:38px; }
+    .service-copy { padding:9px 7px 10px; }
+    .service-name { font-size:10.5px; min-height:36px; overflow-wrap:anywhere; }
+    .service-description { font-size:9px; line-height:1.35; -webkit-line-clamp:2; }
     .service-item {
       min-width:0; align-items:stretch; text-align:left; overflow:hidden;
       background:#fff; border:1px solid var(--border); border-radius:17px;
@@ -319,7 +324,7 @@
     .service-name { display:block; font-size:12px; font-weight:750; line-height:1.35; min-height:32px; }
     .service-description { margin-top:6px; color:var(--text-muted); font-size:10px; line-height:1.45; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
     .service-loading,.service-empty { grid-column:1/-1; padding:20px 14px; text-align:center; border:1px dashed var(--border); border-radius:14px; color:var(--text-muted); font-size:12px; background:#fff; }
-    @media (max-width:360px) { .services-grid { gap:9px; } .service-copy { padding:10px; } .service-name { font-size:11px; } }
+    @media (max-width:360px) { .services-grid { gap:6px; } .service-art { height:60px; } .service-copy { padding:8px 5px; } .service-name { font-size:10px; } .service-description { font-size:8.5px; } }
 
     /* Health Diary / Tools */
     .tools-grid {
