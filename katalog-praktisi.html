@@ -112,6 +112,28 @@ input:focus,select:focus{background:#fff;border-color:#9bcfcb;box-shadow:0 0 0 2
 .request-card{margin:20px 16px 0;padding:15px;border:1px solid #e7ecee;border-radius:14px;background:#fafcfc;box-shadow:none}
 .request-link{border-color:#b8d9d6;color:#087b79;border-radius:9px}
 @media(min-width:600px){main{padding:18px 0 45px}.tools{padding:0 24px;grid-template-columns:minmax(0,1fr) 220px}.profile-main{padding:18px 24px}.profile-head{gap:15px}.profile-photo,.profile-avatar{width:84px;flex-basis:84px}.profile-photo{height:96px}.profile-avatar{height:84px}.profile-main>.details-toggle{width:auto;justify-self:start;padding:10px 20px}.request-card{margin-left:24px;margin-right:24px}}
+
+/* Compact clickable practitioner card */
+.card.profile-card{cursor:pointer;transition:background .15s}
+.card.profile-card:hover{background:#fcfefe;border-color:#e8ecee;box-shadow:none}
+.card.profile-card:focus-visible{outline:2px solid #087b79;outline-offset:-3px}
+.profile-main{display:grid;grid-template-columns:78px minmax(0,1fr);column-gap:13px;row-gap:0;padding:16px}
+.profile-head{display:contents}
+.profile-photo,.profile-avatar{grid-column:1;grid-row:1 / span 4;width:78px;height:86px;flex:0 0 78px;border-radius:9px;align-self:start}
+.profile-avatar{height:78px}
+.profile-head>div{grid-column:2;grid-row:1;min-width:0}
+.profile-name{font-size:15px;margin:0 0 3px}
+.profile-specialty{font-size:11px}
+.profile-bio{grid-column:2;grid-row:2;font-size:11px;line-height:1.5;margin:7px 0 0;color:#596872}
+.service-summary{grid-column:2;grid-row:2;font-size:11px;line-height:1.55;color:#596872;margin-top:7px}
+.service-more{color:#087b79;font-weight:700;white-space:nowrap}
+.location-badges{grid-column:2;grid-row:3;margin-top:8px}
+.location-badge{background:transparent!important;border:0!important;padding:0!important;border-radius:0!important;color:#687781!important;font-size:10px;font-weight:500}
+.location-badge .dot{width:4px;height:4px}
+.starting-price{grid-column:2;grid-row:4;border:0;padding:0;margin-top:8px;align-items:flex-start}
+.starting-value{font-size:15px}
+.profile-main>.details-toggle{display:none}
+@media(min-width:600px){.profile-main{grid-template-columns:84px minmax(0,1fr);column-gap:15px;padding:18px 24px}.profile-photo,.profile-avatar{width:84px;flex-basis:84px}.profile-photo{height:92px}.profile-avatar{height:84px}}
 </style>
 </head>
 <body>
@@ -170,12 +192,18 @@ function render(){
    const label=isHome?"Kunjungan rumah":("Klinik · "+(x.name||"Tempat praktik"));
    return '<span class="location-badge '+(isHome?"home":"practice")+'"><span class="dot" aria-hidden="true"></span>'+escapeHtml(label)+'</span>';
   }).join("");
+  const serviceNames=[...new Set(services.map(item=>item.service.name||item.service.title||item.service.serviceName).filter(Boolean))];
+  const servicePreview=serviceNames.slice(0,3).join(", ");
+  const serviceSummary=servicePreview?'<div class="service-summary">'+escapeHtml(servicePreview)+(serviceNames.length>3?' <span class="service-more">…lihat lainnya</span>':'')+'</div>':(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'');
   const firstLocation=locations[0];
   const ownerUid=firstLocation?.ownerUid||p.uid||"";
   const detailUrl="detail-praktisi.html?"+(ownerUid?"ownerUid="+encodeURIComponent(ownerUid):"locationId="+encodeURIComponent(firstLocation?.id||""));
   const card=document.createElement("article");card.className="card profile-card";
   const avatar=photo?'<img class="profile-photo" src="'+escapeHtml(photo)+'" alt="Foto '+escapeHtml(name)+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="profile-avatar" aria-hidden="true">'+escapeHtml((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
-  card.innerHTML='<div class="profile-main"><div class="profile-head">'+avatar+'<div><h2 class="profile-name">'+escapeHtml(name)+'</h2><p class="profile-specialty">'+escapeHtml(specialty)+(expText?' · '+escapeHtml(expText):'')+'</p>'+(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'')+'</div></div><div class="location-badges">'+badgeHtml+'</div><div class="starting-price"><span class="starting-label">Harga layanan</span><span class="starting-value">'+(minPrice===null?"Konfirmasi tarif":'Mulai dari '+rupiah(minPrice))+'</span></div><a class="details-toggle" href="'+detailUrl+'">Lihat profil & layanan <span aria-hidden="true">→</span></a></div>';
+  card.setAttribute("role","link");card.setAttribute("tabindex","0");card.setAttribute("aria-label","Lihat profil dan layanan "+name);
+  card.innerHTML='<div class="profile-main">'+avatar+'<div class="profile-head"><div><h2 class="profile-name">'+escapeHtml(name)+'</h2><p class="profile-specialty">'+escapeHtml(specialty)+(expText?' · '+escapeHtml(expText):'')+'</p></div></div>'+serviceSummary+'<div class="location-badges">'+badgeHtml+'</div><div class="starting-price"><span class="starting-value">'+(minPrice===null?"Konfirmasi tarif":'Mulai dari '+rupiah(minPrice))+'</span></div></div>';
+  card.addEventListener("click",()=>{window.location.href=detailUrl;});
+  card.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();window.location.href=detailUrl;}});
   const photoEl=card.querySelector(".profile-photo");
   if(photoEl)photoEl.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="profile-avatar";fallback.setAttribute("aria-hidden","true");fallback.textContent=(name.trim().charAt(0)||"P").toUpperCase();photoEl.replaceWith(fallback);},{once:true});
   $("catalog").append(card);
