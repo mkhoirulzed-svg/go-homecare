@@ -101,12 +101,17 @@
             <label for="serviceName">Jenis layanan *</label>
             <select id="serviceName" required>
               <option value="">Pilih layanan</option>
-              <option>Rawat Luka</option>
-              <option>Pasang Infus</option>
-              <option>Pasang NGT</option>
-              <option>Pasang DC</option>
-              <option>Perawatan Lansia</option>
-              <option>Lainnya</option>
+              <option>Perawatan Luka</option>
+              <option>Perawatan Luka Diabetes / Dekubitus</option>
+              <option>Perawatan Luka Operasi</option>
+              <option>Pemasangan Infus</option>
+              <option>Pemberian Injeksi</option>
+              <option>Injeksi Vitamin</option>
+              <option>Perawatan Kateter</option>
+              <option>Perawatan NGT</option>
+              <option>Perawatan Kolostomi</option>
+              <option>Perawatan Lansia (Harian)</option>
+              <option>Sunat</option>
             </select>
           </div>
           <div class="field">
@@ -232,7 +237,19 @@
     const requestedLocationId = params.get("locationId");
     const requestedServiceId = params.get("serviceId");
     editingBookingId = params.get("bookingId");
-    const allowedServices = ["Rawat Luka", "Pasang Infus", "Pasang NGT", "Pasang DC", "Perawatan Lansia", "Lainnya"];
+    const allowedServices = [
+      "Perawatan Luka",
+      "Perawatan Luka Diabetes / Dekubitus",
+      "Perawatan Luka Operasi",
+      "Pemasangan Infus",
+      "Pemberian Injeksi",
+      "Injeksi Vitamin",
+      "Perawatan Kateter",
+      "Perawatan NGT",
+      "Perawatan Kolostomi",
+      "Perawatan Lansia (Harian)",
+      "Sunat"
+    ];
     if (allowedServices.includes(requestedService)) $("serviceName").value = requestedService;
 
     function formatRupiah(value) {
