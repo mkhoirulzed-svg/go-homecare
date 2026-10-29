@@ -522,11 +522,6 @@
     <div class="main-content">
       
       <!-- Katalog layanan disinkronkan dengan katalog admin/praktisi -->
-      <div class="section-title">
-        Cari Berdasarkan Jenis Layanan
-        <small id="serviceCountLabel">11 layanan</small>
-      </div>
-
       <a href="katalog-praktisi.html" class="catalog-link">
         <span>
           <strong>Jelajahi praktisi & layanan</strong>
@@ -643,7 +638,8 @@
         String(item.name || "").toLocaleLowerCase("id").includes(needle) ||
         String(item.description || "").toLocaleLowerCase("id").includes(needle)
       );
-      document.getElementById("serviceCountLabel").textContent = filter ? rows.length + " ditemukan" : rows.length + " layanan";
+      const countLabel = document.getElementById("serviceCountLabel");
+      if (countLabel) countLabel.textContent = filter ? rows.length + " ditemukan" : rows.length + " layanan";
       if (!rows.length) {
         host.innerHTML = '<div class="service-empty">Layanan tidak ditemukan. Coba kata kunci lain.</div>';
         return;
