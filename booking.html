@@ -428,7 +428,11 @@
             customServiceField.classList.remove("hidden");
             customServiceInput.required = true;
           } else {
-            $("serviceName").value = existingBooking.serviceName || "";
+            const savedService = existingBooking.serviceName || "";
+            if (savedService && !Array.from($("serviceName").options).some(option => option.value === savedService)) {
+              $("serviceName").add(new Option(savedService, savedService));
+            }
+            $("serviceName").value = savedService;
             customServiceField.classList.add("hidden");
             customServiceInput.required = false;
           }
