@@ -632,6 +632,9 @@
       ["#f3e8ff","#7e22ce"],["#e2e8f0","#334155"]
     ];
     let serviceCatalogItems = FALLBACK_SERVICES.map(([name,description],index)=>({name,description,index}));
+    const escapeServiceHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[ch]);
     function renderServiceCatalog(filter = "") {
       const host = document.getElementById("servicesGrid");
       if (!host) return;
@@ -651,10 +654,10 @@
         const safeName = String(item.name || "");
         const safeDescription = String(item.description || "Pilih layanan untuk melihat praktisi yang tersedia.");
         const svg = SERVICE_ART[index];
-        return '<button type="button" class="service-item" data-service-name="' + escapeHtml(safeName) + '" style="border:1px solid var(--border);padding:0;text-align:left;font:inherit;color:inherit">' +
+        return '<button type="button" class="service-item" data-service-name="' + escapeServiceHtml(safeName) + '" style="border:1px solid var(--border);padding:0;text-align:left;font:inherit;color:inherit">' +
           '<span class="service-art" style="--art-bg:' + colors[0] + ';--art-color:' + colors[1] + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + svg + '</svg></span>' +
-          '<span class="service-copy" style="display:block"><span class="service-name">' + escapeHtml(safeName) + '</span><span class="service-description">' + escapeHtml(safeDescription) + '</span></span></button>';
+          '<span class="service-copy" style="display:block"><span class="service-name">' + escapeServiceHtml(safeName) + '</span><span class="service-description">' + escapeServiceHtml(safeDescription) + '</span></span></button>';
       }).join("");
     }
     document.getElementById("servicesGrid")?.addEventListener("click", event => {
