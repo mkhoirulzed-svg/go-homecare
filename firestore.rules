@@ -490,8 +490,17 @@ service cloud.firestore {
               'servicePrice', 'serviceDurationMinutes', 'practitionerUid'
             ])
             && request.resource.data.serviceName in [
-              'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
-              'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+              'Perawatan Luka',
+              'Perawatan Luka Diabetes / Dekubitus',
+              'Perawatan Luka Operasi',
+              'Pemasangan Infus',
+              'Pemberian Injeksi',
+              'Injeksi Vitamin',
+              'Perawatan Kateter',
+              'Perawatan NGT',
+              'Perawatan Kolostomi',
+              'Perawatan Lansia (Harian)',
+              'Sunat'
             ]
           )
         )
@@ -559,8 +568,17 @@ service cloud.firestore {
           || (
             !resource.data.keys().hasAny(['locationId'])
             && request.resource.data.serviceName in [
-              'Rawat Luka', 'Pasang Infus', 'Pasang NGT',
-              'Pasang DC', 'Perawatan Lansia', 'Lainnya'
+              'Perawatan Luka',
+              'Perawatan Luka Diabetes / Dekubitus',
+              'Perawatan Luka Operasi',
+              'Pemasangan Infus',
+              'Pemberian Injeksi',
+              'Injeksi Vitamin',
+              'Perawatan Kateter',
+              'Perawatan NGT',
+              'Perawatan Kolostomi',
+              'Perawatan Lansia (Harian)',
+              'Sunat'
             ]
           )
         )
