@@ -510,7 +510,7 @@
     <!-- Area ini disiapkan untuk flyer promosi klinik atau produk alkes. -->
 
     <!-- Ringkasan progres layanan terbaru -->
-    <section class="progress-card" id="latestProgress" aria-live="polite">
+    <section class="progress-card" id="latestProgress" aria-live="polite" hidden>
       <div class="progress-heading">
         <h3>Progres Layanan Terbaru</h3>
         <button type="button" id="viewAllHistoryBtn">Lihat riwayat</button>
@@ -735,19 +735,26 @@
     })[String(status || "pending").toLowerCase()] || String(status || "Dalam proses");
 
     window.loadLatestServiceProgress = async function() {
+      const section = document.getElementById("latestProgress");
       const target = document.getElementById("latestProgressContent");
-      if (!currentPatientUid || !target) return;
+      if (!currentPatientUid || !target || !section) return;
+      section.hidden = true;
       try {
         const q = query(collection(db, "bookingRequests"), where("patientUid", "==", currentPatientUid));
         const result = await getDocs(q);
-        if (result.empty) {
-          target.innerHTML = '<div class="progress-empty">Belum ada pemesanan. Pilih layanan homecare untuk mulai memesan.</div>';
-          return;
-        }
+        if (result.empty) return;
+
         const rows = result.docs.map(item => ({ id: item.id, ...item.data() }));
         const time = value => value?.toDate ? value.toDate().getTime() : (value ? new Date(value).getTime() : 0);
-        rows.sort((a, b) => time(b.createdAt) - time(a.createdAt));
-        const item = rows[0];
+        const activeRows = rows
+          .filter(item => ACTIVE_ORDER_STATUSES.includes(String(item.status || "pending").toLowerCase()))
+          .sort((a, b) => time(b.createdAt) - time(a.createdAt));
+
+        // Tampilkan hanya jika ada layanan yang masih berjalan atau menunggu proses.
+        // Jika tidak ada layanan aktif (termasuk semua selesai), sembunyikan bagian ini.
+        if (!activeRows.length) return;
+
+        const item = activeRows[0];
         const status = String(item.status || "pending").toLowerCase();
         const dateValue = item.scheduledAt?.toDate ? item.scheduledAt.toDate() : (item.scheduledAt ? new Date(item.scheduledAt) : null);
         const dateLabel = dateValue && !Number.isNaN(dateValue.getTime())
@@ -760,9 +767,10 @@
           '<div class="progress-meta">Jadwal: ' + escapeHtml(dateLabel) + '</div>' +
           (item.nurseName ? '<div class="progress-meta">Perawat: ' + escapeHtml(item.nurseName) + '</div>' : '') +
           '<div class="progress-meta">Area: ' + escapeHtml(item.area || "Belum dicantumkan") + '</div>';
+        section.hidden = false;
       } catch (error) {
         console.error("Gagal memuat progres layanan terbaru:", error);
-        target.innerHTML = '<div class="progress-empty">Progres layanan belum dapat dimuat. (' + escapeHtml(error.code || "kesalahan") + ')</div>';
+        section.hidden = true;
       }
     };
 
