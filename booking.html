@@ -112,7 +112,14 @@
               <option>Perawatan Kolostomi</option>
               <option>Perawatan Lansia (Harian)</option>
               <option>Sunat</option>
+              <option value="__custom__">Layanan lain (di luar daftar)</option>
             </select>
+            <div class="hint">Jika kebutuhanmu belum tercantum, pilih “Layanan lain” dan jelaskan kebutuhan di bawah.</div>
+          </div>
+          <div class="field hidden" id="customServiceField">
+            <label for="customServiceDescription">Jelaskan layanan yang dibutuhkan *</label>
+            <textarea id="customServiceDescription" maxlength="500" placeholder="Tuliskan jenis tindakan/perawatan yang dibutuhkan secara singkat. Tim Go Homecare akan meninjau apakah layanan dapat dipenuhi."></textarea>
+            <div class="hint">Permintaan layanan di luar katalog belum tentu tersedia dan akan ditinjau terlebih dahulu oleh tim/praktisi.</div>
           </div>
           <div class="field">
             <label for="patientName">Nama pasien yang akan dilayani *</label>
@@ -129,9 +136,32 @@
             <textarea id="patientAddress" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, patokan lokasi" required maxlength="500"></textarea>
           </div>
           <div class="field">
-            <label for="area">Kelurahan, kecamatan, atau kota *</label>
-            <input id="area" type="text" placeholder="Contoh: Jekan Raya, Palangka Raya" required maxlength="120">
+            <label for="district">Kecamatan *</label>
+            <select id="district" required>
+              <option value="">Pilih kecamatan</option>
+              <option value="Bukit Batu">Bukit Batu</option>
+              <option value="Jekan Raya">Jekan Raya</option>
+              <option value="Pahandut">Pahandut</option>
+              <option value="Rakumpit">Rakumpit</option>
+              <option value="Sabangau">Sabangau</option>
+            </select>
+            <div class="hint">Kecamatan digunakan untuk mencocokkan area layanan praktisi.</div>
           </div>
+          <div class="field">
+            <label for="kelurahan">Kelurahan *</label>
+            <select id="kelurahan" required disabled>
+              <option value="">Pilih kecamatan terlebih dahulu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="city">Kota/Kabupaten</label>
+            <input id="city" type="text" value="Palangka Raya" readonly>
+          </div>
+          <div class="field">
+            <label for="province">Provinsi</label>
+            <input id="province" type="text" value="Kalimantan Tengah" readonly>
+          </div>
+          <input id="area" type="hidden" value="">
           <div class="field">
             <label for="scheduledAt">Waktu kunjungan yang diinginkan *</label>
             <input id="scheduledAt" type="datetime-local" required>
@@ -214,6 +244,37 @@
       return digits;
     }
 
+    const kelurahanByDistrict = {
+      "Pahandut": ["Langkai", "Pahandut", "Pahandut Seberang", "Panarung", "Tanjung Pinang", "Tumbang Rungan"],
+      "Jekan Raya": ["Bukit Tunggal", "Menteng", "Palangka", "Petuk Katimpun"],
+      "Bukit Batu": ["Banturung", "Habaring Hurung", "Kanarakan", "Marang", "Sei Gohong", "Tangkiling", "Tumbang Tahai"],
+      "Sabangau": ["Bereng Bengkel", "Danau Tundai", "Kalampangan", "Kameloh Baru", "Kereng Bangkirai", "Sabaru"],
+      "Rakumpit": ["Bukit Sua", "Gaung Baru", "Mungku Baru", "Pager", "Panjehang", "Petuk Barunai", "Petuk Bukit"]
+    };
+    const districtSelect = $("district");
+    const kelurahanSelect = $("kelurahan");
+    const serviceSelect = $("serviceName");
+    const customServiceField = $("customServiceField");
+    const customServiceInput = $("customServiceDescription");
+
+    function updateKelurahanOptions(selectedKelurahan = "") {
+      const district = districtSelect.value;
+      kelurahanSelect.replaceChildren(new Option(district ? "Pilih kelurahan" : "Pilih kecamatan terlebih dahulu", ""));
+      const options = kelurahanByDistrict[district] || [];
+      options.forEach(name => kelurahanSelect.add(new Option(name, name)));
+      kelurahanSelect.disabled = !district;
+      if (options.includes(selectedKelurahan)) kelurahanSelect.value = selectedKelurahan;
+      $("area").value = district;
+    }
+    districtSelect.addEventListener("change", () => updateKelurahanOptions());
+    serviceSelect.addEventListener("change", () => {
+      const isCustom = serviceSelect.value === "__custom__";
+      customServiceField.classList.toggle("hidden", !isCustom);
+      customServiceInput.required = isCustom;
+      if (!isCustom) customServiceInput.value = "";
+    });
+    updateKelurahanOptions();
+
     const bookingForInputs = document.querySelectorAll('input[name="bookingFor"]');
     const relationshipField = $("relationshipField");
     const relationshipInput = $("relationship");
@@ -286,9 +347,15 @@
       $("catalogSelection").classList.remove("hidden");
       if (location.locationType === "practice" && location.address) {
         $("patientAddress").value = location.address;
-        $("area").value = catalogSelection.area;
-      } else if (catalogSelection.area) {
-        $("area").value = catalogSelection.area;
+      }
+      const locationArea = String(location.area || "").trim().toLocaleLowerCase("id-ID");
+      const matchedDistrict = Object.keys(kelurahanByDistrict).find(name =>
+        locationArea === name.toLocaleLowerCase("id-ID")
+        || locationArea.includes(name.toLocaleLowerCase("id-ID"))
+      );
+      if (matchedDistrict) {
+        districtSelect.value = matchedDistrict;
+        updateKelurahanOptions();
       }
       $("serviceName").disabled = true;
     }
@@ -355,7 +422,18 @@
           document.querySelector('input[name="bookingFor"][value="' + (existingBooking.bookingFor === "family" ? "family" : "self") + '"]').checked = true;
           updateBookingFor();
           $("relationship").value = existingBooking.relationship || "";
-          $("serviceName").value = existingBooking.serviceName || "";
+          if (existingBooking.customServiceDescription) {
+            $("serviceName").value = "__custom__";
+            $("customServiceDescription").value = existingBooking.customServiceDescription;
+            customServiceField.classList.remove("hidden");
+            customServiceInput.required = true;
+          } else {
+            $("serviceName").value = existingBooking.serviceName || "";
+            customServiceField.classList.add("hidden");
+            customServiceInput.required = false;
+          }
+          districtSelect.value = existingBooking.district || (kelurahanByDistrict[existingBooking.area] ? existingBooking.area : "");
+          updateKelurahanOptions(existingBooking.kelurahan || "");
           $("patientName").value = existingBooking.patientName || "";
           $("patientPhone").value = existingBooking.patientPhone || "";
           $("patientAddress").value = existingBooking.patientAddress || "";
@@ -394,7 +472,13 @@
       const isFamilyBooking = bookingFor === "family";
       const relationship = isFamilyBooking ? $("relationship").value : "Diri sendiri";
       const bookerName = $("bookerName").value.trim();
-      const serviceName = $("serviceName").value;
+      const selectedService = $("serviceName").value;
+      const customServiceDescription = selectedService === "__custom__" ? $("customServiceDescription").value.trim() : "";
+      const serviceName = selectedService === "__custom__" ? "Layanan di luar katalog" : selectedService;
+      const district = $("district").value;
+      const kelurahan = $("kelurahan").value;
+      const city = $("city").value;
+      const province = $("province").value;
       const patientName = $("patientName").value.trim();
       const rawPhone = $("patientPhone").value.trim();
       const patientPhone = normalizeIndonesianPhone(rawPhone);
@@ -403,8 +487,13 @@
       const scheduledDate = new Date($("scheduledAt").value);
       const notes = $("notes").value.trim();
 
-      if (!serviceName || !bookerName || !patientName || !rawPhone || !patientAddress || !area || !relationship || ! $("consent").checked) {
+      if (!serviceName || !bookerName || !patientName || !rawPhone || !patientAddress || !district || !kelurahan || !area || !relationship || ! $("consent").checked) {
         showFormError("Lengkapi semua kolom wajib dan persetujuan sebelum mengirim.");
+        return;
+      }
+      if (selectedService === "__custom__" && !customServiceDescription) {
+        showFormError("Jelaskan layanan di luar daftar yang kamu butuhkan.");
+        $("customServiceDescription").focus();
         return;
       }
       if (!Number.isFinite(scheduledDate.getTime()) || scheduledDate.getTime() < Date.now() + 10 * 60 * 1000) {
@@ -440,7 +529,12 @@
             patientPhone,
             patientAddress,
             serviceName: existingBooking?.locationId ? existingBooking.serviceName : serviceName,
+            ...(!existingBooking?.locationId ? { customServiceDescription } : {}),
             scheduledAt: Timestamp.fromDate(scheduledDate),
+            district,
+            kelurahan,
+            city,
+            province,
             area,
             notes,
             updatedAt: serverTimestamp()
@@ -461,6 +555,11 @@
             patientPhone,
             patientAddress,
             serviceName,
+            ...(customServiceDescription ? { customServiceDescription } : {}),
+            district,
+            kelurahan,
+            city,
+            province,
             ...(catalogSelection ? {
               locationId: catalogSelection.locationId,
               serviceId: catalogSelection.serviceId,
@@ -544,7 +643,7 @@
       } finally {
         submitting = false;
         $("submitButton").disabled = false;
-        $("submitButton").textContent = "Kirim Permintaan";
+        $("submitButton").textContent = editingBookingId ? "Simpan Perubahan" : "Kirim Permintaan";
       }
     });
   </script>
