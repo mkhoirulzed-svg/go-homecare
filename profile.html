@@ -162,16 +162,38 @@ const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomai
 const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const form=document.getElementById("profileForm"),formPanel=document.getElementById("formPanel"),profileView=document.getElementById("profileView"),message=document.getElementById("message"),saveBtn=document.getElementById("saveBtn");
 let activeUser=null,profileData={};
-undefined
+const fieldIds=["nama","phone","birthDate","gender","emergencyContact"];
+const kelurahanByDistrict={
+ "Pahandut":["Langkai","Pahandut","Pahandut Seberang","Panarung","Tanjung Pinang","Tumbang Rungan"],
+ "Jekan Raya":["Bukit Tunggal","Menteng","Palangka","Petuk Katimpun"],
+ "Bukit Batu":["Banturung","Habaring Hurung","Kanarakan","Marang","Sei Gohong","Tangkiling","Tumbang Tahai"],
+ "Sabangau":["Bereng Bengkel","Danau Tundai","Kalampangan","Kameloh Baru","Kereng Bangkirai","Sabaru"],
+ "Rakumpit":["Bukit Sua","Gaung Baru","Mungku Baru","Pager","Panjehang","Petuk Barunai","Petuk Bukit"]
+};
+const districtField=document.getElementById("addressDistrict");
+const kelurahanField=document.getElementById("addressKelurahan");
+for(const district of Object.keys(kelurahanByDistrict))districtField.add(new Option(district,district));
+function updateProfileKelurahan(selected=""){
+ const names=kelurahanByDistrict[districtField.value]||[];
+ kelurahanField.replaceChildren(new Option(names.length?"Pilih kelurahan":"Pilih kecamatan terlebih dahulu",""));
+ names.forEach(name=>kelurahanField.add(new Option(name,name)));
+ kelurahanField.disabled=!names.length;
+ if(names.includes(selected))kelurahanField.value=selected;
+}
+districtField.addEventListener("change",()=>updateProfileKelurahan());
 const setMessage=(text,type="")=>{message.textContent=text;message.className=type;};
 const displayValue=value=>value&&String(value).trim()?String(value).trim():"Belum diisi";
-undefined
+function formatProfileAddress(data){
+ const parts=[data.addressStreet,data.addressNumber,data.addressRtRw?"RT/RW "+data.addressRtRw:"",data.kelurahan?"Kel. "+data.kelurahan:"",data.district?"Kec. "+data.district:"",data.city||"Palangka Raya",data.province||"Kalimantan Tengah",data.addressNote?"Patokan: "+data.addressNote:""].filter(Boolean);
+ return parts.join(", ")||data.address||"";
+}
+function renderProfile(){
  const name=profileData.nama||activeUser?.displayName||"Pasien";
  document.getElementById("displayName").textContent=name;
  document.getElementById("displayEmail").textContent=activeUser?.email||"Akun pasien Go Homecare";
- const initials=name.trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join("").toUpperCase();
+ const initials=name.trim().split(/\\s+/).slice(0,2).map(part=>part.charAt(0)).join("").toUpperCase();
  document.getElementById("avatarInitials").textContent=initials||"GH";
- undefined
+ const labels={nama:profileData.nama,phone:profileData.phone,birthDate:profileData.birthDate,gender:profileData.gender,emergencyContact:profileData.emergencyContact};
  for(const key of fieldIds){
   const target=document.getElementById("view"+key.charAt(0).toUpperCase()+key.slice(1));
   const value=displayValue(labels[key]);
@@ -179,12 +201,18 @@ undefined
   target.classList.toggle("empty-value",value==="Belum diisi");
  }
  const addressTarget=document.getElementById("viewAddress");
- const addressValue=displayValue(labels.address);
+ const addressValue=displayValue(formatProfileAddress(profileData));
  addressTarget.textContent=addressValue;
  addressTarget.classList.toggle("empty-value",addressValue==="Belum diisi");
 }
 function openEditor(){
- undefined
+ for(const key of fieldIds)document.getElementById(key).value=profileData[key]||"";
+ document.getElementById("addressStreet").value=profileData.addressStreet||profileData.address||"";
+ document.getElementById("addressNumber").value=profileData.addressNumber||"";
+ document.getElementById("addressRtRw").value=profileData.addressRtRw||"";
+ districtField.value=profileData.district||"";
+ updateProfileKelurahan(profileData.kelurahan||"");
+ document.getElementById("addressNote").value=profileData.addressNote||"";
  setMessage("");
  profileView.hidden=true;
  formPanel.classList.add("visible");
