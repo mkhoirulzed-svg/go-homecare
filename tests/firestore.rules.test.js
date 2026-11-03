@@ -133,6 +133,25 @@ test("new practitioner can create own unverified profile but cannot self-verify"
   }));
 });
 
+test("patient can update own profile with structured address fields", async () => {
+  const db = testEnv.authenticatedContext("patient-1").firestore();
+  await assertSucceeds(updateDoc(doc(db, "users", "patient-1"), {
+    nama: "Pasien Uji",
+    phone: "628123456789",
+    address: "Jl. Uji No. 1, Kel. Langkai, Kec. Pahandut, Palangka Raya, Kalimantan Tengah",
+    addressStreet: "Jl. Uji",
+    addressNumber: "No. 1",
+    addressRtRw: "004 / 002",
+    district: "Pahandut",
+    kelurahan: "Langkai",
+    addressNote: "Dekat kantor kelurahan",
+    city: "Palangka Raya",
+    province: "Kalimantan Tengah",
+    profileComplete: true,
+    updatedAt: serverTimestamp()
+  }));
+});
+
 test("user can check own practitioner application before one exists", async () => {
   const db = testEnv.authenticatedContext("patient-1").firestore();
   await assertSucceeds(getDoc(doc(db, "practitionerApplications", "patient-1")));
