@@ -450,7 +450,7 @@ service cloud.firestore {
       allow create: if isCompletePatient()
         && request.resource.data.keys().hasAll([
           'patientUid', 'bookerUid', 'bookerName', 'bookingFor', 'relationship',
-          'patientName', 'patientPhone', 'patientAddress',
+          'patientName', 'patientPhone', 'patientAddress', 'visitAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
           'district', 'kelurahan', 'city', 'province',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
@@ -458,7 +458,7 @@ service cloud.firestore {
         ])
         && request.resource.data.keys().hasOnly([
           'patientUid', 'bookerUid', 'bookerName', 'bookingFor', 'relationship',
-          'patientName', 'patientPhone', 'patientAddress',
+          'patientName', 'patientPhone', 'patientAddress', 'visitAddress',
           'serviceName', 'scheduledAt', 'area', 'notes',
           'nurseUid', 'nurseName', 'nursePhone', 'status',
           'bookingSource', 'createdAt', 'updatedAt',
@@ -480,6 +480,9 @@ service cloud.firestore {
         && request.resource.data.patientPhone is string
         && request.resource.data.patientAddress is string
         && request.resource.data.patientAddress.size() > 0
+        && request.resource.data.visitAddress is string
+        && request.resource.data.visitAddress.size() > 0
+        && request.resource.data.visitAddress.size() <= 500
         && (
           (
             request.resource.data.keys().hasAny([
@@ -565,7 +568,7 @@ service cloud.firestore {
         ])
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'bookingFor', 'relationship', 'patientName', 'patientPhone',
-          'patientAddress', 'serviceName', 'customServiceDescription',
+          'patientAddress', 'visitAddress', 'serviceName', 'customServiceDescription',
           'scheduledAt', 'district', 'kelurahan', 'city', 'province', 'area', 'notes', 'updatedAt'
         ])
         && request.resource.data.bookingFor in ['self', 'family']
@@ -578,6 +581,9 @@ service cloud.firestore {
         && request.resource.data.patientPhone is string
         && request.resource.data.patientAddress is string
         && request.resource.data.patientAddress.size() > 0
+        && request.resource.data.visitAddress is string
+        && request.resource.data.visitAddress.size() > 0
+        && request.resource.data.visitAddress.size() <= 500
         && (
           (
             resource.data.keys().hasAny(['locationId'])
