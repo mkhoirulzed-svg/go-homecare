@@ -124,7 +124,14 @@ button:disabled{opacity:.6;cursor:wait}
         <label for="phone">Nomor telepon *</label><input id="phone" required maxlength="30" type="tel" autocomplete="tel">
         <label for="birthDate">Tanggal lahir</label><input id="birthDate" type="date">
         <label for="gender">Jenis kelamin</label><select id="gender"><option value="">Pilih (opsional)</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option><option value="Tidak ingin menyebutkan">Tidak ingin menyebutkan</option></select>
-        undefined
+        <div class="section-heading" style="margin:22px 0 4px"><div><h3>Alamat Domisili</h3><p>Alamat ini akan otomatis digunakan saat membuat pemesanan.</p></div></div>
+        <label for="addressStreet">Jalan / perumahan / komplek *</label><input id="addressStreet" required maxlength="180" autocomplete="address-line1" placeholder="Contoh: Jl. RTA Milono, Komplek ...">
+        <label for="addressNumber">Nomor rumah</label><input id="addressNumber" maxlength="30" placeholder="Contoh: No. 12">
+        <label for="addressRtRw">RT / RW</label><input id="addressRtRw" maxlength="30" placeholder="Contoh: 004 / 002">
+        <label for="addressDistrict">Kecamatan *</label><select id="addressDistrict" required><option value="">Pilih kecamatan</option></select>
+        <label for="addressKelurahan">Kelurahan *</label><select id="addressKelurahan" required disabled><option value="">Pilih kelurahan</option></select>
+        <label>Kota / Provinsi</label><input value="Palangka Raya, Kalimantan Tengah" readonly aria-readonly="true">
+        <label for="addressNote">Patokan lokasi / catatan tambahan</label><textarea id="addressNote" maxlength="250" placeholder="Contoh: Rumah pagar putih, dekat ..."></textarea>
         <label for="emergencyContact">Kontak darurat</label><input id="emergencyContact" maxlength="100" placeholder="Nama dan nomor kontak">
         <div class="form-actions"><button type="button" class="cancel-btn" id="cancelBtn">Batal</button><button class="save-btn" id="saveBtn" type="submit">Simpan Perubahan</button></div>
         <div id="message" role="status" aria-live="polite"></div>
