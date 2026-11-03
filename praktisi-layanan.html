@@ -38,7 +38,7 @@ const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAu
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),requestedService=(params.get("service")||"").trim();
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const rupiah=v=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v)||0);
-const normalize=v=>String(v||"").trim().toLocaleLowerCase("id-ID").replace(/\\s+/g," ");
+const normalize=v=>String(v||"").trim().toLocaleLowerCase("id-ID").replace(/\s+/g," ");
 function serviceMatches(name){return normalize(name)===normalize(requestedService);}
 function render(items){
  const host=$("practitionerList");host.replaceChildren();
