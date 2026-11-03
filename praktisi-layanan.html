@@ -15,6 +15,12 @@ h1{font-size:22px;letter-spacing:-.5px;margin:0 0 7px;font-weight:800}.subtitle{
 main{padding:18px 16px 40px}.status{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 12px}
 .list{display:grid;gap:12px}
 .card{display:flex;gap:13px;padding:14px;border:1px solid var(--line);border-radius:17px;background:#fff;box-shadow:0 4px 14px #0f172a06}
+.card.home-visit{border-color:#b9e4d0;background:linear-gradient(115deg,#fbfffc 0%,#fff 72%)}
+.card.practice{border-color:#cbd5f2;background:linear-gradient(115deg,#fafbff 0%,#fff 72%)}
+.location-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:9px;line-height:1;font-weight:800;letter-spacing:.035em;margin:0 0 7px}
+.location-badge.home{color:#18734b;background:#e8f7ef;border:1px solid #ccebd9}
+.location-badge.clinic{color:#4659a5;background:#edf0ff;border:1px solid #d9defb}
+.location-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 .photo,.avatar{width:68px;height:68px;flex:0 0 68px;border-radius:16px;object-fit:cover}
 .avatar{display:grid;place-items:center;background:linear-gradient(145deg,#ccfbf1,#dbeafe);color:var(--teal);font-size:24px;font-weight:800}
 .info{min-width:0;flex:1}.name{font-size:14px;font-weight:800;line-height:1.4;margin:1px 0 4px}.specialty{font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 8px}
@@ -58,11 +64,13 @@ function render(items){
   const p=item.profile||{},name=p.name||p.nama||"Praktisi kesehatan",specialty=p.specialization||p.jenisPraktisi||p.jenisPraktisiLayanan||"Praktisi kesehatan";
   const experience=p.experienceYears??p.experience,experienceText=experience!==undefined&&experience!==null&&String(experience).trim()!==""?String(experience)+" tahun pengalaman":"Pengalaman belum dicantumkan";
   const photo=p.photoURL||p.photoUrl||p.photo||p.foto||p.avatarUrl||"";
-  const loc=item.location,isHome=loc.locationType==="home_visit",locationText=(isHome?"Kunjungan rumah":"Klinik / tempat praktik")+(loc.name?" · "+loc.name:"")+(loc.area?" · "+loc.area:"");
+  const loc=item.location,isHome=loc.locationType==="home_visit";
+  const locationText=(loc.name?loc.name:"Lokasi layanan")+(loc.area?" · "+loc.area:"");
+  const locationBadge='<span class="location-badge '+(isHome?"home":"clinic")+'"><span class="dot"></span>'+(isHome?"KUNJUNGAN RUMAH":"KLINIK / TEMPAT PRAKTIK")+'</span>';
   const bookingUrl="booking.html?service="+encodeURIComponent(item.service.name||requestedService)+"&locationId="+encodeURIComponent(loc.id)+"&serviceId="+encodeURIComponent(item.service.id);
-  const card=document.createElement("article");card.className="card";
+  const card=document.createElement("article");card.className="card "+(isHome?"home-visit":"practice");
   const avatar=photo?'<img class="photo" src="'+esc(photo)+'" alt="Foto '+esc(name)+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="avatar" aria-hidden="true">'+esc((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
-  card.innerHTML=avatar+'<div class="info"><h2 class="name">'+esc(name)+'</h2><p class="specialty">'+esc(specialty)+' · '+esc(experienceText)+'</p><p class="service">'+esc(item.service.name||requestedService)+'</p><p class="meta">'+esc(locationText)+'</p><div class="price-row"><span class="price">'+rupiah(item.service.price)+'</span><span class="duration">'+(Number(item.service.durationMinutes)>0?esc(item.service.durationMinutes)+" menit":"Durasi sesuai konfirmasi")+'</span></div><a class="book" href="'+bookingUrl+'">Pilih & pesan layanan</a></div>';
+  card.innerHTML=avatar+'<div class="info">'+locationBadge+'<h2 class="name">'+esc(name)+'</h2><p class="specialty">'+esc(specialty)+' · '+esc(experienceText)+'</p><p class="service">'+esc(item.service.name||requestedService)+'</p><p class="meta">'+esc(locationText)+'</p><div class="price-row"><span class="price">'+rupiah(item.service.price)+'</span><span class="duration">'+(Number(item.service.durationMinutes)>0?esc(item.service.durationMinutes)+" menit":"Durasi sesuai konfirmasi")+'</span></div><a class="book" href="'+bookingUrl+'">Pilih & pesan layanan</a></div>';
   const img=card.querySelector(".photo");if(img)img.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="avatar";fallback.textContent=(name.trim().charAt(0)||"P").toUpperCase();img.replaceWith(fallback);},{once:true});
   host.append(card);
  }
