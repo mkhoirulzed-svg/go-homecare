@@ -131,7 +131,8 @@ async function loadDetail(){
    const ss=await getDocs(query(collection(db,"practitionerLocations",d.id,"services"),where("status","==","published")));
    return {location:x,services:ss.docs.map(s=>({id:s.id,...s.data()}))};
   }));
-  const rows=loaded.filter(r=>r.services.length);
+  const requestedService=(params.get("service")||"").trim().toLocaleLowerCase("id-ID");
+  const rows=loaded.map(row=>({...row,services:requestedService?row.services.filter(service=>[service.name,service.title,service.serviceName,service.description].filter(Boolean).join(" ").toLocaleLowerCase("id-ID").includes(requestedService)):row.services})).filter(r=>r.services.length);
   if(!rows.length){$("status").textContent="Profil atau layanan ini belum tersedia untuk publik. Silakan kembali ke katalog.";return;}
   const uid=ownerUid||rows[0].location.ownerUid||"";
   let profile={};
