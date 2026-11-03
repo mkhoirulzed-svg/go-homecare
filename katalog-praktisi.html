@@ -198,7 +198,9 @@ function render(){
   const serviceSummary=servicePreview?'<div class="service-summary">'+escapeHtml(servicePreview)+(serviceNames.length>3?' <span class="service-more">…lihat lainnya</span>':'')+'</div>':(p.bio?'<p class="profile-bio">'+escapeHtml(p.bio)+'</p>':'');
   const firstLocation=locations[0];
   const ownerUid=firstLocation?.ownerUid||p.uid||"";
-  const detailUrl="detail-praktisi.html?"+(ownerUid?"ownerUid="+encodeURIComponent(ownerUid):"locationId="+encodeURIComponent(firstLocation?.id||""));
+  const matchingServiceSearch=term && serviceNames.some(serviceName=>serviceName.toLocaleLowerCase("id-ID").includes(term)||term.includes(serviceName.toLocaleLowerCase("id-ID")));
+  const serviceParam=matchingServiceSearch?"&service="+encodeURIComponent($("search").value.trim()):"";
+  const detailUrl="detail-praktisi.html?"+(ownerUid?"ownerUid="+encodeURIComponent(ownerUid):"locationId="+encodeURIComponent(firstLocation?.id||""))+serviceParam;
   const card=document.createElement("article");card.className="card profile-card";
   const avatar=photo?'<img class="profile-photo" src="'+escapeHtml(photo)+'" alt="Foto '+escapeHtml(name)+'" loading="lazy" referrerpolicy="no-referrer">':'<div class="profile-avatar" aria-hidden="true">'+escapeHtml((name.trim().charAt(0)||"P").toUpperCase())+'</div>';
   card.setAttribute("role","link");card.setAttribute("tabindex","0");card.setAttribute("aria-label","Lihat profil dan layanan "+name);
