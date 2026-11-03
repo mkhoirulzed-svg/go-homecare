@@ -79,6 +79,8 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'nama', 'phone', 'profileComplete', 'updatedAt',
           'birthDate', 'gender', 'address', 'emergencyContact',
+          'addressStreet', 'addressNumber', 'addressRtRw', 'district',
+          'kelurahan', 'addressNote', 'city', 'province',
           'strNumber', 'experience', 'specialization', 'bio', 'tarif', 'serviceArea'
         ]));
       allow delete: if false;
