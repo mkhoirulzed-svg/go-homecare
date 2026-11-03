@@ -171,6 +171,10 @@ undefined
   target.textContent=value;
   target.classList.toggle("empty-value",value==="Belum diisi");
  }
+ const addressTarget=document.getElementById("viewAddress");
+ const addressValue=displayValue(labels.address);
+ addressTarget.textContent=addressValue;
+ addressTarget.classList.toggle("empty-value",addressValue==="Belum diisi");
 }
 function openEditor(){
  undefined
