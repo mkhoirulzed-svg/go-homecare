@@ -124,7 +124,7 @@ button:disabled{opacity:.6;cursor:wait}
         <label for="phone">Nomor telepon *</label><input id="phone" required maxlength="30" type="tel" autocomplete="tel">
         <label for="birthDate">Tanggal lahir</label><input id="birthDate" type="date">
         <label for="gender">Jenis kelamin</label><select id="gender"><option value="">Pilih (opsional)</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option><option value="Tidak ingin menyebutkan">Tidak ingin menyebutkan</option></select>
-        <label for="address">Alamat lengkap *</label><textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
+        undefined
         <label for="emergencyContact">Kontak darurat</label><input id="emergencyContact" maxlength="100" placeholder="Nama dan nomor kontak">
         <div class="form-actions"><button type="button" class="cancel-btn" id="cancelBtn">Batal</button><button class="save-btn" id="saveBtn" type="submit">Simpan Perubahan</button></div>
         <div id="message" role="status" aria-live="polite"></div>
@@ -155,16 +155,16 @@ const firebaseConfig={apiKey:"AIzaSyCTBaq4nzvolat37ivwPluP_fOmgoAvm_E",authDomai
 const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const form=document.getElementById("profileForm"),formPanel=document.getElementById("formPanel"),profileView=document.getElementById("profileView"),message=document.getElementById("message"),saveBtn=document.getElementById("saveBtn");
 let activeUser=null,profileData={};
-const fieldIds=["nama","phone","birthDate","gender","address","emergencyContact"];
+undefined
 const setMessage=(text,type="")=>{message.textContent=text;message.className=type;};
 const displayValue=value=>value&&String(value).trim()?String(value).trim():"Belum diisi";
-function renderProfile(){
+undefined
  const name=profileData.nama||activeUser?.displayName||"Pasien";
  document.getElementById("displayName").textContent=name;
  document.getElementById("displayEmail").textContent=activeUser?.email||"Akun pasien Go Homecare";
  const initials=name.trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join("").toUpperCase();
  document.getElementById("avatarInitials").textContent=initials||"GH";
- const labels={nama:profileData.nama,phone:profileData.phone,birthDate:profileData.birthDate,gender:profileData.gender,address:profileData.address,emergencyContact:profileData.emergencyContact};
+ undefined
  for(const key of fieldIds){
   const target=document.getElementById("view"+key.charAt(0).toUpperCase()+key.slice(1));
   const value=displayValue(labels[key]);
@@ -173,7 +173,7 @@ function renderProfile(){
  }
 }
 function openEditor(){
- for(const key of fieldIds)document.getElementById(key).value=profileData[key]||"";
+ undefined
  setMessage("");
  profileView.hidden=true;
  formPanel.classList.add("visible");
@@ -202,8 +202,9 @@ document.getElementById("editBtn").addEventListener("click",openEditor);
 document.getElementById("cancelBtn").addEventListener("click",closeEditor);
 form.addEventListener("submit",async event=>{
  event.preventDefault();if(!activeUser)return;
- const data={nama:document.getElementById("nama").value.trim(),phone:document.getElementById("phone").value.trim(),birthDate:document.getElementById("birthDate").value,gender:document.getElementById("gender").value,address:document.getElementById("address").value.trim(),emergencyContact:document.getElementById("emergencyContact").value.trim()};
- if(!data.nama||!data.phone||!data.address){setMessage("Nama, nomor telepon, dan alamat wajib diisi.","error");return;}
+ const data={nama:document.getElementById("nama").value.trim(),phone:document.getElementById("phone").value.trim(),birthDate:document.getElementById("birthDate").value,gender:document.getElementById("gender").value,addressStreet:document.getElementById("addressStreet").value.trim(),addressNumber:document.getElementById("addressNumber").value.trim(),addressRtRw:document.getElementById("addressRtRw").value.trim(),district:districtField.value,kelurahan:kelurahanField.value,addressNote:document.getElementById("addressNote").value.trim(),city:"Palangka Raya",province:"Kalimantan Tengah",emergencyContact:document.getElementById("emergencyContact").value.trim()};
+ data.address=formatProfileAddress(data);
+ if(!data.nama||!data.phone||!data.addressStreet||!data.district||!data.kelurahan){setMessage("Nama, nomor telepon, jalan/alamat, kecamatan, dan kelurahan wajib diisi.","error");return;}
  saveBtn.disabled=true;saveBtn.textContent="Menyimpan…";setMessage("");
  try{
   await updateDoc(doc(db,"users",activeUser.uid),{...data,profileComplete:true,updatedAt:serverTimestamp()});
