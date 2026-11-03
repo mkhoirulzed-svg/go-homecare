@@ -331,6 +331,9 @@
       if (!locationSnap.exists() || !serviceSnap.exists()) throw new Error("Lokasi atau layanan dari katalog tidak ditemukan.");
       const location = locationSnap.data(), service = serviceSnap.data();
       if (location.status !== "published" || service.status !== "published") throw new Error("Lokasi atau layanan ini tidak lagi tersedia di katalog.");
+      if (location.locationType === "practice" && !String(location.address || "").trim()) {
+        throw new Error("Alamat klinik/tempat praktik belum dicantumkan oleh praktisi. Silakan pilih lokasi lain atau hubungi praktisi.");
+      }
       if (!location.ownerUid || typeof service.price !== "number" || !Number.isInteger(service.price)) throw new Error("Data layanan belum lengkap untuk pemesanan.");
       catalogSelection = {
         locationId: requestedLocationId,
