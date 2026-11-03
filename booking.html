@@ -386,7 +386,19 @@
         $("patientName").value = profile.nama || user.displayName || "";
         $("patientPhone").value = profile.phone || "";
         updateBookingFor();
-        undefined
+        const profileAddress = [
+          profile.addressStreet || profile.address || "",
+          profile.addressNumber || "",
+          profile.addressRtRw ? "RT/RW " + profile.addressRtRw : "",
+          profile.kelurahan ? "Kel. " + profile.kelurahan : "",
+          profile.district ? "Kec. " + profile.district : "",
+          profile.city || "Palangka Raya",
+          profile.province || "Kalimantan Tengah",
+          profile.addressNote ? "Patokan: " + profile.addressNote : ""
+        ].filter(Boolean).join(", ");
+        $("patientAddress").value = profileAddress;
+        districtSelect.value = profile.district || "";
+        updateKelurahanOptions(profile.kelurahan || "");
         try {
           await loadCatalogSelection();
         } catch (selectionError) {
