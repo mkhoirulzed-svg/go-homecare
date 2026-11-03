@@ -132,8 +132,14 @@
             <div class="hint">Gunakan nomor yang aktif dan bisa dihubungi.</div>
           </div>
           <div class="field">
-            <label for="patientAddress">Alamat kunjungan *</label>
-            <textarea id="patientAddress" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, patokan lokasi" required maxlength="500"></textarea>
+            <label for="patientAddress">Alamat rumah pasien *</label>
+            <textarea id="patientAddress" autocomplete="street-address" readonly required maxlength="500"></textarea>
+            <div class="hint">Diambil dari profil pasien. Alamat ini tetap disimpan sebagai data pasien.</div>
+          </div>
+          <div class="field">
+            <label for="visitAddress">Alamat kunjungan *</label>
+            <textarea id="visitAddress" autocomplete="off" placeholder="Alamat tempat layanan akan diberikan" required maxlength="500"></textarea>
+            <div class="hint" id="visitAddressHint">Untuk kunjungan rumah, alamat ini mengikuti alamat rumah pasien.</div>
           </div>
           <div class="field">
             <label for="district">Kecamatan *</label>
@@ -336,7 +342,11 @@
         serviceDurationMinutes: service.durationMinutes,
         practitionerUid: location.ownerUid,
         address: location.address || "",
-        area: [location.area, location.city, location.province].filter(Boolean).join(", ")
+        area: [location.area, location.city, location.province].filter(Boolean).join(", "),
+        district: location.area || "",
+        kelurahan: location.kelurahan || "",
+        city: location.city || "Palangka Raya",
+        province: location.province || "Kalimantan Tengah"
       };
       const option = Array.from($("serviceName").options).find(item => item.value === service.name);
       if (!option) $("serviceName").add(new Option(service.name, service.name));
@@ -345,17 +355,32 @@
       $("catalogDetails").textContent = (location.locationType === "practice" ? "Klinik / tempat praktik" : "Kunjungan rumah") + " · " + catalogSelection.area;
       $("catalogPrice").textContent = formatRupiah(service.price) + " · estimasi " + service.durationMinutes + " menit";
       $("catalogSelection").classList.remove("hidden");
-      if (location.locationType === "practice" && location.address) {
-        $("patientAddress").value = location.address;
-      }
-      const locationArea = String(location.area || "").trim().toLocaleLowerCase("id-ID");
-      const matchedDistrict = Object.keys(kelurahanByDistrict).find(name =>
-        locationArea === name.toLocaleLowerCase("id-ID")
-        || locationArea.includes(name.toLocaleLowerCase("id-ID"))
-      );
-      if (matchedDistrict) {
-        districtSelect.value = matchedDistrict;
+      const isClinic = location.locationType === "practice";
+      $("visitAddress").value = isClinic ? (location.address || "") : $("patientAddress").value;
+      $("visitAddressHint").textContent = isClinic
+        ? "Alamat kunjungan otomatis menggunakan alamat klinik/tempat praktik yang dipilih."
+        : "Alamat kunjungan menggunakan alamat rumah pasien.";
+      $("visitAddress").readOnly = isClinic;
+      if (isClinic) {
+        $("district").value = "";
         updateKelurahanOptions();
+        const locationArea = String(location.area || "").trim().toLocaleLowerCase("id-ID");
+        const matchedDistrict = Object.keys(kelurahanByDistrict).find(name =>
+          locationArea === name.toLocaleLowerCase("id-ID")
+          || locationArea.includes(name.toLocaleLowerCase("id-ID"))
+        );
+        if (matchedDistrict) {
+          districtSelect.value = matchedDistrict;
+          updateKelurahanOptions(location.kelurahan || "");
+        }
+        if (location.kelurahan && Array.from(kelurahanSelect.options).some(option => option.value === location.kelurahan)) {
+          kelurahanSelect.value = location.kelurahan;
+        }
+        $("city").value = catalogSelection.city;
+        $("province").value = catalogSelection.province;
+      } else {
+        $("visitAddress").readOnly = false;
+        $("visitAddress").value = $("patientAddress").value;
       }
       $("serviceName").disabled = true;
     }
@@ -397,6 +422,7 @@
           profile.addressNote ? "Patokan: " + profile.addressNote : ""
         ].filter(Boolean).join(", ");
         $("patientAddress").value = profileAddress;
+        $("visitAddress").value = profileAddress;
         districtSelect.value = profile.district || "";
         updateKelurahanOptions(profile.kelurahan || "");
         try {
@@ -422,6 +448,11 @@
             $("catalogLocationName").textContent = existingBooking.locationName || "Lokasi layanan";
             $("catalogDetails").textContent = existingBooking.locationType === "practice" ? "Klinik / tempat praktik" : "Kunjungan rumah";
             $("catalogPrice").textContent = formatRupiah(existingBooking.servicePrice) + " · estimasi " + existingBooking.serviceDurationMinutes + " menit (harga saat pemesanan)";
+            const isClinic = existingBooking.locationType === "practice";
+            $("visitAddress").readOnly = isClinic;
+            $("visitAddressHint").textContent = isClinic
+              ? "Alamat kunjungan menggunakan alamat klinik/tempat praktik yang dipilih."
+              : "Alamat kunjungan menggunakan alamat rumah pasien.";
           }
           if (existingBooking.patientUid !== user.uid) {
             showError("Kamu tidak memiliki akses untuk mengubah pesanan ini.");
@@ -452,7 +483,9 @@
           updateKelurahanOptions(existingBooking.kelurahan || "");
           $("patientName").value = existingBooking.patientName || "";
           $("patientPhone").value = existingBooking.patientPhone || "";
-          $("patientAddress").value = existingBooking.patientAddress || "";
+          // Alamat rumah ditampilkan dari profil terbaru; alamat kunjungan memakai snapshot pesanan.
+          $("patientAddress").value = profileAddress;
+          $("visitAddress").value = existingBooking.visitAddress || existingBooking.patientAddress || profileAddress;
           $("area").value = existingBooking.area || "";
           $("notes").value = existingBooking.notes || "";
           const scheduled = existingBooking.scheduledAt?.toDate ? existingBooking.scheduledAt.toDate() : new Date(existingBooking.scheduledAt);
@@ -499,11 +532,12 @@
       const rawPhone = $("patientPhone").value.trim();
       const patientPhone = normalizeIndonesianPhone(rawPhone);
       const patientAddress = $("patientAddress").value.trim();
+      const visitAddress = $("visitAddress").value.trim();
       const area = $("area").value.trim();
       const scheduledDate = new Date($("scheduledAt").value);
       const notes = $("notes").value.trim();
 
-      if (!serviceName || !bookerName || !patientName || !rawPhone || !patientAddress || !district || !kelurahan || !area || !relationship || ! $("consent").checked) {
+      if (!serviceName || !bookerName || !patientName || !rawPhone || !patientAddress || !visitAddress || !district || !kelurahan || !area || !relationship || ! $("consent").checked) {
         showFormError("Lengkapi semua kolom wajib dan persetujuan sebelum mengirim.");
         return;
       }
@@ -544,6 +578,7 @@
             patientName,
             patientPhone,
             patientAddress,
+            visitAddress,
             serviceName: existingBooking?.locationId ? existingBooking.serviceName : serviceName,
             ...(!existingBooking?.locationId ? { customServiceDescription } : {}),
             scheduledAt: Timestamp.fromDate(scheduledDate),
@@ -570,6 +605,7 @@
             patientName,
             patientPhone,
             patientAddress,
+            visitAddress,
             serviceName,
             ...(customServiceDescription ? { customServiceDescription } : {}),
             district,
@@ -628,6 +664,7 @@
                 sameText(saved.patientName, patientName) &&
                 sameText(saved.patientPhone, patientPhone) &&
                 sameText(saved.patientAddress, patientAddress) &&
+                sameText(saved.visitAddress, visitAddress) &&
                 sameText(saved.serviceName, serviceName) &&
                 sameText(saved.area, area) &&
                 sameText(saved.notes, notes) &&
