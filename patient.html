@@ -658,6 +658,14 @@
         window.location.href = 'profile.html';
       }
     };
+
+    // Buka tab tertentu saat diarahkan dari halaman layanan.
+    const initialTab = new URLSearchParams(location.search).get('tab');
+    if (initialTab === 'orders' || initialTab === 'history') {
+      const targetLabel = initialTab === 'orders' ? 'Pesanan' : 'Riwayat';
+      const targetNav = Array.from(document.querySelectorAll('.nav-item')).find(item => item.querySelector('span')?.textContent?.trim() === targetLabel);
+      if (targetNav) window.switchNav(targetNav);
+    }
   </script>
 
   <script type="module">
