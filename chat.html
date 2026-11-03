@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id"><head>
+<meta name="theme-color" content="#0f766e"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icons/icon-192.svg"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0f766e">
 <title>Chat Layanan - Go Homecare</title>
 <style>
@@ -47,4 +48,5 @@ sending=true;composer(true);send.textContent="…";try{await addDoc(collection(d
 catch(err){console.error(err);notice.textContent=err.code==="permission-denied"?"Pesan ditolak Firestore Rules. Pastikan aturan chat sudah dipublikasikan.":"Pesan belum terkirim. Periksa koneksi lalu coba lagi.";notice.hidden=false;notice.classList.add("error")}
 finally{sending=false;send.textContent="Kirim";updateStatus()}});
 onAuthStateChanged(auth,async user=>{if(!user){location.replace("index.html");return}currentUser=user;try{await openChat(user)}catch(err){console.error(err);info.textContent="Pesanan tidak dapat diakses";notice.textContent=err.message||"Akses chat tidak tersedia.";notice.hidden=false;notice.classList.add("error");messages.innerHTML='<div class="empty">Chat tidak dapat dibuka untuk akun atau status pesanan ini.</div>';composer(false)}});
-</script></body></html>
+</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(error=>console.error("Go-Homecare SW:",error)));}</script>
+</body></html>
