@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--teal:#0f766e;--ink:#17242d;--muted:#71808e;--line:#e7ecef;--bg:#f6f8f9}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--ink);padding-bottom:88px}
 .app{max-width:680px;min-height:100vh;margin:auto;background:#fff;box-shadow:0 0 44px #0f172a08}
 header{padding:18px 20px 22px;background:#fff;border-bottom:1px solid #edf0f2}
 .back{display:inline-flex;color:#53616c;text-decoration:none;font-size:12px;font-weight:700;margin-bottom:18px}
@@ -24,11 +24,22 @@ main{padding:18px 16px 40px}.status{font-size:12px;color:var(--muted);line-heigh
 .book{display:block;margin-top:10px;text-align:center;text-decoration:none;background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;padding:11px 12px;border-radius:11px;font-size:12px;font-weight:800}
 .empty{padding:26px 18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7;background:#fff;border:1px dashed #cbdada;border-radius:16px}
 @media(max-width:370px){.card{gap:10px;padding:11px}.photo,.avatar{width:56px;height:56px;flex-basis:56px}.price{font-size:14px}}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:680px;height:72px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;align-items:center;background:#fff;border-top:1px solid #edf0f2;box-shadow:0 -5px 20px #0f172a0d;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;height:100%;color:#94a3b8;text-decoration:none;font-size:10px;font-weight:600}
+.nav-item svg{width:21px;height:21px}.nav-item.active{color:var(--teal)}
 </style></head>
 <body><div class="app">
 <header><a class="back" href="patient.html">← Kembali ke dashboard</a><p class="eyebrow">Go Homecare · Pilih praktisi</p><h1 id="pageTitle">Praktisi untuk layanan</h1><p class="subtitle">Pilih praktisi yang menyediakan layanan ini. Tarif dan lokasi ditampilkan sebelum pemesanan.</p></header>
 <main><p id="status" class="status">Memuat praktisi dan tarif…</p><div id="practitionerList" class="list"></div></main>
 </div>
+<nav class="bottom-nav" aria-label="Navigasi utama">
+ <a class="nav-item" href="patient.html"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Beranda</span></a>
+ <a class="nav-item" href="patient.html?tab=orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/><path d="m9 14 2 2 4-4"/></svg><span>Pesanan</span></a>
+ <a class="nav-item" href="patient.html?tab=history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg><span>Riwayat</span></a>
+ <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Profil</span></a>
+</nav>
+
 <script type="module">
 import{initializeApp,getApps}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
