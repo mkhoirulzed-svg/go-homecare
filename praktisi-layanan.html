@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<meta name="theme-color" content="#0f766e"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icons/icon-192.svg"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0f766e"><title>Praktisi untuk Layanan - Go Homecare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -98,4 +99,5 @@ onAuthStateChanged(auth,async user=>{
  try{const snap=await getDoc(doc(db,"users",user.uid));if(!snap.exists()||snap.data().role!=="pasien"||snap.data().profileComplete!==true){$("status").textContent="Halaman ini tersedia untuk akun pasien dengan profil lengkap.";return;}await load();}
  catch(error){console.error("Gagal memuat praktisi layanan:",error);$("status").textContent="Daftar praktisi belum dapat dimuat. Periksa koneksi atau aturan akses Firestore ("+(error.code||"kesalahan")+").";}
 });
-</script></body></html>
+</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(error=>console.error("Go-Homecare SW:",error)));}</script>
+</body></html>
